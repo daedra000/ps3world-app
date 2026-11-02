@@ -24,7 +24,7 @@ Tick each box. Where a step fails, note what the screen said and copy `/dev_hdd0
 - [ ] Up/Down move one row, Left/Right a screen. Holding a direction repeats and speeds up.
 - [ ] In Themes > All themes, hold Down past item 100: rows show "Loading..." for a moment while the next page arrives, then fill in. Scrolling back up is instant.
 - [ ] Icons appear as you scroll (first time from the server, then from the HDD). Theme rows show a small 16:9 preview of the theme, not a square icon.
-- [ ] A theme's detail screen shows its preview large (480x270) on the left; an avatar's shows the avatar at 240x240; a homebrew item's shows its screenshot. "Loading the preview..." shows briefly the first time.
+- [ ] A theme's detail screen shows its preview large (640x360) on the left, with Author, Size, Category, Works on and Saves to on the right, then the description; under the preview, how to use it after it downloads. An avatar shows square in the middle of the preview box; a homebrew item shows its screenshot. "Loading the preview..." shows briefly the first time.
 - [ ] L1/R1 switch between Homebrew, Themes and Avatars.
 - [ ] In All themes, R2 jumps to the next letter and L2 to the previous one. The letter and position show bottom right.
 - [ ] Triangle opens the keyboard. Search "wolf" in All themes: only matching themes are listed, with "Search: "wolf"" at the top. Square (or Circle) clears it.

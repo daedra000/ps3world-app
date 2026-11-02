@@ -1400,62 +1400,72 @@ static void Draw_List(void)
 	}
 }
 
+// a "key  value" row of the detail screen (the value wraps); returns the y after it
+static int Info_Row(int x, int y, int w, const char *key, const char *value, uint32_t c)
+{
+	char lines[3][256];
+	font_draw(FONT_REGULAR, 19, x, y, key, C_DIM, 0);
+	int n = Wrap(FONT_MEDIUM, 19, value, w - 124, lines, 3);
+	for (int i = 0; i < n; i++)
+		font_draw(FONT_MEDIUM, 19, x + 124, y + i * 26, lines[i], c, 0);
+	return y + (n ? n : 1) * 26 + 10;
+}
+
+/*
+The detail screen, in two columns: on the left the preview (640x360) and under it
+the download, how it went, or how to use it after; on the right the title, what
+it is (author, size, where it saves...) and the description.
+*/
+#define DET_PX		(LIST_X + 8)
+#define DET_PY		84
+#define DET_PW		640
+#define DET_PH		360
+
 static void Draw_Detail(void)
 {
 	const cat_item_t *it = det;
 	char line[400], size[32], dest[512];
-	// the preview as big as it comes (a theme's 480x270, an avatar's 240x240), or the icon if there's none
-	int pw = ICON_BIG, ph = ICON_BIG;
-	if (it->preview[0]) {
-		pw = it->type == TYPE_AVATAR ? 240 : 480;
-		ph = it->type == TYPE_AVATAR ? 240 : 270;
-	}
-	int x = LIST_X + 8 + pw + 32, w = SCREEN_W - LIST_X - x;
 	gfx_round_rect(LIST_X - 12, 60, SCREEN_W - 2 * LIST_X + 24, SCREEN_H - 150, 16, C_PANEL);
-	if (it->preview[0]) {
-		int failed;
-		image_t *img = Art_Get(it, 1, pw, ph, &failed);
-		if (img)
-			gfx_image(img, LIST_X + 8, 84, pw, ph, 12, 255);
-		else {
-			gfx_round_rect(LIST_X + 8, 84, pw, ph, 12, 0xff1a1c20);
-			if (failed) Icon_Draw(it, LIST_X + 8 + (pw - ICON_BIG) / 2, 84 + (ph - ICON_BIG) / 2, ICON_BIG);
-			else font_draw_center(FONT_REGULAR, 18, LIST_X + 8 + pw / 2, 84 + ph / 2 - 12, "Loading the preview...", C_DIM, 0);
-		}
-	} else
-		Icon_Draw(it, LIST_X + 8, 84, ICON_BIG);
-	int y = 84;
-	font_draw(FONT_BOLD, 34, x, y, it->title, C_TEXT, w);
-	y += 50;
+
+	// the preview: a theme's or homebrew's filling the box, an avatar's square in the middle of it
+	int sq = it->type == TYPE_AVATAR, pw = sq ? DET_PH : DET_PW, px = DET_PX + (DET_PW - pw) / 2, failed = 1;
+	image_t *img = it->preview[0] ? Art_Get(it, 1, pw, DET_PH, &failed) : NULL;
+	if (!img || sq) gfx_round_rect(DET_PX, DET_PY, DET_PW, DET_PH, 12, 0xff11151f);
+	if (img)
+		gfx_image(img, px, DET_PY, pw, DET_PH, sq ? 0 : 12, 255);
+	else if (failed)
+		Icon_Draw(it, DET_PX + (DET_PW - ICON_BIG) / 2, DET_PY + (DET_PH - ICON_BIG) / 2, ICON_BIG);
+	else
+		font_draw_center(FONT_REGULAR, 18, DET_PX + DET_PW / 2, DET_PY + DET_PH / 2 - 12, "Loading the preview...", C_DIM, 0);
+
+	// what it is
+	int x = DET_PX + DET_PW + 32, w = SCREEN_W - LIST_X - 8 - x, y = DET_PY;
+	char lines[8][256];
+	int n = Wrap(FONT_BOLD, 32, it->title, w, lines, 2);
+	for (int i = 0; i < n; i++, y += 40)
+		font_draw(FONT_BOLD, 32, x, y, lines[i], C_TEXT, 0);
+	y += 14;
+	if (it->author[0]) y = Info_Row(x, y, w, "Author", it->author, C_TEXT);
+	if (it->version[0]) y = Info_Row(x, y, w, "Version", it->version, C_TEXT);
 	Fmt_Size(it->size, size, sizeof(size));
-	snprintf(line, sizeof(line), "%s%s%s  ·  %s", it->author[0] ? it->author : "Unknown author",
-		it->version[0] ? "  ·  v" : "", it->version, size);
-	font_draw(FONT_MEDIUM, 21, x, y, line, C_DIM, w);
-	y += 32;
-	snprintf(line, sizeof(line), "%s%s%s", it->group, it->group[0] ? "  ·  " : "",
-		it->requires == REQ_CFW ? "Needs CFW" : it->requires == REQ_HEN ? "Needs HEN or CFW" : "Any PS3");
-	font_draw(FONT_REGULAR, 19, x, y, line, C_DIM, w);
-	y += 42;
-	if (it->description[0]) {
-		char lines[5][256];
-		int n = Wrap(FONT_REGULAR, 21, it->description, w, lines, 5);
-		for (int i = 0; i < n; i++, y += 30)
-			font_draw(FONT_REGULAR, 21, x, y, lines[i], C_TEXT, 0);
-		y += 14;
-	}
+	y = Info_Row(x, y, w, "Size", size, C_TEXT);
+	if (it->group[0]) y = Info_Row(x, y, w, it->type == TYPE_AVATAR ? "Pack" : "Category", it->group, C_TEXT);
+	y = Info_Row(x, y, w, "Works on", it->requires == REQ_CFW ? "CFW only" : it->requires == REQ_HEN ? "HEN or CFW" : "Any PS3", C_TEXT);
 	int code = store_dest(it, dest, sizeof(dest));
-	if (code == DEST_OK) snprintf(line, sizeof(line), "Saves to %s", dest);
-	else snprintf(line, sizeof(line), "%s", store_dest_message(code));
-	font_draw(FONT_REGULAR, 18, x, y, line, code == DEST_OK ? C_DIM : C_WARN, w);
-	y += 30;
+	y = Info_Row(x, y, w, "Saves to", code == DEST_OK ? dest : store_dest_message(code), code == DEST_OK ? C_TEXT : C_WARN);
 	const char *have = store_downloaded(it);
-	if (have && !dl && !result_msg[0]) {
-		snprintf(line, sizeof(line), "Downloaded: %s", have);
-		font_draw(FONT_MEDIUM, 19, x, y, line, C_OK, w);
+	if (have) y = Info_Row(x, y, w, "Downloaded", "Yes", C_OK);
+	if (it->description[0]) {		// as much of it as fits above the panel's foot
+		int max = (SCREEN_H - 112 - (y + 8)) / 28;
+		n = max > 0 ? Wrap(FONT_REGULAR, 20, it->description, w, lines, max > 8 ? 8 : max) : 0;
+		for (int i = 0; i < n; i++)
+			font_draw(FONT_REGULAR, 20, x, y + 8 + i * 28, lines[i], C_TEXT2, 0);
 	}
 
-	// the download, or how it went
-	int by = SCREEN_H - 230;
+	// under the preview: the download, how it went, or how to use it after
+	x = DET_PX;
+	w = DET_PW;
+	int by = DET_PY + DET_PH + 24;
 	if (dl) {
 		const char *what = dl->state == DL_CHECKING ? "Checking what's there already..." :
 			dl->state == DL_VERIFYING ? "Checking the sha256..." : "Downloading";
@@ -1477,10 +1487,14 @@ static void Draw_Detail(void)
 			font_draw(FONT_REGULAR, 17, x, by + 56, line, C_DIM, w);
 		}
 	} else if (result_msg[0]) {
-		char lines[4][256];
-		int n = Wrap(FONT_MEDIUM, 20, result_msg, w, lines, 4);
+		n = Wrap(FONT_MEDIUM, 20, result_msg, w, lines, 4);
 		for (int i = 0; i < n; i++)
 			font_draw(FONT_MEDIUM, 20, x, by + i * 28, lines[i], result_ok ? C_OK : C_ERR, 0);
+	} else {
+		snprintf(line, sizeof(line), "After it downloads: %s", Install_Hint(it->type));
+		n = Wrap(FONT_REGULAR, 19, line, w, lines, 3);
+		for (int i = 0; i < n; i++)
+			font_draw(FONT_REGULAR, 19, x, by + i * 27, lines[i], C_DIM, 0);
 	}
 
 	int hx = LIST_X;
