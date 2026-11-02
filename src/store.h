@@ -5,6 +5,7 @@ store.h: what the app keeps on the PS3, and where downloads go.
   USRDIR/cache/files/<sha256>   pages and search.txt files, named by their sha256
                                 (a cached one is good exactly when the index's sha256 matches)
   USRDIR/cache/icons/<id>.jpg   icons, fetched once
+  USRDIR/cache/previews/<id>    previews (JPEG or PNG), fetched once
   USRDIR/downloaded.txt         "id<TAB>sha256<TAB>path" for each finished download
   USRDIR/settings.txt           "avatar_profile=00000001"
 */
@@ -24,6 +25,7 @@ void store_save_index(const char *json, size_t len);	// only after it parsed
 char *store_get_file(const cat_file_t *f, size_t *len, volatile int *cancel, int *err_kind, char *err, int errsize);
 
 void store_icon_path(const cat_item_t *it, char *out, int size);
+void store_preview_path(const cat_item_t *it, char *out, int size);
 
 // where a finished download of it is, if it's there and still the catalogue's version
 const char *store_downloaded(const cat_item_t *it);

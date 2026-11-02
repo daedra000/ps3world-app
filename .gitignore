@@ -3,5 +3,6 @@ src/ps3/ca_bundle.h
 generator/node_modules/
 tests/sample/.cache/
 tests/sample/catalog/v1/icons/
+tests/sample/catalog/v1/previews/
 PS3World/
 PS3World.zip

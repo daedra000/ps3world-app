@@ -9,6 +9,8 @@ make-catalog.mjs: builds the PS3 World app's catalogue under catalog/v1/:
   avatar/<list>/packs/<pack>/   each pack's avatars, a list of its own (its item's "list")
   <list>/search.txt             "title<TAB>author<TAB>group" a line, for searching a list
   icons/<id>.jpg                128 px JPEG icons
+  previews/<id>.jpg             homebrew's 480x270 previews (themes' and avatars' are the
+                                site's own, already on dl.ps3.world beside each download)
 
   node make-catalog.mjs                  everything
   node make-catalog.mjs --limit 3        the first 3 of each type (a quick sample)
@@ -114,7 +116,7 @@ function writeList(name, list, relDir) {
       items: list.slice(p * PAGE_SIZE, (p + 1) * PAGE_SIZE).map(s => ({
         id: s.id, type: s.type, title: s.title, author: s.author, version: s.version,
         description: s.description, group: s.group, size: s.size, sha256: s.sha256,
-        url: s.url, icon: s.icon, requires: s.requires, list: s.list,
+        url: s.url, icon: s.icon, preview: s.preview, requires: s.requires, list: s.list,
       })),
     };
     const json = JSON.stringify(page);
@@ -188,6 +190,27 @@ async function makeIcon(src, id) {
   }
 }
 
+// homebrew's preview: its site image, letterboxed into 480x270 (a theme preview's size)
+async function makePreview(src, id) {
+  if (!src) return '';
+  try { await fsp.access(src); } catch { return ''; }
+  const rel = `${CATALOG_DIR}/previews/${id}.jpg`;
+  const out = path.join(CONFIG.outDir, rel);
+  try {
+    const [a, b] = await Promise.all([fsp.stat(src), fsp.stat(out).catch(() => null)]);
+    if (b && b.mtimeMs >= a.mtimeMs) return rel;
+    await fsp.mkdir(path.dirname(out), { recursive: true });
+    await sharp(src, { failOn: 'none' }).resize(480, 270, { fit: 'contain', background: ICON_BG })
+      .flatten({ background: ICON_BG })
+      .jpeg({ quality: 82, progressive: false, mozjpeg: false, chromaSubsampling: '4:2:0' })
+      .toFile(out);
+    return rel;
+  } catch (e) {
+    warn(`preview failed for ${id}: ${e.message}`);
+    return '';
+  }
+}
+
 // ---- ids ----
 const usedIds = new Set();
 function uniqueId(base) {
@@ -237,6 +260,7 @@ function themeSources() {
       requires: 'any',
       _file: localFor(rel),
       _icon: img && t.hasImage ? localFor(img) : '',
+      _preview: img && t.hasImage ? img : '',
     });
   }
   return out;
@@ -265,6 +289,7 @@ function avatarSources() {
       requires: 'hen',
       _file: localFor(rel),
       _icon: img ? localFor(img) : '',
+      _preview: img || '',
     });
   }
   return out;
@@ -313,6 +338,7 @@ async function build() {
     s.size = info.size;
     s.sha256 = info.sha256;
     s.icon = await makeIcon(s._icon, s.id);
+    s.preview = s.type === 'homebrew' ? await makePreview(s._icon, s.id) : s._preview || '';
     items.push(s);
   });
   fs.writeFileSync(cachePath, JSON.stringify(hashCache));

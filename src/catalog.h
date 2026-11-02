@@ -48,6 +48,7 @@ typedef struct {
 	const char *id, *title, *author, *version, *description, *group;
 	const char *url;			// relative to CATALOG_BASE
 	const char *icon;			// relative to CATALOG_BASE, "" for none
+	const char *preview;		// a bigger picture (a theme's 480x270, an avatar's 240x240), "" for none
 	const char *list;			// a folder (an avatar pack): its own list, as the index's JSON; "" for a file
 	long long size;				// (a folder: all its files)
 	unsigned char sha256[32];

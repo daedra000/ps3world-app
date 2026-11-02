@@ -7,7 +7,8 @@ ui.c: the screens.
   list     one list: icon/title/author/version/size per row; Triangle searches
            (the system keyboard), L2/R2 jump a letter; L1/R1 change section.
            An avatar list's rows are packs: Cross opens one as a list (a folder)
-  detail   the description, where it'll be saved, Download (X) with progress,
+  detail   the preview (a theme's 480x270, an avatar's 240x240; themes' rows show it
+           small), the description, where it'll be saved, Download (X) with progress,
            speed and Cancel (O); the result, or why it failed
   profile  which user an avatar is for, when the PS3 has more than one
 
@@ -644,7 +645,7 @@ static void Search_Run(view_t *v, const cat_list_t *l)
 
 /*
 ==================
-Icons: from the HDD cache, or fetched once and cached
+Icons and previews: from the HDD cache, or fetched once and cached
 ==================
 */
 #define ICON_SLOTS		96
@@ -652,7 +653,7 @@ Icons: from the HDD cache, or fetched once and cached
 
 typedef struct {
 	char id[64];
-	int size;
+	int w, h, preview;
 	image_t *img;
 	job_t *job;
 	int failed;
@@ -664,7 +665,7 @@ static int icons_inflight;
 typedef struct {
 	char url[1100];
 	char path[600];
-	int size;
+	int w, h;
 } icon_req_t;
 
 static void Icon_Run(job_t *j)
@@ -682,7 +683,7 @@ static void Icon_Run(job_t *j)
 			free(body);
 	}
 	if (data) {
-		j->result = image_decode(data, (int)len, r->size, r->size);
+		j->result = image_decode(data, (int)len, r->w, r->h);
 		free(data);
 	}
 }
@@ -708,14 +709,18 @@ static void Icons_Tick(void)
 	}
 }
 
-static image_t *Icon_Get(const cat_item_t *it, int size)
+// an item's icon, or its preview, at w x h: NULL until it's here (*failed: it won't be)
+static image_t *Art_Get(const cat_item_t *it, int preview, int w, int h, int *failed)
 {
 	int lru = -1;
-	if (!it->icon[0]) return NULL;
+	const char *rel = preview ? it->preview : it->icon;
+	if (failed) *failed = !rel[0];
+	if (!rel[0]) return NULL;
 	for (int i = 0; i < ICON_SLOTS; i++) {
 		icon_slot_t *s = &icons[i];
-		if (s->size == size && !strcmp(s->id, it->id)) {
+		if (s->w == w && s->h == h && s->preview == preview && !strcmp(s->id, it->id)) {
 			s->used = t_now;
+			if (failed) *failed = s->failed;
 			return s->img;
 		}
 		if (!s->job && (lru < 0 || s->used < icons[lru].used)) lru = i;
@@ -724,21 +729,27 @@ static image_t *Icon_Get(const cat_item_t *it, int size)
 	icon_req_t *r = calloc(1, sizeof(*r));
 	job_t *j = r ? job_new(Icon_Run, Icon_Cleanup) : NULL;
 	if (!j) { free(r); return NULL; }
-	snprintf(r->url, sizeof(r->url), "%s%s", CATALOG_BASE, it->icon);
-	store_icon_path(it, r->path, sizeof(r->path));
-	r->size = size;
+	snprintf(r->url, sizeof(r->url), "%s%s", CATALOG_BASE, rel);
+	if (preview) store_preview_path(it, r->path, sizeof(r->path));
+	else store_icon_path(it, r->path, sizeof(r->path));
+	r->w = w;
+	r->h = h;
 	j->arg = r;
 	icon_slot_t *s = &icons[lru];
 	image_free(s->img);
 	memset(s, 0, sizeof(*s));
 	snprintf(s->id, sizeof(s->id), "%s", it->id);
-	s->size = size;
+	s->w = w;
+	s->h = h;
+	s->preview = preview;
 	s->used = t_now;
 	s->job = j;
 	icons_inflight++;
 	job_post(j, LANE_ART);
 	return NULL;
 }
+
+static image_t *Icon_Get(const cat_item_t *it, int size) { return Art_Get(it, 0, size, size, NULL); }
 
 static void Placeholder(const char *title, int x, int y, int size)
 {
@@ -752,6 +763,22 @@ static void Icon_Draw(const cat_item_t *it, int x, int y, int size)
 	image_t *img = Icon_Get(it, size);
 	if (img) gfx_image(img, x, y, size, size, size / 10, 255);
 	else Placeholder(it->title, x, y, size);
+}
+
+// a theme's row: its preview, small and 16:9 (a square icon letterboxes it to nothing)
+#define THUMB_W		96
+#define THUMB_H		54
+
+static void Thumb_Draw(const cat_item_t *it, const char *title, int x, int y)
+{
+	image_t *img = it ? Art_Get(it, 1, THUMB_W, THUMB_H, NULL) : NULL;
+	if (img) {
+		gfx_image(img, x, y, THUMB_W, THUMB_H, 6, 255);
+		return;
+	}
+	gfx_round_rect(x, y, THUMB_W, THUMB_H, 6, 0xff1a1c20);
+	char ch[2] = {Letter_Of(title), 0};
+	font_draw_center(FONT_BOLD, 26, x + THUMB_W / 2, y + 12, ch, 0xff3a4152, 0);
 }
 
 /*
@@ -1301,7 +1328,9 @@ static void Draw_List(void)
 		file_slot_t *slot;
 		const cat_item_t *it = Item_At(l, pos, &slot);
 		if (row == v->sel) gfx_round_rect(LIST_X - 4, y, LIST_W + 8, ROW_H - 4, 10, C_ROW_ON);
-		int tx = LIST_X + 6 + ICON_LIST + 16, iy = y + (ROW_H - 4 - ICON_LIST) / 2;
+		int thumbs = cur == TYPE_THEME;		// (themes: a 16:9 preview, not a square icon)
+		int pw = thumbs ? THUMB_W : ICON_LIST, ph = thumbs ? THUMB_H : ICON_LIST;
+		int tx = LIST_X + 6 + pw + 16, iy = y + (ROW_H - 4 - ph) / 2;
 		if (!it) {
 			// its page isn't here yet: the title from the search file if we have it
 			int len = 0;
@@ -1311,13 +1340,15 @@ static void Draw_List(void)
 				const char *tab = memchr(line, '\t', len);
 				snprintf(title, sizeof(title), "%.*s", (int)(tab ? tab - line : len), line);
 			}
-			Placeholder(title[0] ? title : "?", LIST_X + 6, iy, ICON_LIST);
+			if (thumbs) Thumb_Draw(NULL, title[0] ? title : "?", LIST_X + 6, iy);
+			else Placeholder(title[0] ? title : "?", LIST_X + 6, iy, ICON_LIST);
 			if (title[0]) font_draw(FONT_MEDIUM, 22, tx, y + 8, title, C_TEXT, LIST_W - tx);
 			const char *state = slot && slot->failed ? Error_Text(slot->err_kind, slot->err) : "Loading...";
 			font_draw(FONT_REGULAR, 17, tx, title[0] ? y + 37 : y + 22, state, slot && slot->failed ? C_ERR : C_DIM, LIST_X + LIST_W - tx - 12);
 			continue;
 		}
-		Icon_Draw(it, LIST_X + 6, iy, ICON_LIST);
+		if (thumbs) Thumb_Draw(it, it->title, LIST_X + 6, iy);
+		else Icon_Draw(it, LIST_X + 6, iy, ICON_LIST);
 		char size[32], sub[300];
 		Fmt_Size(it->size, size, sizeof(size));
 		int rx = LIST_X + LIST_W - 12;
@@ -1365,9 +1396,26 @@ static void Draw_Detail(void)
 {
 	const cat_item_t *it = det;
 	char line[400], size[32], dest[512];
-	int x = LIST_X + ICON_BIG + 40, w = SCREEN_W - LIST_X - x;
+	// the preview as big as it comes (a theme's 480x270, an avatar's 240x240), or the icon if there's none
+	int pw = ICON_BIG, ph = ICON_BIG;
+	if (it->preview[0]) {
+		pw = it->type == TYPE_AVATAR ? 240 : 480;
+		ph = it->type == TYPE_AVATAR ? 240 : 270;
+	}
+	int x = LIST_X + 8 + pw + 32, w = SCREEN_W - LIST_X - x;
 	gfx_round_rect(LIST_X - 12, 60, SCREEN_W - 2 * LIST_X + 24, SCREEN_H - 150, 16, C_PANEL);
-	Icon_Draw(it, LIST_X + 8, 84, ICON_BIG);
+	if (it->preview[0]) {
+		int failed;
+		image_t *img = Art_Get(it, 1, pw, ph, &failed);
+		if (img)
+			gfx_image(img, LIST_X + 8, 84, pw, ph, 12, 255);
+		else {
+			gfx_round_rect(LIST_X + 8, 84, pw, ph, 12, 0xff1a1c20);
+			if (failed) Icon_Draw(it, LIST_X + 8 + (pw - ICON_BIG) / 2, 84 + (ph - ICON_BIG) / 2, ICON_BIG);
+			else font_draw_center(FONT_REGULAR, 18, LIST_X + 8 + pw / 2, 84 + ph / 2 - 12, "Loading the preview...", C_DIM, 0);
+		}
+	} else
+		Icon_Draw(it, LIST_X + 8, 84, ICON_BIG);
 	int y = 84;
 	font_draw(FONT_BOLD, 34, x, y, it->title, C_TEXT, w);
 	y += 50;

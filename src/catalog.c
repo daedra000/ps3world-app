@@ -200,7 +200,7 @@ void catalog_free_index(cat_index_t *ix)
 Pages
 ==================
 */
-static const char *const fields[] = {"id", "title", "author", "version", "description", "group", "url", "icon", "list"};
+static const char *const fields[] = {"id", "title", "author", "version", "description", "group", "url", "icon", "preview", "list"};
 #define NUM_FIELDS (int)(sizeof(fields) / sizeof(fields[0]))
 
 // checks one item; fills what doesn't need the string block
@@ -214,7 +214,8 @@ static int Check(const cJSON *o, cat_item_t *it)
 		if (!strcmp(type, type_names[t])) break;
 	if (t == NUM_TYPES || !*Str(o, "id") || !*Str(o, "title") || !cJSON_IsNumber(size) || size->valuedouble < 0)
 		return 0;
-	if (!Safe_Path(Str(o, "url")) || (*Str(o, "icon") && !Safe_Path(Str(o, "icon"))))
+	if (!Safe_Path(Str(o, "url")) || (*Str(o, "icon") && !Safe_Path(Str(o, "icon"))) ||
+		(*Str(o, "preview") && !Safe_Path(Str(o, "preview"))))
 		return 0;
 	if (!Hex_Digest(Str(o, "sha256"), it->sha256))
 		return 0;
@@ -267,7 +268,7 @@ catalog_t *catalog_parse_page(const char *json, size_t len, char *err, int errsi
 		cat_item_t *it = &c->items[c->count];
 		if (c->count >= n || !Check(o, it)) continue;
 		const char **dst[NUM_FIELDS] = {&it->id, &it->title, &it->author, &it->version,
-			&it->description, &it->group, &it->url, &it->icon, &it->list};
+			&it->description, &it->group, &it->url, &it->icon, &it->preview, &it->list};
 		for (int f = 0; f < NUM_FIELDS; f++) {
 			size_t l = strlen(Str(o, fields[f])) + 1;
 			memcpy(s, Str(o, fields[f]), l);
@@ -310,14 +311,14 @@ void catalog_free(catalog_t *c)
 
 cat_item_t *catalog_item_copy(const cat_item_t *it)
 {
-	const char *src[NUM_FIELDS] = {it->id, it->title, it->author, it->version, it->description, it->group, it->url, it->icon, it->list};
+	const char *src[NUM_FIELDS] = {it->id, it->title, it->author, it->version, it->description, it->group, it->url, it->icon, it->preview, it->list};
 	size_t total = sizeof(cat_item_t);
 	for (int f = 0; f < NUM_FIELDS; f++) total += strlen(src[f]) + 1;
 	cat_item_t *c = malloc(total);		// the struct, then its strings, in one block (one free)
 	if (!c) return NULL;
 	*c = *it;
 	char *s = (char *)(c + 1);
-	const char **dst[NUM_FIELDS] = {&c->id, &c->title, &c->author, &c->version, &c->description, &c->group, &c->url, &c->icon, &c->list};
+	const char **dst[NUM_FIELDS] = {&c->id, &c->title, &c->author, &c->version, &c->description, &c->group, &c->url, &c->icon, &c->preview, &c->list};
 	for (int f = 0; f < NUM_FIELDS; f++) {
 		size_t l = strlen(src[f]) + 1;
 		memcpy(s, src[f], l);

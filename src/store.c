@@ -27,7 +27,7 @@ typedef struct {
 static record_t *records;
 static int num_records;
 static char avatar_profile[64];
-static char cache_dir[512], icons_dir[512], files_dir[512];
+static char cache_dir[512], icons_dir[512], previews_dir[512], files_dir[512];
 
 static void Hex(const unsigned char *in, char *out)
 {
@@ -107,8 +107,10 @@ void store_init(void)
 	records = calloc(MAX_RECORDS, sizeof(record_t));
 	snprintf(cache_dir, sizeof(cache_dir), "%s/cache", plat_save_dir());
 	snprintf(icons_dir, sizeof(icons_dir), "%s/icons", cache_dir);
+	snprintf(previews_dir, sizeof(previews_dir), "%s/previews", cache_dir);
 	snprintf(files_dir, sizeof(files_dir), "%s/files", cache_dir);
 	plat_mkdirs(icons_dir);
+	plat_mkdirs(previews_dir);
 	plat_mkdirs(files_dir);
 	Settings_Load();
 	if (records) Records_Load();
@@ -208,6 +210,11 @@ char *store_get_file(const cat_file_t *f, size_t *len, volatile int *cancel, int
 void store_icon_path(const cat_item_t *it, char *out, int size)
 {
 	snprintf(out, size, "%s/%s.jpg", icons_dir, it->id);
+}
+
+void store_preview_path(const cat_item_t *it, char *out, int size)
+{
+	snprintf(out, size, "%s/%s", previews_dir, it->id);
 }
 
 /*
