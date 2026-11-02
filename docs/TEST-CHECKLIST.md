@@ -12,8 +12,8 @@ Tick each box. Where a step fails, note what the screen said and copy `/dev_hdd0
 ## 1. Open the app
 
 - [ ] **PS3 World** is on the XMB under Game with the PS3 World icon, and the waves picture shows behind it when highlighted.
-- [ ] It opens to "Loading the catalogue..." (a few seconds at most: only the small index downloads), then **Homebrew**'s categories: Games 4, Ports 17, Tools 12, Media 4, Misc 1.
-- [ ] The section tabs show counts that match the catalogue: Homebrew 38, Themes 13,303, Avatars 6,323.
+- [ ] It opens to "Loading the catalogue..." (a few seconds at most: only the small index downloads), then **Homebrew**'s categories: Games 5, Ports 19, Tools 13, Media 5.
+- [ ] The section tabs show counts that match the catalogue: Homebrew 42, Themes 13,303, Avatars 6,323.
 - [ ] R1 from Homebrew to Themes and Avatars opens their lists straight away (this crashed in the first build).
 
 ## 2. Browse

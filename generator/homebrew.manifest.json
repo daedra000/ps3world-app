@@ -11,6 +11,16 @@
       "icon": ""
     },
     {
+      "file": "homebrewgames/gridsiege (v2.7.2).pkg",
+      "title": "Grid Siege",
+      "author": "daedra000",
+      "version": "2.7.2",
+      "description": "Top-down zombie horde survival: solo, 2-player co-op, split-screen versus and a custom map builder, with 20 arenas, 10 weapons and 28 unlockable skins. Inspired by Boxhead.",
+      "group": "Games",
+      "requires": "hen",
+      "icon": "images/homebrew-games/gridsiege_menu.webp"
+    },
+    {
       "file": "homebrewgames/ps3sweeperplus-v0.4.1.pkg",
       "title": "PS3Sweeper+",
       "author": "AcidNT3.1",
@@ -41,12 +51,12 @@
       "icon": "images/homebrew-games/super-mario-war.webp"
     },
     {
-      "file": "homebrewmisc/IRISMAN_4.91.2.pkg",
+      "file": "homebrewtools/IRISMAN_4.91.2.pkg",
       "title": "IRISMAN",
       "author": "aldostools",
       "version": "4.91.2",
       "description": "A fork of Iris Manager originally created by Estwald and D_Skywalk, and modified by aldostools (& at times updated and contributed by other devs, including Joonie, Habib, Alexander, NzV, Orion, EvilNat, etc.).",
-      "group": "Misc",
+      "group": "Tools",
       "requires": "hen",
       "icon": "images/homebrew/irisman.webp"
     },
@@ -181,7 +191,7 @@
       "icon": "images/homebrew-misc/jellyfin-ps3.webp"
     },
     {
-      "file": "mediaplayers/movianM7-7.0.273-playstation3.pkg",
+      "file": "mediaplayers/movianM7-7.0.273.pkg",
       "title": "Movian 7",
       "author": "",
       "version": "7.0.273",
@@ -209,6 +219,16 @@
       "group": "Media",
       "requires": "hen",
       "icon": "images/homebrew-misc/yoplayer-1.webp"
+    },
+    {
+      "file": "mediaplayers/Resonant-1.0.0.pkg",
+      "title": "Resonant for Plex",
+      "author": "daedra000",
+      "version": "1.0.0",
+      "description": "A native Plex music player for the PS3. Sign in with a code at plex.tv/link, pick your server and library, and your whole music collection plays on the PS3. Needs a Plex Media Server with a music library.",
+      "group": "Media",
+      "requires": "hen",
+      "icon": "images/homebrew-media/resonant.webp"
     },
     {
       "file": "ports/Bubble_Bobble_-_BUBL00002-v1.5(normal).pkg",
@@ -369,6 +389,26 @@
       "group": "Ports",
       "requires": "hen",
       "icon": "images/ports/undertale.webp"
+    },
+    {
+      "file": "ports/nzp-ps3-p3.pkg",
+      "title": "Nazi Zombies: Portable",
+      "author": "daedra000",
+      "version": "",
+      "description": "A native PS3 port of Nazi Zombies: Portable, the fan-made World at War zombies remake. Solo on all 19 maps at 60 fps, on HEN or CFW.",
+      "group": "Ports",
+      "requires": "hen",
+      "icon": "images/ports/nzp-cover.webp"
+    },
+    {
+      "file": "ports/theworldshardestgame.pkg",
+      "title": "The World's Hardest Game",
+      "author": "daedra000",
+      "version": "",
+      "description": "The World's Hardest Game is a 2007 browser puzzle-platformer created by Stephen Critoph (Snubby Land). Now plays natively on PS3.",
+      "group": "Ports",
+      "requires": "hen",
+      "icon": "images/ports/whg.webp"
     },
     {
       "file": "ports/UP0001-BLES00752_Thrill_Kill_Uncensored_00-XxZer0ModZxX.pkg",
