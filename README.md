@@ -4,6 +4,15 @@
 
 The app reads one index, `https://dl.ps3.world/catalog/v1/catalog.json`, which is made by the generator in [`generator/`](generator/README.md).
 
+## Screenshots
+
+| | |
+|---|---|
+| ![The home screen: Homebrew, Themes and Avatars as cards](docs/screenshots/home.png) | ![Homebrew > Ports: icon, title, author, size per row](docs/screenshots/homebrew-ports.png) |
+| Home: the three sections, styled as ps3.world's home page | A list: Homebrew > Ports |
+| ![A theme's detail screen with its preview](docs/screenshots/theme-detail.png) | ![An avatar pack opened as a list](docs/screenshots/avatar-pack.png) |
+| A theme: its preview, and where it saves (`/dev_hdd0/theme`) | Avatars: a pack, opened as a folder |
+
 ## Layout
 
 | Path | What |
