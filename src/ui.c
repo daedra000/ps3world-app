@@ -1,15 +1,21 @@
 /*
 ui.c: the screens.
 
-  list     three sections (L1/R1), icon/title/author/version/size per row;
-           Triangle searches (the system keyboard), L2/R2 jump a letter
+  picker   Homebrew's categories (Games, Ports, Tools...), as on ps3.world
+  list     one list: icon/title/author/version/size per row; Triangle searches
+           (the system keyboard), L2/R2 jump a letter; L1/R1 change section
   detail   the description, where it'll be saved, Download (X) with progress,
            speed and Cancel (O); the result, or why it failed
   profile  which user an avatar is for, when the PS3 has more than one
 
-The catalogue on the HDD opens at once; the server's copy is fetched in the
-background and replaces it when it's newer. Cross confirms and Circle goes
-back, as in Resonant (swapped on consoles that confirm with Circle).
+Lists are never loaded whole: the index says how many items a list has and
+which page file holds each 100, and a page is fetched (or read from the HDD
+cache) when the list reaches it, a few kept in memory. Search reads the list's
+search.txt (one line an item) instead of every page.
+
+The index on the HDD opens at once; the server's is fetched in the background
+and replaces it when it's newer. Cross confirms and Circle goes back, as in
+Resonant (swapped on consoles that confirm with Circle).
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,6 +49,7 @@ back, as in Resonant (swapped on consoles that confirm with Circle).
 #define ICON_LIST	56
 #define ICON_BIG	200
 #define GLYPH		28
+#define MAX_RESULTS	2000
 
 enum { SCR_START, SCR_LIST, SCR_DETAIL, SCR_PROFILE };
 
@@ -86,25 +93,26 @@ static void Fmt_Count(int n, char *out, int size)
 
 static char Lower(char c) { return c >= 'A' && c <= 'Z' ? c + 32 : c; }
 
-static int Contains(const char *hay, const char *needle)
+// needle in the first len bytes of hay (any case)
+static int Contains(const char *hay, int len, const char *needle)
 {
 	if (!*needle) return 1;
-	for (; *hay; hay++) {
-		int i = 0;
-		while (needle[i] && Lower(hay[i]) == Lower(needle[i])) i++;
-		if (!needle[i]) return 1;
+	for (int i = 0; i < len; i++) {
+		int k = 0;
+		while (needle[k] && i + k < len && Lower(hay[i + k]) == Lower(needle[k])) k++;
+		if (!needle[k]) return 1;
 	}
 	return 0;
 }
 
+// the letter a title is filed under (generator/make-catalog.mjs letterOf)
 static char Letter_Of(const char *title)
 {
 	for (; *title; title++) {
 		char c = *title;
 		if (c >= 'a' && c <= 'z') return c - 32;
 		if (c >= 'A' && c <= 'Z') return c;
-		if (c >= '0' && c <= '9') return '#';
-		if ((unsigned char)c >= 0x80) return '#';
+		if ((c >= '0' && c <= '9') || (unsigned char)c >= 0x80) return '#';
 	}
 	return '#';
 }
@@ -164,113 +172,6 @@ static int Hint2(int x, int g1, int g2, const char *label)
 	return Hint(x + GLYPH + 4, g2, label);
 }
 
-/*
-==================
-Catalogue and sections
-==================
-*/
-static catalog_t *catalog;
-static catalog_t *pending;			// a newer one, swapped in when the detail screen isn't open
-static job_t *fetch_job;
-static int fetch_tries;
-static char banner[200];			// "Offline: ..." over the list
-static char start_msg[300];		// the start screen's line
-static int start_err;
-
-typedef struct {
-	int *idx;						// items of this type that match the search
-	int count;
-	int sel, top;
-	char query[128];
-} section_t;
-static section_t sections[NUM_TYPES];
-static int cur;						// the section shown
-
-static int detail = -1;				// the item on the detail screen (index into catalog->items)
-
-static void Section_Build(int t, const char *keep_id)
-{
-	section_t *s = &sections[t];
-	free(s->idx);
-	s->idx = NULL;
-	s->count = 0;
-	if (!catalog) return;
-	s->idx = malloc(sizeof(int) * (catalog->count ? catalog->count : 1));
-	if (!s->idx) return;
-	int sel = 0;
-	for (int i = 0; i < catalog->count; i++) {
-		const cat_item_t *it = &catalog->items[i];
-		if (it->type != t) continue;
-		if (s->query[0] && !Contains(it->title, s->query) && !Contains(it->author, s->query) && !Contains(it->group, s->query))
-			continue;
-		if (keep_id && !strcmp(it->id, keep_id)) sel = s->count;
-		s->idx[s->count++] = i;
-	}
-	s->sel = keep_id ? sel : 0;
-	if (s->sel >= s->count) s->sel = s->count ? s->count - 1 : 0;
-	s->top = s->sel - ROWS / 2;
-}
-
-static void Catalog_Use(catalog_t *c)
-{
-	char keep[NUM_TYPES][64];
-	for (int t = 0; t < NUM_TYPES; t++) {
-		section_t *s = &sections[t];
-		keep[t][0] = 0;
-		if (catalog && s->count) snprintf(keep[t], 64, "%s", catalog->items[s->idx[s->sel]].id);
-	}
-	catalog_free(catalog);
-	catalog = c;
-	for (int t = 0; t < NUM_TYPES; t++)
-		Section_Build(t, keep[t][0] ? keep[t] : NULL);
-	if (screen == SCR_START) screen = SCR_LIST;
-	dirty = 1;
-}
-
-typedef struct {
-	catalog_t *cat;
-	int kind;
-} fetch_result_t;
-
-static void Fetch_Run(job_t *j)
-{
-	http_res_t res;
-	size_t len = 0;
-	uint64_t t0 = plat_time_us();
-	char *body = http_fetch(NULL, CATALOG_URL, NULL, NULL, 30, &j->cancel, &len, &res);
-
-	if (!body || res.status != 200) {
-		j->ival = download_error_kind(res.err, body ? res.status : 0);
-		if (body) snprintf(j->err, sizeof(j->err), "HTTP %d", res.status);
-		else snprintf(j->err, sizeof(j->err), "%s", res.err[0] ? res.err : "The catalogue didn't download");
-		free(body);
-		return;
-	}
-	plat_log("catalog: %lu bytes in %.1f s", (unsigned long)len, (plat_time_us() - t0) / 1e6);
-	catalog_t *c = catalog_parse(body, len, j->err, sizeof(j->err));
-	if (c) store_save_catalog(body, len);
-	j->result = c;
-	free(body);
-}
-
-static void Fetch_Cleanup(job_t *j)
-{
-	catalog_free(j->result);
-}
-
-static void Fetch_Start(void)
-{
-	if (fetch_job) return;
-	fetch_tries++;
-	if (!catalog) {
-		snprintf(start_msg, sizeof(start_msg), "Loading the catalogue...");
-		start_err = 0;
-	}
-	fetch_job = job_new(Fetch_Run, Fetch_Cleanup);
-	if (fetch_job) job_post(fetch_job, LANE_API);
-	dirty = 1;
-}
-
 static const char *Error_Text(int kind, const char *detail_msg)
 {
 	static char buf[300];
@@ -280,9 +181,7 @@ static const char *Error_Text(int kind, const char *detail_msg)
 	case ERR_TLS:
 		return "The secure connection to dl.ps3.world failed. Check the PS3's date and time (Settings > Date and Time Settings), then try again.";
 	case ERR_NOT_FOUND:
-		return "Not found on the server (404). It may have moved: refresh the catalogue and try again.";
-	case ERR_CHECKSUM:
-		return "The download didn't match its checksum, so it was deleted. Try again.";
+		return "Not found on the server (404). It may have moved: try again in a moment.";
 	case ERR_DISK_FULL:
 		snprintf(buf, sizeof(buf), "Not enough free space. %s", detail_msg);
 		return buf;
@@ -291,35 +190,338 @@ static const char *Error_Text(int kind, const char *detail_msg)
 	return buf;
 }
 
+/*
+==================
+Pages: fetched (or read from the HDD) as the lists reach them, a few kept
+==================
+*/
+#define PAGE_SLOTS	16
+#define RETRY_US	5000000
+
+typedef struct {
+	unsigned char sha[32];		// which file (the index's sha256 names it)
+	int search;					// a search.txt rather than a page
+	catalog_t *page;
+	struct search_s *lines;
+	job_t *job;
+	int failed, err_kind;
+	char err[160];
+	uint64_t used, failed_at;
+} file_slot_t;
+
+typedef struct search_s {
+	char *text;
+	const char **line;		// each item's line ("title\tauthor\tgroup")
+	int *len;
+	int count;
+} search_t;
+
+static file_slot_t files[PAGE_SLOTS];
+
+typedef struct {
+	cat_file_t f;
+	int search;
+} file_req_t;
+
+static void Search_Free(search_t *s)
+{
+	if (!s) return;
+	free(s->text);
+	free(s->line);
+	free(s->len);
+	free(s);
+}
+
+static void File_Run(job_t *j)
+{
+	file_req_t *r = j->arg;
+	size_t len;
+	char *body = store_get_file(&r->f, &len, &j->cancel, &j->ival, j->err, sizeof(j->err));
+	if (!body) return;
+	if (!r->search) {
+		j->result = catalog_parse_page(body, len, j->err, sizeof(j->err));
+		free(body);
+		return;
+	}
+	search_t *s = calloc(1, sizeof(*s));
+	int n = 0;
+	for (size_t i = 0; i < len; i++) if (body[i] == '\n') n++;
+	if (!s || !(s->line = malloc(sizeof(char *) * (n + 1))) || !(s->len = malloc(sizeof(int) * (n + 1)))) {
+		Search_Free(s);
+		free(body);
+		return;
+	}
+	s->text = body;
+	for (char *p = body; *p && s->count <= n; ) {
+		char *e = strchr(p, '\n');
+		s->line[s->count] = p;
+		s->len[s->count] = e ? (int)(e - p) : (int)strlen(p);
+		s->count++;
+		if (!e) break;
+		p = e + 1;
+	}
+	j->result = s;
+}
+
+static void File_Cleanup(job_t *j)
+{
+	file_req_t *r = j->arg;
+	if (r && r->search) Search_Free(j->result);
+	else catalog_free(j->result);
+	free(r);
+}
+
+static void Files_Tick(void)
+{
+	for (int i = 0; i < PAGE_SLOTS; i++) {
+		file_slot_t *s = &files[i];
+		if (!job_done(s->job)) continue;
+		if (s->search) s->lines = s->job->result;
+		else s->page = s->job->result;
+		s->job->result = NULL;
+		s->failed = !s->page && !s->lines;
+		s->err_kind = s->job->ival;
+		snprintf(s->err, sizeof(s->err), "%s", s->job->err);
+		if (s->failed) {
+			s->failed_at = t_now;
+			plat_log("catalog: %s", s->err);
+		}
+		job_release(s->job);
+		s->job = NULL;
+		dirty = 1;
+	}
+}
+
+// the slot for a file, asked for if it isn't there; NULL if every slot is busy
+static file_slot_t *File_Get(const cat_file_t *f, int search)
+{
+	int lru = -1;
+	for (int i = 0; i < PAGE_SLOTS; i++) {
+		file_slot_t *s = &files[i];
+		if ((s->page || s->lines || s->job || s->failed) && s->search == search && !memcmp(s->sha, f->sha256, 32)) {
+			s->used = t_now;
+			if (!s->failed || t_now - s->failed_at < RETRY_US) return s;
+			lru = i;		// failed a while ago: try again in the same slot
+			break;
+		}
+		if (!s->job && (lru < 0 || s->used < files[lru].used)) lru = i;
+	}
+	if (lru < 0) return NULL;
+	file_req_t *r = calloc(1, sizeof(*r));
+	job_t *j = r ? job_new(File_Run, File_Cleanup) : NULL;
+	if (!j) { free(r); return NULL; }
+	r->f = *f;
+	r->search = search;
+	j->arg = r;
+	file_slot_t *s = &files[lru];
+	catalog_free(s->page);
+	Search_Free(s->lines);
+	memset(s, 0, sizeof(*s));
+	memcpy(s->sha, f->sha256, 32);
+	s->search = search;
+	s->used = t_now;
+	s->job = j;
+	job_post(j, LANE_API);
+	return s;
+}
+
+/*
+==================
+The index, sections and their lists
+==================
+*/
+static cat_index_t *ix;
+static cat_index_t *pending;		// a newer one, used when the detail screen isn't open
+static job_t *fetch_job;
+static char banner[200];			// "Offline: ..." over the list
+static char start_msg[300];		// the start screen's line
+static int start_err;
+
+typedef struct {
+	int sel, top;
+	char query[128];
+	int *results;					// positions that match the search (NULL: the whole list)
+	int num_results;
+	int search_wait;				// the search.txt is on its way
+} view_t;
+
+static view_t *views[NUM_TYPES];	// one per list
+static int cur;						// the section shown
+static int cur_list[NUM_TYPES];		// its list, or -1 for Homebrew's category picker
+static int picker_sel;
+
+static cat_list_t *List(int t, int l) { return ix && l >= 0 && l < ix->num_lists[t] ? &ix->lists[t][l] : NULL; }
+static int Picking(void) { return ix && ix->num_lists[cur] > 1 && cur_list[cur] < 0; }
+static cat_list_t *Cur_List(void) { return Picking() ? NULL : List(cur, cur_list[cur] < 0 ? 0 : cur_list[cur]); }
+static view_t *Cur_View(void) { return Cur_List() && views[cur] ? &views[cur][cur_list[cur] < 0 ? 0 : cur_list[cur]] : NULL; }
+static int View_Count(const view_t *v, const cat_list_t *l) { return v->results ? v->num_results : l->count; }
+static int View_Pos(const view_t *v, int row) { return v->results ? v->results[row] : row; }
+
+static void Clamp(view_t *v, int count)
+{
+	if (v->sel >= count) v->sel = count - 1;
+	if (v->sel < 0) v->sel = 0;
+	if (v->top > v->sel) v->top = v->sel;
+	if (v->top < v->sel - ROWS + 1) v->top = v->sel - ROWS + 1;
+	if (v->top > count - ROWS) v->top = count - ROWS;
+	if (v->top < 0) v->top = 0;
+}
+
+// the item at a position of a list: NULL until its page is here (*slot says how it's going)
+static const cat_item_t *Item_At(const cat_list_t *l, int pos, file_slot_t **slot)
+{
+	int p = pos / ix->page_size;
+	*slot = NULL;
+	if (pos < 0 || pos >= l->count || p >= l->num_pages) return NULL;
+	file_slot_t *s = File_Get(&l->pages[p], 0);
+	*slot = s;
+	if (!s || !s->page) return NULL;
+	int k = pos % ix->page_size;
+	return k < s->page->count ? &s->page->items[k] : NULL;
+}
+
+// the item's search line (title, author, group), if the list's search.txt is here
+static const char *Search_Line(const cat_list_t *l, int pos, int *len)
+{
+	for (int i = 0; i < PAGE_SLOTS; i++)
+		if (files[i].lines && files[i].search && !memcmp(files[i].sha, l->search.sha256, 32) && pos < files[i].lines->count) {
+			*len = files[i].lines->len[pos];
+			return files[i].lines->line[pos];
+		}
+	return NULL;
+}
+
+static void Views_Free(void)
+{
+	for (int t = 0; t < NUM_TYPES; t++) {
+		if (views[t] && ix)
+			for (int l = 0; l < ix->num_lists[t]; l++) free(views[t][l].results);
+		free(views[t]);
+		views[t] = NULL;
+	}
+}
+
+static void Index_Use(cat_index_t *n)
+{
+	// where each list was, kept when the lists are the same ones
+	int same = ix != NULL;
+	for (int t = 0; same && t < NUM_TYPES; t++)
+		same = ix->num_lists[t] == n->num_lists[t];
+	view_t *keep[NUM_TYPES] = {0};
+	for (int t = 0; t < NUM_TYPES; t++) {
+		if (same && views[t]) {
+			keep[t] = views[t];
+			for (int l = 0; l < n->num_lists[t]; l++) {
+				free(keep[t][l].results);		// searches start again on the new lists
+				keep[t][l].results = NULL;
+				keep[t][l].query[0] = 0;
+				Clamp(&keep[t][l], n->lists[t][l].count);
+			}
+			views[t] = NULL;
+		}
+	}
+	Views_Free();
+	catalog_free_index(ix);
+	ix = n;
+	for (int t = 0; t < NUM_TYPES; t++) {
+		views[t] = keep[t] ? keep[t] : calloc(ix->num_lists[t] ? ix->num_lists[t] : 1, sizeof(view_t));
+		if (!same) cur_list[t] = ix->num_lists[t] > 1 ? -1 : 0;
+	}
+	if (screen == SCR_START) screen = SCR_LIST;
+	dirty = 1;
+}
+
+static void Fetch_Run(job_t *j)
+{
+	http_res_t res;
+	size_t len = 0;
+	char *body = http_fetch(NULL, CATALOG_URL, NULL, NULL, 30, &j->cancel, &len, &res);
+
+	if (!body || res.status != 200) {
+		j->ival = download_error_kind(res.err, body ? res.status : 0);
+		if (body) snprintf(j->err, sizeof(j->err), "The catalogue wasn't found on the server (HTTP %d)", res.status);
+		else snprintf(j->err, sizeof(j->err), "%s", res.err[0] ? res.err : "The catalogue didn't download");
+		free(body);
+		return;
+	}
+	cat_index_t *n = catalog_parse_index(body, len, j->err, sizeof(j->err));
+	if (n) store_save_index(body, len);
+	j->result = n;
+	free(body);
+}
+
+static void Fetch_Cleanup(job_t *j)
+{
+	catalog_free_index(j->result);
+}
+
+static void Fetch_Start(void)
+{
+	if (fetch_job) return;
+	if (!ix) {
+		snprintf(start_msg, sizeof(start_msg), "Loading the catalogue...");
+		start_err = 0;
+	}
+	fetch_job = job_new(Fetch_Run, Fetch_Cleanup);
+	if (fetch_job) job_post(fetch_job, LANE_API);
+	dirty = 1;
+}
+
 static void Fetch_Tick(void)
 {
 	if (!job_done(fetch_job))
 		return;
-	catalog_t *c = fetch_job->result;
+	cat_index_t *n = fetch_job->result;
 	fetch_job->result = NULL;
-	if (c) {
-		plat_log("catalog: %d items (%d homebrew, %d themes, %d avatars), generated %s",
-			c->count, c->per_type[TYPE_HOMEBREW], c->per_type[TYPE_THEME], c->per_type[TYPE_AVATAR], c->generated);
+	if (n) {
+		plat_log("catalog: index of %d homebrew (%d lists), %d themes, %d avatars, generated %s",
+			n->count[TYPE_HOMEBREW], n->num_lists[TYPE_HOMEBREW], n->count[TYPE_THEME], n->count[TYPE_AVATAR], n->generated);
 		banner[0] = 0;
-		if (catalog && !strcmp(catalog->generated, c->generated)) {
-			catalog_free(c);		// the one we have
+		if (ix && !strcmp(ix->generated, n->generated)) {
+			catalog_free_index(n);		// the one we have
 		} else if (screen == SCR_DETAIL || screen == SCR_PROFILE) {
-			catalog_free(pending);
-			pending = c;
+			catalog_free_index(pending);
+			pending = n;
 		} else
-			Catalog_Use(c);
+			Index_Use(n);
 	} else {
-		const char *why = Error_Text(fetch_job->ival, fetch_job->err);
 		plat_log("catalog: %s", fetch_job->err);
-		if (catalog) {
-			snprintf(banner, sizeof(banner), "Offline: showing the catalogue from %.10s", catalog->generated);
+		if (ix) {
+			snprintf(banner, sizeof(banner), "Offline: showing the catalogue from %.10s", ix->generated);
 		} else {
-			snprintf(start_msg, sizeof(start_msg), "%s", why);
+			snprintf(start_msg, sizeof(start_msg), "%s", Error_Text(fetch_job->ival, fetch_job->err));
 			start_err = 1;
 		}
 	}
 	job_release(fetch_job);
 	fetch_job = NULL;
+	dirty = 1;
+}
+
+// the search, once the list's search.txt is here
+static void Search_Run(view_t *v, const cat_list_t *l)
+{
+	file_slot_t *s = File_Get(&l->search, 1);
+	if (!s || !s->lines) {
+		v->search_wait = !(s && s->failed);
+		if (s && s->failed) {
+			// no search file (offline and never fetched): say so, and match nothing
+			snprintf(banner, sizeof(banner), "Search isn't available: %s", Error_Text(s->err_kind, s->err));
+			free(v->results);
+			v->results = malloc(sizeof(int));
+			v->num_results = 0;
+			dirty = 1;
+		}
+		return;
+	}
+	v->search_wait = 0;
+	free(v->results);
+	v->results = malloc(sizeof(int) * MAX_RESULTS);
+	v->num_results = 0;
+	for (int i = 0; v->results && i < s->lines->count && v->num_results < MAX_RESULTS; i++)
+		if (Contains(s->lines->line[i], s->lines->len[i], v->query))
+			v->results[v->num_results++] = i;
+	v->sel = v->top = 0;
 	dirty = 1;
 }
 
@@ -421,27 +623,28 @@ static image_t *Icon_Get(const cat_item_t *it, int size)
 	return NULL;
 }
 
+static void Placeholder(const char *title, int x, int y, int size)
+{
+	gfx_round_rect(x, y, size, size, size / 10, 0xff1a1c20);
+	char ch[2] = {Letter_Of(title), 0};
+	font_draw_center(FONT_BOLD, size / 2, x + size / 2, y + size / 4, ch, 0xff3a4152, 0);
+}
+
 static void Icon_Draw(const cat_item_t *it, int x, int y, int size)
 {
 	image_t *img = Icon_Get(it, size);
-	if (img) {
-		gfx_image(img, x, y, size, size, size / 10, 255);
-		return;
-	}
-	gfx_round_rect(x, y, size, size, size / 10, 0xff1a1c20);
-	char ch[2] = {Letter_Of(it->title), 0};
-	font_draw_center(FONT_BOLD, size / 2, x + size / 2, y + size / 4, ch, 0xff3a4152, 0);
+	if (img) gfx_image(img, x, y, size, size, size / 10, 255);
+	else Placeholder(it->title, x, y, size);
 }
 
 /*
 ==================
-Downloads (one at a time)
+Downloads (one at a time, from the detail screen)
 ==================
 */
+static cat_item_t *det;			// the detail screen's item (a copy: its page may go)
 static download_t *dl;
 static job_t *dl_job;
-static char dl_item_id[64];
-static int dl_type;
 static uint64_t dl_t_last;
 static long long dl_last_got;
 static double dl_speed;			// bytes a second, smoothed
@@ -451,10 +654,10 @@ static int result_ok;
 static void Dl_Run(job_t *j) { download_run(j->arg); }
 static void Profiles_Load(void);
 
-static void Download_Start(const cat_item_t *it)
+static void Download_Start(void)
 {
 	char dest[512];
-	int code = store_dest(it, dest, sizeof(dest));
+	int code = store_dest(det, dest, sizeof(dest));
 	if (code == DEST_PICK_PROFILE) {
 		Profiles_Load();
 		screen = SCR_PROFILE;
@@ -479,12 +682,10 @@ static void Download_Start(const cat_item_t *it)
 	}
 	dl = calloc(1, sizeof(*dl));
 	if (!dl) return;
-	snprintf(dl->url, sizeof(dl->url), "%s%s", CATALOG_BASE, it->url);
+	snprintf(dl->url, sizeof(dl->url), "%s%s", CATALOG_BASE, det->url);
 	snprintf(dl->dest, sizeof(dl->dest), "%s", dest);
-	dl->size = it->size;
-	memcpy(dl->sha256, it->sha256, 32);
-	snprintf(dl_item_id, sizeof(dl_item_id), "%s", it->id);
-	dl_type = it->type;
+	dl->size = det->size;
+	memcpy(dl->sha256, det->sha256, 32);
 	dl_last_got = 0;
 	dl_speed = 0;
 	dl_t_last = t_now;
@@ -523,10 +724,8 @@ static void Download_Tick(void)
 	case DL_DONE: {
 		char size[32];
 		Fmt_Size(dl->size, size, sizeof(size));
-		if (catalog)
-			for (int i = 0; i < catalog->count; i++)
-				if (!strcmp(catalog->items[i].id, dl_item_id)) { store_mark_downloaded(&catalog->items[i], dl->dest); break; }
-		snprintf(result_msg, sizeof(result_msg), "Checksum OK (%s). Saved to %s\n%s", size, dl->dest, Install_Hint(dl_type));
+		store_mark_downloaded(det, dl->dest);
+		snprintf(result_msg, sizeof(result_msg), "Checksum OK (%s). Saved to %s\n%s", size, dl->dest, Install_Hint(det->type));
 		result_ok = 1;
 		break;
 	}
@@ -539,7 +738,9 @@ static void Download_Tick(void)
 		result_ok = 0;
 		break;
 	default:
-		snprintf(result_msg, sizeof(result_msg), "%s%s", Error_Text(dl->err_kind, dl->err),
+		snprintf(result_msg, sizeof(result_msg), "%s%s",
+			dl->err_kind == ERR_CHECKSUM ? "The download didn't match its checksum, so it was deleted. Try again." :
+			Error_Text(dl->err_kind, dl->err),
 			dl->err_kind == ERR_NETWORK ? "\nPress X to resume where it stopped." : "");
 		result_ok = 0;
 	}
@@ -576,71 +777,97 @@ static void Profiles_Load(void)
 Input
 ==================
 */
-static void Clamp_List(section_t *s)
-{
-	if (s->sel < 0) s->sel = 0;
-	if (s->sel >= s->count) s->sel = s->count ? s->count - 1 : 0;
-	if (s->top > s->sel) s->top = s->sel;
-	if (s->top < s->sel - ROWS + 1) s->top = s->sel - ROWS + 1;
-	if (s->top > s->count - ROWS) s->top = s->count - ROWS;
-	if (s->top < 0) s->top = 0;
-}
-
-static void Letter_Jump(section_t *s, int dir)
-{
-	if (!s->count) return;
-	char now = Letter_Of(catalog->items[s->idx[s->sel]].title);
-	int i = s->sel;
-	if (dir > 0) {
-		while (i < s->count - 1 && Letter_Of(catalog->items[s->idx[i]].title) == now) i++;
-	} else {
-		// back to the start of this letter, or of the one before
-		while (i > 0 && Letter_Of(catalog->items[s->idx[i - 1]].title) == now) i--;
-		if (i == s->sel && i > 0) {
-			char prev = Letter_Of(catalog->items[s->idx[i - 1]].title);
-			while (i > 0 && Letter_Of(catalog->items[s->idx[i - 1]].title) == prev) i--;
-		}
-	}
-	s->sel = i;
-	s->top = i;
-}
-
 static int searching;
+
+static void Letter_Jump(view_t *v, const cat_list_t *l, int dir)
+{
+	int pos = v->sel, slot = 0;
+	for (int i = 0; i < NUM_LETTERS; i++)		// the letter we're in: the last one starting at or before pos
+		if (l->letter_first[i] >= 0 && l->letter_first[i] <= pos) slot = i;
+	if (dir > 0) {
+		for (int i = slot + 1; i < NUM_LETTERS; i++)
+			if (l->letter_first[i] >= 0) { v->sel = l->letter_first[i]; break; }
+	} else {
+		// to the start of this letter, or of the one before when already there
+		if (l->letter_first[slot] >= 0 && l->letter_first[slot] < pos) v->sel = l->letter_first[slot];
+		else for (int i = slot - 1; i >= 0; i--)
+			if (l->letter_first[i] >= 0) { v->sel = l->letter_first[i]; break; }
+	}
+	v->top = v->sel;
+}
+
+static void Section_Step(int dir)
+{
+	cur = (cur + NUM_TYPES + dir) % NUM_TYPES;
+	dirty = 1;
+}
+
+static void Input_Picker(uint32_t p)
+{
+	int n = ix->num_lists[cur];
+	if (p & BTN_R1) { Section_Step(1); return; }
+	if (p & BTN_L1) { Section_Step(-1); return; }
+	if (p & BTN_DOWN) picker_sel++;
+	if (p & BTN_UP) picker_sel--;
+	if (picker_sel >= n) picker_sel = n - 1;
+	if (picker_sel < 0) picker_sel = 0;
+	if (p & BTN_CROSS) cur_list[cur] = picker_sel;
+	if (p) dirty = 1;
+}
 
 static void Input_List(uint32_t p)
 {
-	section_t *s = &sections[cur];
-	if (p & BTN_R1) { cur = (cur + 1) % NUM_TYPES; dirty = 1; return; }
-	if (p & BTN_L1) { cur = (cur + NUM_TYPES - 1) % NUM_TYPES; dirty = 1; return; }
-	if (p & BTN_DOWN) s->sel++;
-	if (p & BTN_UP) s->sel--;
-	if (p & BTN_RIGHT) s->sel += ROWS;
-	if (p & BTN_LEFT) s->sel -= ROWS;
-	if (p & BTN_R2) Letter_Jump(s, 1);
-	if (p & BTN_L2) Letter_Jump(s, -1);
+	cat_list_t *l = Cur_List();
+	view_t *v = Cur_View();
+	if (!l || !v) return;
+	if (p & BTN_R1) { Section_Step(1); return; }
+	if (p & BTN_L1) { Section_Step(-1); return; }
+	int count = View_Count(v, l);
+	if (p & BTN_DOWN) v->sel++;
+	if (p & BTN_UP) v->sel--;
+	if (p & BTN_RIGHT) v->sel += ROWS;
+	if (p & BTN_LEFT) v->sel -= ROWS;
+	if (!v->results && (p & BTN_R2)) Letter_Jump(v, l, 1);
+	if (!v->results && (p & BTN_L2)) Letter_Jump(v, l, -1);
 	if (p & BTN_TRIANGLE) {
 		char title[64];
-		snprintf(title, sizeof(title), "Search %s", section_names[cur]);
-		if (plat_osk_open(title, s->query)) searching = 1;
+		snprintf(title, sizeof(title), "Search %s%s%s", section_names[cur], l->name[0] ? ": " : "", l->name);
+		if (plat_osk_open(title, v->query)) searching = 1;
 	}
-	if ((p & (BTN_SQUARE | BTN_CIRCLE)) && s->query[0]) {
-		s->query[0] = 0;
-		Section_Build(cur, s->count ? catalog->items[s->idx[s->sel]].id : NULL);
+	if ((p & (BTN_SQUARE | BTN_CIRCLE)) && (v->query[0] || v->search_wait)) {
+		v->query[0] = 0;
+		v->search_wait = 0;
+		free(v->results);
+		v->results = NULL;
+		v->sel = v->top = 0;
+		dirty = 1;
+		return;
 	}
-	if (p & BTN_CROSS && s->count) {
-		detail = s->idx[s->sel];
-		result_msg[0] = 0;
-		screen = SCR_DETAIL;
+	if ((p & BTN_CIRCLE) && ix->num_lists[cur] > 1) {		// back to Homebrew's categories
+		picker_sel = cur_list[cur];
+		cur_list[cur] = -1;
+		dirty = 1;
+		return;
 	}
-	Clamp_List(s);
+	if ((p & BTN_CROSS) && count) {
+		file_slot_t *slot;
+		const cat_item_t *it = Item_At(l, View_Pos(v, v->sel), &slot);
+		if (it && (det = catalog_item_copy(it))) {
+			result_msg[0] = 0;
+			screen = SCR_DETAIL;
+		}
+	}
+	Clamp(v, View_Count(v, l));
 	if (p) dirty = 1;
 }
 
 static void Leave_Detail(void)
 {
+	free(det);
+	det = NULL;
 	screen = SCR_LIST;
 	if (pending) {
-		Catalog_Use(pending);
+		Index_Use(pending);
 		pending = NULL;
 	}
 	dirty = 1;
@@ -653,7 +880,7 @@ static void Input_Detail(uint32_t p)
 		return;
 	}
 	if (p & BTN_CIRCLE) { Leave_Detail(); return; }
-	if ((p & BTN_CROSS) && catalog && detail >= 0) Download_Start(&catalog->items[detail]);
+	if ((p & BTN_CROSS) && det) Download_Start();
 	if (p) dirty = 1;
 }
 
@@ -665,7 +892,7 @@ static void Input_Profile(uint32_t p)
 	if (p & BTN_CROSS && num_profiles) {
 		store_set_avatar_profile(profiles[profile_sel]);
 		screen = SCR_DETAIL;
-		if (catalog && detail >= 0) Download_Start(&catalog->items[detail]);
+		Download_Start();
 	}
 	if (p) dirty = 1;
 }
@@ -686,10 +913,10 @@ void ui_init(void)
 		glyphs[i] = Load_Image(name, px, px);
 	}
 	store_init();
-	catalog_t *c = store_load_catalog();
+	cat_index_t *c = store_load_index();
 	if (c) {
-		plat_log("catalog: %d items from the HDD cache (generated %s)", c->count, c->generated);
-		Catalog_Use(c);
+		plat_log("catalog: index from the HDD cache (generated %s)", c->generated);
+		Index_Use(c);
 	}
 	Fetch_Start();		// the server's copy, in the background
 }
@@ -699,6 +926,7 @@ void ui_update(void)
 	t_now = plat_time_us();
 	input_update();
 	Fetch_Tick();
+	Files_Tick();
 	Icons_Tick();
 	Download_Tick();
 
@@ -707,21 +935,27 @@ void ui_update(void)
 		int r = plat_osk_poll(q, sizeof(q));
 		if (r) {
 			searching = 0;
-			if (r > 0) {
-				section_t *s = &sections[cur];
-				snprintf(s->query, sizeof(s->query), "%s", q);
-				Section_Build(cur, NULL);
+			view_t *v = Cur_View();
+			if (r > 0 && v && q[0]) {
+				snprintf(v->query, sizeof(v->query), "%s", q);
+				Search_Run(v, Cur_List());
 			}
 			dirty = 1;
 		}
 		return;
 	}
+	view_t *v = Cur_View();
+	if (v && v->search_wait) Search_Run(v, Cur_List());		// (once the search.txt is here)
+
 	uint32_t p = input_pressed();
 	switch (screen) {
 	case SCR_START:
 		if ((p & BTN_CROSS) && start_err) Fetch_Start();
 		break;
-	case SCR_LIST: Input_List(p); break;
+	case SCR_LIST:
+		if (Picking()) Input_Picker(p);
+		else Input_List(p);
+		break;
 	case SCR_DETAIL: Input_Detail(p); break;
 	case SCR_PROFILE: Input_Profile(p); break;
 	}
@@ -747,7 +981,7 @@ static void Draw_Header(void)
 	x += GLYPH + 16;
 	for (int t = 0; t < NUM_TYPES; t++) {
 		char label[64], n[16];
-		Fmt_Count(catalog ? catalog->per_type[t] : 0, n, sizeof(n));
+		Fmt_Count(ix->count[t], n, sizeof(n));
 		snprintf(label, sizeof(label), "%s  %s", section_names[t], n);
 		int w = font_width(FONT_MEDIUM, 22, label) + 32;
 		if (t == cur) gfx_round_rect(x, 88, w, 36, 18, C_ROW_ON);
@@ -755,14 +989,18 @@ static void Draw_Header(void)
 		x += w + 8;
 	}
 	Glyph(G_R1, x + 8, 92);
-	const section_t *s = &sections[cur];
-	if (s->query[0]) {
-		char q[180];
-		snprintf(q, sizeof(q), "Search: \"%s\"  (%d)", s->query, s->count);
-		font_draw_right(FONT_MEDIUM, 20, SCREEN_W - LIST_X, 96, q, C_WARN);
+	const view_t *v = Cur_View();
+	const cat_list_t *l = Cur_List();
+	char line[200];
+	if (v && (v->query[0] || v->search_wait)) {
+		if (v->search_wait) snprintf(line, sizeof(line), "Searching for \"%s\"...", v->query);
+		else snprintf(line, sizeof(line), "Search: \"%s\"  (%d%s)", v->query, v->num_results, v->num_results == MAX_RESULTS ? "+" : "");
+		font_draw_right(FONT_MEDIUM, 20, SCREEN_W - LIST_X, 96, line, C_WARN);
 	} else if (banner[0])
 		font_draw_right(FONT_REGULAR, 18, SCREEN_W - LIST_X, 98, banner, C_WARN);
-	else if (fetch_job && catalog)
+	else if (l && l->name[0])
+		font_draw_right(FONT_MEDIUM, 20, SCREEN_W - LIST_X, 96, l->name, C_TEXT);
+	else if (fetch_job)
 		font_draw_right(FONT_REGULAR, 18, SCREEN_W - LIST_X, 98, "Checking for updates...", C_DIM);
 }
 
@@ -775,22 +1013,60 @@ static void Badge(int *rx, int y, const char *text, uint32_t c)
 	*rx -= 8;
 }
 
+static void Draw_Picker(void)
+{
+	Draw_Header();
+	int n = ix->num_lists[cur];
+	gfx_round_rect(LIST_X - 12, LIST_Y - 8, LIST_W + 24, ROWS * ROW_H + 16, 14, C_PANEL);
+	for (int i = 0; i < n && i < ROWS; i++) {
+		const cat_list_t *l = &ix->lists[cur][i];
+		int y = LIST_Y + i * ROW_H;
+		char count[48];
+		if (i == picker_sel) gfx_round_rect(LIST_X - 4, y, LIST_W + 8, ROW_H - 4, 10, C_ROW_ON);
+		font_draw(FONT_BOLD, 26, LIST_X + 24, y + 16, l->name, C_TEXT, 0);
+		snprintf(count, sizeof(count), "%d item%s", l->count, l->count == 1 ? "" : "s");
+		font_draw_right(FONT_MEDIUM, 20, LIST_X + LIST_W - 16, y + 20, count, C_DIM);
+	}
+	int x = Hint(LIST_X, G_CROSS, "Open");
+	Hint2(x, G_L1, G_R1, "Section");
+}
+
 static void Draw_List(void)
 {
-	section_t *s = &sections[cur];
+	cat_list_t *l = Cur_List();
+	view_t *v = Cur_View();
 	Draw_Header();
 	gfx_round_rect(LIST_X - 12, LIST_Y - 8, LIST_W + 24, ROWS * ROW_H + 16, 14, C_PANEL);
-	if (!s->count) {
+	if (!l || !v) return;
+	int count = View_Count(v, l);
+	Clamp(v, count);		// (every path in: a section's view is never drawn out of range)
+	if (!count && !v->search_wait)
 		font_draw_center(FONT_MEDIUM, 22, SCREEN_W / 2, LIST_Y + 180,
-			s->query[0] ? "Nothing matches the search. Press Square to clear it." : "Nothing here yet.", C_DIM, 0);
-	}
-	for (int r = 0; r < ROWS && s->top + r < s->count; r++) {
-		int i = s->top + r;
-		const cat_item_t *it = &catalog->items[s->idx[i]];
+			!v->query[0] ? "Nothing here yet." : !strncmp(banner, "Search isn't", 12) ? banner :
+			"Nothing matches the search. Press Square to clear it.", C_DIM, SCREEN_W - 200);
+	for (int r = 0; r < ROWS && v->top + r < count; r++) {
+		int row = v->top + r, pos = View_Pos(v, row);
 		int y = LIST_Y + r * ROW_H;
-		if (i == s->sel) gfx_round_rect(LIST_X - 4, y, LIST_W + 8, ROW_H - 4, 10, C_ROW_ON);
-		Icon_Draw(it, LIST_X + 6, y + (ROW_H - 4 - ICON_LIST) / 2, ICON_LIST);
-		int tx = LIST_X + 6 + ICON_LIST + 16;
+		file_slot_t *slot;
+		const cat_item_t *it = Item_At(l, pos, &slot);
+		if (row == v->sel) gfx_round_rect(LIST_X - 4, y, LIST_W + 8, ROW_H - 4, 10, C_ROW_ON);
+		int tx = LIST_X + 6 + ICON_LIST + 16, iy = y + (ROW_H - 4 - ICON_LIST) / 2;
+		if (!it) {
+			// its page isn't here yet: the title from the search file if we have it
+			int len = 0;
+			const char *line = Search_Line(l, pos, &len);
+			char title[200] = "";
+			if (line) {
+				const char *tab = memchr(line, '\t', len);
+				snprintf(title, sizeof(title), "%.*s", (int)(tab ? tab - line : len), line);
+			}
+			Placeholder(title[0] ? title : "?", LIST_X + 6, iy, ICON_LIST);
+			if (title[0]) font_draw(FONT_MEDIUM, 22, tx, y + 8, title, C_TEXT, LIST_W - tx);
+			const char *state = slot && slot->failed ? Error_Text(slot->err_kind, slot->err) : "Loading...";
+			font_draw(FONT_REGULAR, 17, tx, title[0] ? y + 37 : y + 22, state, slot && slot->failed ? C_ERR : C_DIM, LIST_X + LIST_W - tx - 12);
+			continue;
+		}
+		Icon_Draw(it, LIST_X + 6, iy, ICON_LIST);
 		char size[32], sub[300];
 		Fmt_Size(it->size, size, sizeof(size));
 		int rx = LIST_X + LIST_W - 12;
@@ -800,32 +1076,37 @@ static void Draw_List(void)
 		else if (it->requires == REQ_HEN) Badge(&rx, y + 20, "HEN / CFW", C_DIM);
 		font_draw(FONT_MEDIUM, 22, tx, y + 8, it->title, C_TEXT, rx - tx - 10);
 		snprintf(sub, sizeof(sub), "%s%s%s%s%s", it->author[0] ? it->author : "Unknown author",
-			it->version[0] ? "  ·  v" : "", it->version, it->group[0] ? "  ·  " : "", it->group);
+			it->version[0] ? "  ·  v" : "", it->version, it->group[0] && it->type != TYPE_HOMEBREW ? "  ·  " : "",
+			it->type != TYPE_HOMEBREW ? it->group : "");
 		font_draw(FONT_REGULAR, 17, tx, y + 37, sub, C_DIM, rx - tx - 10);
 	}
 	// where in the list, and the letter
-	if (s->count > ROWS) {
-		int h = ROWS * ROW_H, bh = h * ROWS / s->count;
+	if (count > ROWS) {
+		int h = ROWS * ROW_H, bh = h * ROWS / count;
 		if (bh < 24) bh = 24;
-		int by = LIST_Y + (int)((long long)(h - bh) * s->sel / (s->count - 1));
+		int by = LIST_Y + (int)((long long)(h - bh) * v->sel / (count - 1));
 		gfx_round_rect(LIST_X + LIST_W + 2, by, 4, bh, 2, 0x99ffffff);
 	}
 	int x = LIST_X;
 	x = Hint(x, G_CROSS, "Open");
 	x = Hint(x, G_TRIANGLE, "Search");
-	if (s->query[0]) x = Hint(x, G_SQUARE, "Clear search");
-	if (s->count > 50) x = Hint2(x, G_L2, G_R2, "A-Z");
+	if (v->query[0]) x = Hint(x, G_SQUARE, "Clear search");
+	else if (ix->num_lists[cur] > 1) x = Hint(x, G_CIRCLE, "Categories");
+	if (!v->results && count > 50) x = Hint2(x, G_L2, G_R2, "A-Z");
 	x = Hint2(x, G_L1, G_R1, "Section");
-	if (s->count) {
-		char pos[48], letter[2] = {Letter_Of(catalog->items[s->idx[s->sel]].title), 0};
-		snprintf(pos, sizeof(pos), "%s   %d / %d", letter, s->sel + 1, s->count);
+	if (count) {
+		char pos[64], letter = '#';
+		int at = View_Pos(v, v->sel);
+		for (int i = 0; i < NUM_LETTERS; i++)
+			if (l->letter_first[i] >= 0 && l->letter_first[i] <= at) letter = i ? 'A' + i - 1 : '#';
+		snprintf(pos, sizeof(pos), "%c   %d / %d", v->results ? ' ' : letter, v->sel + 1, count);
 		font_draw_right(FONT_MEDIUM, 19, SCREEN_W - LIST_X, SCREEN_H - 55, pos, C_DIM);
 	}
 }
 
 static void Draw_Detail(void)
 {
-	const cat_item_t *it = &catalog->items[detail];
+	const cat_item_t *it = det;
 	char line[400], size[32], dest[512];
 	int x = LIST_X + ICON_BIG + 40, w = SCREEN_W - LIST_X - x;
 	gfx_round_rect(LIST_X - 12, 60, SCREEN_W - 2 * LIST_X + 24, SCREEN_H - 150, 16, C_PANEL);
@@ -862,7 +1143,7 @@ static void Draw_Detail(void)
 
 	// the download, or how it went
 	int by = SCREEN_H - 230;
-	if (dl && !strcmp(dl_item_id, it->id)) {
+	if (dl) {
 		const char *what = dl->state == DL_CHECKING ? "Checking what's there already..." :
 			dl->state == DL_VERIFYING ? "Checking the sha256..." : "Downloading";
 		float frac = dl->size ? (float)dl->got / (float)dl->size : 0;
@@ -872,9 +1153,10 @@ static void Draw_Detail(void)
 		Fmt_Size((long long)dl_speed, spd, sizeof(spd));
 		gfx_round_rect(x, by, w, 14, 7, 0x40ffffff);
 		gfx_round_rect(x, by, (int)(w * frac), 14, 7, C_ACCENT);
-		snprintf(line, sizeof(line), "%s  %d%%  ·  %s of %s%s%s/s", what, (int)(frac * 100), got, tot,
-			dl->state == DL_RUNNING ? "  ·  " : "", dl->state == DL_RUNNING ? spd : "");
-		if (dl->state != DL_RUNNING) line[strlen(line) - 2] = 0;		// no "/s" without a speed
+		if (dl->state == DL_RUNNING)
+			snprintf(line, sizeof(line), "%s  %d%%  ·  %s of %s  ·  %s/s", what, (int)(frac * 100), got, tot, spd);
+		else
+			snprintf(line, sizeof(line), "%s  %d%%  ·  %s of %s", what, (int)(frac * 100), got, tot);
 		font_draw(FONT_MEDIUM, 20, x, by + 26, line, C_TEXT, w);
 		if (dl->resumed_from) {
 			Fmt_Size(dl->resumed_from, got, sizeof(got));
@@ -899,7 +1181,7 @@ static void Draw_Detail(void)
 static void Draw_Profile(void)
 {
 	font_draw_center(FONT_BOLD, 30, SCREEN_W / 2, 140, "Which user is the avatar for?", C_TEXT, 0);
-	font_draw_center(FONT_REGULAR, 19, SCREEN_W / 2, 186, "It's saved in that user's psn_avatar folder. You can change this later.", C_DIM, 0);
+	font_draw_center(FONT_REGULAR, 19, SCREEN_W / 2, 186, "It's saved in that user's psn_avatar folder.", C_DIM, 0);
 	for (int i = 0; i < num_profiles; i++) {
 		int y = 250 + i * 56;
 		if (i == profile_sel) gfx_round_rect(SCREEN_W / 2 - 300, y - 8, 600, 48, 12, C_ROW_ON);
@@ -926,8 +1208,11 @@ void ui_render(void)
 		}
 		if (start_err) Hint(SCREEN_W / 2 - 90, G_CROSS, "Try again");
 		break;
-	case SCR_LIST: Draw_List(); break;
-	case SCR_DETAIL: Draw_Detail(); break;
+	case SCR_LIST:
+		if (Picking()) Draw_Picker();
+		else Draw_List();
+		break;
+	case SCR_DETAIL: if (det) Draw_Detail(); break;
 	case SCR_PROFILE: Draw_Profile(); break;
 	}
 	font_draw_right(FONT_REGULAR, 16, SCREEN_W - LIST_X, 40, APP_NAME " " APP_VERSION, C_DIM);

@@ -1,10 +1,18 @@
 /*
-make-catalog.mjs: builds catalog/v1/catalog.json and its icons for the PS3 World app.
+make-catalog.mjs: builds the PS3 World app's catalogue under catalog/v1/:
+
+  catalog.json                  the index: each section's lists, their pages (with
+                                sha256s), counts and where each letter starts
+  homebrew/<category>/N.json    homebrew, one list per site category, 100 items a page
+  theme/N.json, avatar/N.json   themes and avatars, 100 items a page
+  <list>/search.txt             "title<TAB>author<TAB>group" a line, for searching a list
+  icons/<id>.jpg                128 px JPEG icons
 
   node make-catalog.mjs                  everything
   node make-catalog.mjs --limit 3        the first 3 of each type (a quick sample)
   node make-catalog.mjs --only theme     one type (homebrew, theme, avatar; comma separated)
-  node make-catalog.mjs --verify         re-hash every file in the written catalog.json
+  node make-catalog.mjs --out <dir>      write somewhere else (the default is CONFIG.outDir)
+  node make-catalog.mjs --verify         re-hash every page and file the written index lists
 
 Reads the site build data (themes.json, avatars.json) and homebrew.manifest.json,
 hashes the local copy of every download (the same files that are on R2), and
@@ -39,8 +47,12 @@ const CONFIG = {
   includeNsfw: false,
 };
 
-const SCHEMA = 1;
+const SCHEMA = 2;							// 2: an index (catalog.json) and lists in pages of PAGE_SIZE items
 const CATALOG_DIR = 'catalog/v1';			// on dl.ps3.world and under outDir
+const PAGE_SIZE = 100;
+const TYPES = ['homebrew', 'theme', 'avatar'];
+// homebrew is split into the site's categories (the manifest's "group"), in this order
+const HOMEBREW_LISTS = ['Games', 'Ports', 'Tools', 'Media', 'Misc'];
 const ICON_SIZE = 128;
 const ICON_BG = { r: 0x1a, g: 0x1c, b: 0x20 };
 const HASH_JOBS = 4;
@@ -51,6 +63,7 @@ const argVal = name => { const i = args.indexOf(name); return i >= 0 ? args[i + 
 const LIMIT = argVal('--limit') ? parseInt(argVal('--limit'), 10) : 0;
 const ONLY = (argVal('--only') || 'homebrew,theme,avatar').split(',');
 const VERIFY = args.includes('--verify');
+if (argVal('--out')) CONFIG.outDir = path.resolve(argVal('--out'));
 
 const warnings = [];
 const warn = msg => { warnings.push(msg); };
@@ -70,6 +83,48 @@ function relFromUrl(url) {
 }
 
 const encodePath = p => p.split('/').map(encodeURIComponent).join('/');
+
+const sha256Of = s => crypto.createHash('sha256').update(s).digest('hex');
+
+// the letter the app files a title under (src/ui.c Letter_Of): the first ASCII
+// letter, '#' for a digit or anything non-ASCII first; other punctuation is skipped
+function letterOf(title) {
+  for (const ch of title) {
+    if (/[a-z]/i.test(ch)) return ch.toUpperCase();
+    if (/[0-9]/.test(ch) || ch.charCodeAt(0) >= 0x80) return '#';
+  }
+  return '#';
+}
+const letterRank = t => { const l = letterOf(t); return l === '#' ? 0 : l.charCodeAt(0) - 64; };
+
+// one list: A-Z, written as pages of PAGE_SIZE and a search.txt; returns its index entry
+function writeList(name, list, relDir) {
+  list.sort((a, b) => letterRank(a.title) - letterRank(b.title) ||
+    a.title.localeCompare(b.title, 'en', { sensitivity: 'base' }) || a.id.localeCompare(b.id));
+  const dir = path.join(CONFIG.outDir, relDir);
+  fs.mkdirSync(dir, { recursive: true });
+  const entry = { name, count: list.length, pages: [], search: null, letters: {} };
+  list.forEach((s, i) => { const l = letterOf(s.title); if (!(l in entry.letters)) entry.letters[l] = i; });
+  for (let p = 0; p * PAGE_SIZE < list.length; p++) {
+    const page = {
+      schema: SCHEMA, page: p + 1,
+      items: list.slice(p * PAGE_SIZE, (p + 1) * PAGE_SIZE).map(s => ({
+        id: s.id, type: s.type, title: s.title, author: s.author, version: s.version,
+        description: s.description, group: s.group, size: s.size, sha256: s.sha256,
+        url: s.url, icon: s.icon, requires: s.requires,
+      })),
+    };
+    const json = JSON.stringify(page);
+    fs.writeFileSync(path.join(dir, `${p + 1}.json`), json);
+    entry.pages.push({ url: `${relDir}/${p + 1}.json`, sha256: sha256Of(json), size: Buffer.byteLength(json) });
+  }
+  // one line an item, in list order: what the app searches without loading every page
+  const clean = s => (s || '').replace(/[\t\r\n]+/g, ' ');
+  const search = list.map(s => `${clean(s.title)}\t${clean(s.author)}\t${clean(s.group)}\n`).join('');
+  fs.writeFileSync(path.join(dir, 'search.txt'), search);
+  entry.search = { url: `${relDir}/search.txt`, sha256: sha256Of(search), size: Buffer.byteLength(search) };
+  return entry;
+}
 
 // the site builds write JSON from PowerShell, with a byte-order mark
 const readJson = file => JSON.parse(fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, ''));
@@ -231,26 +286,41 @@ async function build() {
   });
   fs.writeFileSync(cachePath, JSON.stringify(hashCache));
 
-  const order = { homebrew: 0, theme: 1, avatar: 2 };
-  items.sort((a, b) => order[a.type] - order[b.type] || a.title.localeCompare(b.title, 'en', { sensitivity: 'base' }) || a.id.localeCompare(b.id));
-  const catalog = {
+  // the index: each section's lists (homebrew: one per category; themes, avatars: one), each in pages
+  const index = {
     schema: SCHEMA,
     generated: new Date().toISOString().replace(/\.\d+Z$/, 'Z'),
     base_url: CONFIG.baseUrl,
-    items: items.map(s => ({
-      id: s.id, type: s.type, title: s.title, author: s.author, version: s.version,
-      description: s.description, group: s.group, size: s.size, sha256: s.sha256,
-      url: s.url, icon: s.icon, requires: s.requires,
-    })),
+    page_size: PAGE_SIZE,
+    sections: [],
   };
-  const json = JSON.stringify(catalog);
+  for (const type of TYPES) {
+    const all = items.filter(i => i.type === type);
+    const section = { type, count: all.length, lists: [] };
+    if (type === 'homebrew') {
+      const names = [...HOMEBREW_LISTS, ...new Set(all.map(i => i.group).filter(g => !HOMEBREW_LISTS.includes(g)))];
+      for (const name of names) {
+        const list = all.filter(i => i.group === name);
+        if (list.length) section.lists.push(writeList(name, list, `${CATALOG_DIR}/homebrew/${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`));
+      }
+    } else
+      section.lists.push(writeList('', all, `${CATALOG_DIR}/${type}`));
+    index.sections.push(section);
+  }
+  const json = JSON.stringify(index);
   const outFile = path.join(CONFIG.outDir, CATALOG_DIR, 'catalog.json');
   fs.writeFileSync(outFile, json);
 
+  const lists = index.sections.flatMap(s => s.lists);
+  const pages = lists.flatMap(l => l.pages);
   const count = t => items.filter(i => i.type === t).length;
-  console.log(`\nwrote ${outFile}`);
+  console.log(`\nwrote ${outFile} (the index: ${(json.length / 1024).toFixed(1)} KB)`);
   console.log(`  ${items.length} items: ${count('homebrew')} homebrew, ${count('theme')} themes, ${count('avatar')} avatars`);
-  console.log(`  ${(json.length / 1024).toFixed(1)} KB, ${items.filter(i => !i.icon).length} without an icon`);
+  for (const s of index.sections)
+    for (const l of s.lists)
+      console.log(`  ${s.type}${l.name ? '/' + l.name : ''}: ${l.count} items, ${l.pages.length} page(s), search.txt ${(l.search.size / 1024).toFixed(0)} KB`);
+  console.log(`  pages: ${pages.length}, the biggest ${(Math.max(...pages.map(p => p.size)) / 1024).toFixed(1)} KB`);
+  console.log(`  ${items.filter(i => !i.icon).length} without an icon`);
   report();
   console.log('\nUpload (you run this; copy never deletes anything on R2):');
   console.log(`  rclone copy "${path.join(CONFIG.outDir, 'catalog').replace(/\//g, '\\')}" ${CONFIG.bucket}/catalog --progress`);
@@ -259,9 +329,18 @@ async function build() {
 // ---- verify: every file in catalog.json against its sha256, read fresh ----
 async function verify() {
   const file = path.join(CONFIG.outDir, CATALOG_DIR, 'catalog.json');
-  const cat = readJson(file);
+  const index = readJson(file);
   const homebrewByUrl = Object.fromEntries(homebrewSources().map(s => [s.url, s._file]));
   let ok = 0, bad = 0;
+  // every page against the index's sha256, then every item's file against the page's
+  const cat = { items: [] };
+  for (const s of index.sections)
+    for (const l of s.lists)
+      for (const p of l.pages) {
+        const text = fs.readFileSync(path.join(CONFIG.outDir, p.url), 'utf8');
+        if (sha256Of(text) !== p.sha256) { bad++; warn(`MISMATCH page ${p.url}`); continue; }
+        cat.items.push(...JSON.parse(text).items);
+      }
   await pool(cat.items, HASH_JOBS, 'verifying', async it => {
     const local = it.type === 'homebrew' ? homebrewByUrl[it.url] : localFor(it.url);
     const info = local && await fileInfo(local, false);

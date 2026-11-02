@@ -1,3 +1,7 @@
 build/
 src/ps3/ca_bundle.h
 generator/node_modules/
+tests/sample/.cache/
+tests/sample/catalog/v1/icons/
+PS3World/
+PS3World.zip

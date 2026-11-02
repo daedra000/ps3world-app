@@ -1,10 +1,10 @@
 /*
-catalog.c: catalog.json into a catalog_t.
+catalog.c: the index and pages of catalog.json (see catalog.h).
 
-The whole file is parsed with cJSON (~6 MB for the full archive), copied into
-compact structs and one block of strings, and the cJSON tree freed. Every item
-is checked: an id, a title, a size, a sha256 of 64 hex digits and a relative
-URL that stays under dl.ps3.world. One that fails is skipped, not trusted.
+Both are parsed with cJSON (the index is ~30 KB, a page under 100 KB), copied
+into compact structs, and the cJSON tree freed. Every item is checked: an id,
+a title, a size, a sha256 of 64 hex digits and a relative URL that stays under
+dl.ps3.world. One that fails is skipped, not trusted.
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,6 +18,11 @@ static const char *type_names[NUM_TYPES] = {"homebrew", "theme", "avatar"};
 const char *catalog_type_name(int type)
 {
 	return type >= 0 && type < NUM_TYPES ? type_names[type] : "?";
+}
+
+int catalog_letter_slot(char l)
+{
+	return l >= 'A' && l <= 'Z' ? l - 'A' + 1 : 0;
 }
 
 static const char *Str(const cJSON *o, const char *key)
@@ -68,6 +73,129 @@ static int Hex_Digest(const char *s, unsigned char out[32])
 	return 1;
 }
 
+static int Schema_Ok(const cJSON *root, char *err, int errsize)
+{
+	const cJSON *schema = cJSON_GetObjectItemCaseSensitive(root, "schema");
+	if (!cJSON_IsNumber(schema)) {
+		snprintf(err, errsize, "The catalogue couldn't be read (no schema)");
+		return 0;
+	}
+	if (schema->valueint != CATALOG_SCHEMA) {
+		snprintf(err, errsize, "This catalogue needs a %s version of the app (schema %d)",
+			schema->valueint > CATALOG_SCHEMA ? "newer" : "different", schema->valueint);
+		return 0;
+	}
+	return 1;
+}
+
+/*
+==================
+Index
+==================
+*/
+static int File_Of(const cJSON *o, cat_file_t *f)
+{
+	const char *url = Str(o, "url");
+	if (!Safe_Path(url) || strlen(url) >= sizeof(f->url) || !Hex_Digest(Str(o, "sha256"), f->sha256))
+		return 0;
+	snprintf(f->url, sizeof(f->url), "%s", url);
+	return 1;
+}
+
+static int List_Of(const cJSON *o, cat_list_t *l)
+{
+	const cJSON *count = cJSON_GetObjectItemCaseSensitive(o, "count");
+	const cJSON *pages = cJSON_GetObjectItemCaseSensitive(o, "pages");
+	const cJSON *letters = cJSON_GetObjectItemCaseSensitive(o, "letters");
+	const cJSON *p;
+	if (!cJSON_IsNumber(count) || count->valueint < 0 || !cJSON_IsArray(pages))
+		return 0;
+	snprintf(l->name, sizeof(l->name), "%s", Str(o, "name"));
+	l->count = count->valueint;
+	l->num_pages = cJSON_GetArraySize(pages);
+	l->pages = calloc(l->num_pages ? l->num_pages : 1, sizeof(cat_file_t));
+	if (!l->pages) return 0;
+	int i = 0;
+	cJSON_ArrayForEach(p, pages)
+		if (!File_Of(p, &l->pages[i++])) return 0;
+	if (!File_Of(cJSON_GetObjectItemCaseSensitive(o, "search"), &l->search))
+		return 0;
+	for (i = 0; i < NUM_LETTERS; i++) l->letter_first[i] = -1;
+	cJSON_ArrayForEach(p, letters)
+		if (p->string && cJSON_IsNumber(p) && p->valueint >= 0 && p->valueint < l->count)
+			l->letter_first[catalog_letter_slot(p->string[0])] = p->valueint;
+	return 1;
+}
+
+cat_index_t *catalog_parse_index(const char *json, size_t len, char *err, int errsize)
+{
+	cJSON *root = cJSON_ParseWithLength(json, len);
+	cat_index_t *ix = NULL;
+	const cJSON *sections, *s, *l;
+
+	err[0] = 0;
+	if (!root) {
+		snprintf(err, errsize, "The catalogue couldn't be read (not valid JSON)");
+		return NULL;
+	}
+	if (!Schema_Ok(root, err, errsize))
+		goto out;
+	if (strcmp(Str(root, "base_url"), CATALOG_BASE)) {
+		snprintf(err, errsize, "The catalogue points somewhere other than %s", CATALOG_BASE);
+		goto out;
+	}
+	const cJSON *ps = cJSON_GetObjectItemCaseSensitive(root, "page_size");
+	sections = cJSON_GetObjectItemCaseSensitive(root, "sections");
+	if (!cJSON_IsNumber(ps) || ps->valueint <= 0 || !cJSON_IsArray(sections)) {
+		snprintf(err, errsize, "The catalogue couldn't be read (no page size or sections)");
+		goto out;
+	}
+	ix = calloc(1, sizeof(*ix));
+	if (!ix) { snprintf(err, errsize, "Out of memory"); goto out; }
+	snprintf(ix->generated, sizeof(ix->generated), "%s", Str(root, "generated"));
+	ix->page_size = ps->valueint;
+	cJSON_ArrayForEach(s, sections) {
+		int t;
+		for (t = 0; t < NUM_TYPES; t++)
+			if (!strcmp(Str(s, "type"), type_names[t])) break;
+		const cJSON *lists = cJSON_GetObjectItemCaseSensitive(s, "lists");
+		if (t == NUM_TYPES || ix->lists[t] || !cJSON_IsArray(lists)) continue;
+		int n = cJSON_GetArraySize(lists), k = 0;
+		ix->lists[t] = calloc(n ? n : 1, sizeof(cat_list_t));
+		if (!ix->lists[t]) continue;
+		cJSON_ArrayForEach(l, lists) {
+			if (List_Of(l, &ix->lists[t][k])) {
+				ix->count[t] += ix->lists[t][k].count;
+				k++;
+			} else {
+				free(ix->lists[t][k].pages);
+				memset(&ix->lists[t][k], 0, sizeof(cat_list_t));
+				plat_log("catalog: a %s list was skipped (bad fields)", type_names[t]);
+			}
+		}
+		ix->num_lists[t] = k;
+	}
+out:
+	cJSON_Delete(root);
+	return ix;
+}
+
+void catalog_free_index(cat_index_t *ix)
+{
+	if (!ix) return;
+	for (int t = 0; t < NUM_TYPES; t++) {
+		for (int i = 0; i < ix->num_lists[t]; i++)
+			free(ix->lists[t][i].pages);
+		free(ix->lists[t]);
+	}
+	free(ix);
+}
+
+/*
+==================
+Pages
+==================
+*/
 static const char *const fields[] = {"id", "title", "author", "version", "description", "group", "url", "icon"};
 #define NUM_FIELDS (int)(sizeof(fields) / sizeof(fields[0]))
 
@@ -92,7 +220,7 @@ static int Check(const cJSON *o, cat_item_t *it)
 	return 1;
 }
 
-catalog_t *catalog_parse(const char *json, size_t len, char *err, int errsize)
+catalog_t *catalog_parse_page(const char *json, size_t len, char *err, int errsize)
 {
 	cJSON *root = cJSON_ParseWithLength(json, len);
 	catalog_t *c = NULL;
@@ -102,21 +230,14 @@ catalog_t *catalog_parse(const char *json, size_t len, char *err, int errsize)
 
 	err[0] = 0;
 	if (!root) {
-		snprintf(err, errsize, "The catalogue couldn't be read (not valid JSON)");
+		snprintf(err, errsize, "A catalogue page couldn't be read (not valid JSON)");
 		return NULL;
 	}
-	const cJSON *schema = cJSON_GetObjectItemCaseSensitive(root, "schema");
+	if (!Schema_Ok(root, err, errsize))
+		goto out;
 	items = cJSON_GetObjectItemCaseSensitive(root, "items");
-	if (!cJSON_IsNumber(schema) || !cJSON_IsArray(items)) {
-		snprintf(err, errsize, "The catalogue couldn't be read (no schema or items)");
-		goto out;
-	}
-	if (schema->valueint != CATALOG_SCHEMA) {
-		snprintf(err, errsize, "This catalogue needs a newer version of the app (schema %d)", schema->valueint);
-		goto out;
-	}
-	if (strcmp(Str(root, "base_url"), CATALOG_BASE)) {
-		snprintf(err, errsize, "The catalogue points somewhere other than %s", CATALOG_BASE);
+	if (!cJSON_IsArray(items)) {
+		snprintf(err, errsize, "A catalogue page couldn't be read (no items)");
 		goto out;
 	}
 
@@ -130,12 +251,11 @@ catalog_t *catalog_parse(const char *json, size_t len, char *err, int errsize)
 	}
 	c = calloc(1, sizeof(*c));
 	if (!c || !(c->items = calloc(n ? n : 1, sizeof(cat_item_t))) || !(c->strings = malloc(total ? total : 1))) {
-		snprintf(err, errsize, "Out of memory for the catalogue (%d items)", n);
+		snprintf(err, errsize, "Out of memory for a catalogue page (%d items)", n);
 		catalog_free(c);
 		c = NULL;
 		goto out;
 	}
-	snprintf(c->generated, sizeof(c->generated), "%s", Str(root, "generated"));
 
 	// second pass: copy
 	char *s = c->strings;
@@ -150,7 +270,6 @@ catalog_t *catalog_parse(const char *json, size_t len, char *err, int errsize)
 			*dst[f] = s;
 			s += l;
 		}
-		c->per_type[it->type]++;
 		c->count++;
 	}
 	if (skipped)
@@ -167,4 +286,23 @@ void catalog_free(catalog_t *c)
 	free(c->items);
 	free(c->strings);
 	free(c);
+}
+
+cat_item_t *catalog_item_copy(const cat_item_t *it)
+{
+	const char *src[NUM_FIELDS] = {it->id, it->title, it->author, it->version, it->description, it->group, it->url, it->icon};
+	size_t total = sizeof(cat_item_t);
+	for (int f = 0; f < NUM_FIELDS; f++) total += strlen(src[f]) + 1;
+	cat_item_t *c = malloc(total);		// the struct, then its strings, in one block (one free)
+	if (!c) return NULL;
+	*c = *it;
+	char *s = (char *)(c + 1);
+	const char **dst[NUM_FIELDS] = {&c->id, &c->title, &c->author, &c->version, &c->description, &c->group, &c->url, &c->icon};
+	for (int f = 0; f < NUM_FIELDS; f++) {
+		size_t l = strlen(src[f]) + 1;
+		memcpy(s, src[f], l);
+		*dst[f] = s;
+		s += l;
+	}
+	return c;
 }

@@ -10,7 +10,9 @@ Install targets (v1):
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "mbedtls/sha256.h"
 #include "plat.h"
+#include "download.h"
 #include "store.h"
 
 #define MAX_RECORDS	4096
@@ -25,7 +27,7 @@ typedef struct {
 static record_t *records;
 static int num_records;
 static char avatar_profile[64];
-static char cache_dir[512], icons_dir[512];
+static char cache_dir[512], icons_dir[512], files_dir[512];
 
 static void Hex(const unsigned char *in, char *out)
 {
@@ -106,7 +108,9 @@ void store_init(void)
 	records = calloc(MAX_RECORDS, sizeof(record_t));
 	snprintf(cache_dir, sizeof(cache_dir), "%s/cache", plat_save_dir());
 	snprintf(icons_dir, sizeof(icons_dir), "%s/icons", cache_dir);
+	snprintf(files_dir, sizeof(files_dir), "%s/files", cache_dir);
 	plat_mkdirs(icons_dir);
+	plat_mkdirs(files_dir);
 	Settings_Load();
 	if (records) Records_Load();
 }
@@ -142,25 +146,64 @@ void store_mark_downloaded(const cat_item_t *it, const char *path)
 Cache
 ==================
 */
-catalog_t *store_load_catalog(void)
+cat_index_t *store_load_index(void)
 {
 	char path[600], err[160];
 	size_t len;
 	snprintf(path, sizeof(path), "%s/catalog.json", cache_dir);
 	char *s = (char *)plat_read_file(path, &len);
 	if (!s) return NULL;
-	catalog_t *c = catalog_parse(s, len, err, sizeof(err));
+	cat_index_t *ix = catalog_parse_index(s, len, err, sizeof(err));
 	free(s);
-	if (!c) plat_log("store: cached catalogue unusable: %s", err);
-	return c;
+	if (!ix) plat_log("store: cached catalogue unusable: %s", err);
+	return ix;
 }
 
-void store_save_catalog(const char *json, size_t len)
+void store_save_index(const char *json, size_t len)
 {
 	char path[600];
 	snprintf(path, sizeof(path), "%s/catalog.json", cache_dir);
 	if (!plat_write_file(path, json, len))
 		plat_log("store: couldn't cache the catalogue in %s", path);
+}
+
+char *store_get_file(const cat_file_t *f, size_t *len, volatile int *cancel, int *err_kind, char *err, int errsize)
+{
+	char path[600], hex[65], url[300];
+	unsigned char got[32];
+	Hex(f->sha256, hex);
+	snprintf(path, sizeof(path), "%s/%s", files_dir, hex);
+	*err_kind = ERR_NONE;
+	err[0] = 0;
+
+	char *s = (char *)plat_read_file(path, len);
+	if (s) {
+		mbedtls_sha256((const unsigned char *)s, *len, got, 0);
+		if (!memcmp(got, f->sha256, 32))
+			return s;
+		free(s);		// damaged: fetch it again
+	}
+	http_res_t res;
+	snprintf(url, sizeof(url), "%s%s", CATALOG_BASE, f->url);
+	s = http_fetch(NULL, url, NULL, NULL, 30, cancel, len, &res);
+	if (!s || res.status != 200) {
+		*err_kind = download_error_kind(res.err, s ? res.status : 0);
+		snprintf(err, errsize, "%s", s ? "HTTP error" : res.err);
+		if (s) snprintf(err, errsize, "HTTP %d", res.status);
+		free(s);
+		return NULL;
+	}
+	mbedtls_sha256((const unsigned char *)s, *len, got, 0);
+	if (memcmp(got, f->sha256, 32)) {
+		// the index and the page are from different uploads (or the upload is half done)
+		*err_kind = ERR_CHECKSUM;
+		snprintf(err, errsize, "%s doesn't match the catalogue (it may be being updated): try again later", f->url);
+		free(s);
+		return NULL;
+	}
+	if (!plat_write_file(path, s, *len))
+		plat_log("store: couldn't cache %s", path);
+	return s;
 }
 
 void store_icon_path(const cat_item_t *it, char *out, int size)

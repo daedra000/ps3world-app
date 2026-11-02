@@ -1,5 +1,10 @@
 /*
-catalog.h: catalog.json (schema 1), parsed into one array and one block of strings.
+catalog.h: the catalogue (schema 2), an index and pages.
+
+catalog.json is the index: for each section (homebrew, theme, avatar) its
+lists (homebrew: one per site category; themes and avatars: one), and for
+each list its pages of up to page_size items, a search.txt and where each
+letter starts. Pages are fetched as the list reaches them.
 */
 #ifndef CATALOG_H
 #define CATALOG_H
@@ -7,14 +12,38 @@ catalog.h: catalog.json (schema 1), parsed into one array and one block of strin
 #include <stddef.h>
 
 #define CATALOG_URL		"https://dl.ps3.world/catalog/v1/catalog.json"
-#define CATALOG_BASE	"https://dl.ps3.world/"		// every download and icon is under this
-#define CATALOG_SCHEMA	1
+#define CATALOG_BASE	"https://dl.ps3.world/"		// every page, download and icon is under this
+#define CATALOG_SCHEMA	2
 
 enum { TYPE_HOMEBREW, TYPE_THEME, TYPE_AVATAR, NUM_TYPES };
 enum { REQ_ANY, REQ_HEN, REQ_CFW };
 
+// a file the index lists, with the sha256 it must have
 typedef struct {
-	// all in the catalogue's string block; "" when the catalogue has none
+	char url[160];				// relative to CATALOG_BASE
+	unsigned char sha256[32];
+} cat_file_t;
+
+#define NUM_LETTERS 27			// '#', then A..Z
+typedef struct {
+	char name[32];				// "Games", "Ports"... ("" for themes and avatars)
+	int count;
+	int num_pages;
+	cat_file_t *pages;
+	cat_file_t search;
+	int letter_first[NUM_LETTERS];	// where each letter starts in the list, -1 if none
+} cat_list_t;
+
+typedef struct {
+	char generated[32];
+	int page_size;
+	int count[NUM_TYPES];
+	int num_lists[NUM_TYPES];
+	cat_list_t *lists[NUM_TYPES];
+} cat_index_t;
+
+typedef struct {
+	// all in the page's string block; "" when the catalogue has none
 	const char *id, *title, *author, *version, *description, *group;
 	const char *url;			// relative to CATALOG_BASE
 	const char *icon;			// relative to CATALOG_BASE, "" for none
@@ -23,17 +52,22 @@ typedef struct {
 	unsigned char type, requires;
 } cat_item_t;
 
+// one page of a list
 typedef struct {
-	char generated[32];
 	int count;
-	int per_type[NUM_TYPES];
 	cat_item_t *items;
 	char *strings;
 } catalog_t;
 
 // NULL on failure, with the reason in err; items that don't check out are skipped (and logged)
-catalog_t *catalog_parse(const char *json, size_t len, char *err, int errsize);
+cat_index_t *catalog_parse_index(const char *json, size_t len, char *err, int errsize);
+void catalog_free_index(cat_index_t *ix);
+catalog_t *catalog_parse_page(const char *json, size_t len, char *err, int errsize);
 void catalog_free(catalog_t *c);
+
 const char *catalog_type_name(int type);	// "homebrew", "theme", "avatar"
+int catalog_letter_slot(char letter);		// '#' 0, 'A'..'Z' 1..26
+// a copy of an item that owns its strings (for the detail screen, after its page has gone)
+cat_item_t *catalog_item_copy(const cat_item_t *it);
 
 #endif

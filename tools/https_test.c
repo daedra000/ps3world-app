@@ -3,7 +3,7 @@ https_test.c: the app's HTTPS client (src/ps3/http_ps3.c, the same Mbed TLS
 build and root certificates) run on Linux against dl.ps3.world, before any UI
 is built on it. CI's "HTTPS test" job; see .github/workflows/ps3.yml.
 
-  ./https_test tests/sample-catalog.json
+  ./https_test tests/sample
 
 1. a whole file, streamed through the sink, against its known sha256
 2. the same file resumed with Range from the middle: 206, and the two parts
@@ -122,6 +122,7 @@ void plat_mutex_unlock(plat_mutex_t *m) { pthread_mutex_unlock(&m->m); }
 #define RESUME_AT	100000
 
 static int failures;
+static char summary[16384];
 
 static void Result(int ok, const char *name, const char *fmt, ...)
 {
@@ -131,8 +132,11 @@ static void Result(int ok, const char *name, const char *fmt, ...)
 	vsnprintf(msg, sizeof(msg), fmt, ap);
 	va_end(ap);
 	printf("%s %s: %s\n", ok ? "PASS" : "FAIL", name, msg);
-	if (getenv("GITHUB_ACTIONS"))
-		printf("::%s title=%s %s::%s\n", ok ? "notice" : "error", ok ? "PASS" : "FAIL", name, msg);
+	// GitHub shows 10 annotations a step: failures each get one, the passes share one at the end
+	if (getenv("GITHUB_ACTIONS") && !ok)
+		printf("::error title=FAIL %s::%s\n", name, msg);
+	size_t n = strlen(summary);
+	snprintf(summary + n, sizeof(summary) - n, "%s %s: %s%%0A", ok ? "PASS" : "FAIL", name, msg);
 	if (!ok) failures++;
 }
 
@@ -303,37 +307,67 @@ int main(int argc, char **argv)
 	Result(!ok && strstr(res.err, "certificate"), "expired certificate refused", "returned %d: %s", ok, res.err);
 	mbedtls_sha256_free(&s.sha);
 
-	// 5. catalog.json: live (once uploaded) and the sample
+	// 5. the catalogue: the live index (once uploaded) and one of its pages, then the sample
 	size_t len;
 	char err[160];
 	char *body = http_fetch(NULL, CATALOG_URL, NULL, NULL, 60, NULL, &len, &res);
 	if (body && res.status == 200) {
-		catalog_t *c = catalog_parse(body, len, err, sizeof(err));
-		Result(c != NULL, "live catalog.json", "%lu bytes: %d items (%d homebrew, %d themes, %d avatars) %s",
-			(unsigned long)len, c ? c->count : 0, c ? c->per_type[TYPE_HOMEBREW] : 0, c ? c->per_type[TYPE_THEME] : 0,
-			c ? c->per_type[TYPE_AVATAR] : 0, err);
-		catalog_free(c);
+		cat_index_t *ix = catalog_parse_index(body, len, err, sizeof(err));
+		if (ix && ix->num_lists[TYPE_THEME]) {
+			Result(1, "live index", "%lu bytes: %d homebrew in %d lists, %d themes in %d pages, %d avatars, generated %s",
+				(unsigned long)len, ix->count[TYPE_HOMEBREW], ix->num_lists[TYPE_HOMEBREW], ix->count[TYPE_THEME],
+				ix->lists[TYPE_THEME][0].num_pages, ix->count[TYPE_AVATAR], ix->generated);
+			const cat_file_t *pf = &ix->lists[TYPE_THEME][0].pages[0];
+			char url[300];
+			size_t plen;
+			snprintf(url, sizeof(url), "%s%s", CATALOG_BASE, pf->url);
+			char *page = http_fetch(NULL, url, NULL, NULL, 60, NULL, &plen, &res);
+			mbedtls_sha256((const unsigned char *)(page ? page : ""), page ? plen : 0, d, 0);
+			catalog_t *c = page ? catalog_parse_page(page, plen, err, sizeof(err)) : NULL;
+			Result(c && !memcmp(d, pf->sha256, 32), "live theme page 1", "%s: %lu bytes, sha256 %s the index, %d items, first \"%s\" %s",
+				pf->url, (unsigned long)plen, memcmp(d, pf->sha256, 32) ? "DIFFERS from" : "matches", c ? c->count : 0,
+				c && c->count ? c->items[0].title : "", err);
+			catalog_free(c);
+			free(page);
+		} else
+			Result(0, "live index", "%s", ix ? "no theme list" : err);
+		catalog_free_index(ix);
 	} else {
-		printf("SKIP live catalog.json: HTTP %d %s (not uploaded yet?)\n", res.status, res.err);
+		printf("SKIP live index: HTTP %d %s (not uploaded yet?)\n", res.status, res.err);
 	}
 	free(body);
 	if (argc > 1) {
-		FILE *f = fopen(argv[1], "rb");
-		char *buf = NULL;
-		long n = 0;
-		if (f) { fseek(f, 0, SEEK_END); n = ftell(f); fseek(f, 0, SEEK_SET); buf = malloc(n); fread(buf, 1, n, f); fclose(f); }
-		catalog_t *c = buf ? catalog_parse(buf, n, err, sizeof(err)) : NULL;
-		Result(c != NULL, "sample catalog parsed", "%s: %d items (%d homebrew, %d themes, %d avatars) %s", argv[1],
-			c ? c->count : 0, c ? c->per_type[TYPE_HOMEBREW] : 0, c ? c->per_type[TYPE_THEME] : 0,
-			c ? c->per_type[TYPE_AVATAR] : 0, err);
-		if (c) printf("    first item: %s \"%s\" %lld bytes, %s\n", catalog_type_name(c->items[0].type), c->items[0].title,
-			c->items[0].size, c->items[0].url);
-		catalog_free(c);
+		// argv[1]: the sample's root (tests/sample), its index at catalog/v1/catalog.json
+		char path[600];
+		size_t n;
+		snprintf(path, sizeof(path), "%s/catalog/v1/catalog.json", argv[1]);
+		char *buf = (char *)plat_read_file(path, &n);
+		cat_index_t *ix = buf ? catalog_parse_index(buf, n, err, sizeof(err)) : NULL;
+		int pages = 0, items = 0, bad = 0;
+		for (int t = 0; ix && t < NUM_TYPES; t++)
+			for (int l = 0; l < ix->num_lists[t]; l++)
+				for (int p = 0; p < ix->lists[t][l].num_pages; p++) {
+					const cat_file_t *pf = &ix->lists[t][l].pages[p];
+					size_t plen;
+					snprintf(path, sizeof(path), "%s/%s", argv[1], pf->url);
+					char *page = (char *)plat_read_file(path, &plen);
+					mbedtls_sha256((const unsigned char *)(page ? page : ""), page ? plen : 0, d, 0);
+					catalog_t *c = page && !memcmp(d, pf->sha256, 32) ? catalog_parse_page(page, plen, err, sizeof(err)) : NULL;
+					if (c) { pages++; items += c->count; } else bad++;
+					catalog_free(c);
+					free(page);
+				}
+		Result(ix && !bad && items == ix->count[0] + ix->count[1] + ix->count[2], "sample catalogue parsed",
+			"%s: %d pages, %d items (index says %d homebrew, %d themes, %d avatars), %d bad %s", argv[1], pages, items,
+			ix ? ix->count[0] : 0, ix ? ix->count[1] : 0, ix ? ix->count[2] : 0, bad, err);
+		catalog_free_index(ix);
 		free(buf);
 	}
 
 	Download_Tests();
 
 	printf("\n%s (%d failure%s)\n", failures ? "FAILED" : "all passed", failures, failures == 1 ? "" : "s");
+	if (getenv("GITHUB_ACTIONS"))
+		printf("::notice title=HTTPS and download tests: %s::%s\n", failures ? "FAILED" : "all passed", summary);
 	return failures ? 1 : 0;
 }

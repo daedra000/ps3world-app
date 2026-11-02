@@ -36,7 +36,7 @@ jobs:
             tools/https_test.c src/ps3/http_ps3.c src/http_common.c src/catalog.c src/download.c src/lang.c src/thirdparty/cJSON.c \
             -L"$M/library" -lmbedtls -lmbedx509 -lmbedcrypto -lpthread
       - name: Run
-        run: ./https_test tests/sample-catalog.json
+        run: ./https_test tests/sample
 
   toolchain:
     name: PS3 toolchain (cached)

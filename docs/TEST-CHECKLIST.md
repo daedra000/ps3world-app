@@ -12,12 +12,15 @@ Tick each box. Where a step fails, note what the screen said and copy `/dev_hdd0
 ## 1. Open the app
 
 - [ ] **PS3 World** is on the XMB under Game with the PS3 World icon, and the waves picture shows behind it when highlighted.
-- [ ] It opens to "Loading the catalogue...", then the **Homebrew** list.
+- [ ] It opens to "Loading the catalogue..." (a few seconds at most: only the small index downloads), then **Homebrew**'s categories: Games 4, Ports 17, Tools 12, Media 4, Misc 1.
 - [ ] The section tabs show counts that match the catalogue: Homebrew 38, Themes 13,303, Avatars 6,323.
+- [ ] R1 from Homebrew to Themes and Avatars opens their lists straight away (this crashed in the first build).
 
 ## 2. Browse
 
-- [ ] Up/Down move one row, Left/Right a page. Holding a direction repeats and speeds up.
+- [ ] In Homebrew, Cross opens a category and Circle goes back to the categories.
+- [ ] Up/Down move one row, Left/Right a screen. Holding a direction repeats and speeds up.
+- [ ] In Themes, hold Down past item 100: rows show "Loading..." for a moment while the next page arrives, then fill in. Scrolling back up is instant.
 - [ ] Icons appear as you scroll (first time from the server, then from the HDD).
 - [ ] L1/R1 switch between Homebrew, Themes and Avatars.
 - [ ] In Themes, R2 jumps to the next letter and L2 to the previous one. The letter and position show bottom right.
@@ -26,14 +29,14 @@ Tick each box. Where a step fails, note what the screen said and copy `/dev_hdd0
 
 ## 3. Homebrew download (PKG)
 
-- [ ] Open **Avoidance** (285 KB). It says "Saves to /dev_hdd0/packages/Avoidance v1.3.pkg".
+- [ ] Homebrew > Games: open **Avoidance** (285 KB). It says "Saves to /dev_hdd0/packages/Avoidance v1.3.pkg".
 - [ ] Cross: the progress bar, %, MB and speed move, then "Checksum OK (278 KB). Saved to /dev_hdd0/packages/Avoidance v1.3.pkg".
 - [ ] Back in the list, Avoidance has a green **Downloaded** badge.
 - [ ] XMB > Package Manager > Install Package Files lists **Avoidance v1.3.pkg**, and it installs. [unverified until this step passes]
 
 ## 4. Cancel and resume
 
-- [ ] Open a big homebrew item (e.g. **Undertale**, 148 MB) and press Cross, then Circle part way: "Download cancelled", and no `Undertale.pkg.part` is left in `/dev_hdd0/packages/`.
+- [ ] Open a big homebrew item (Homebrew > Ports > **Undertale**, 148 MB) and press Cross, then Circle part way: "Download cancelled", and no `Undertale.pkg.part` is left in `/dev_hdd0/packages/`.
 - [ ] Start it again, and part way pull the network cable (or turn Wi-Fi off). After about 30 s it shows the network error and "Press X to resume where it stopped".
 - [ ] Reconnect and press Cross: "Resumed from N MB" shows, and it finishes with "Checksum OK".
 - [ ] Optional: start it again and quit to the XMB (PS button > Quit Game) part way. Reopen the app and download again: it resumes rather than starting over.
@@ -54,7 +57,7 @@ Tick each box. Where a step fails, note what the screen said and copy `/dev_hdd0
 
 ## 7. Offline and errors
 
-- [ ] Quit the app, disconnect the network, then reopen: the lists open from the HDD copy, with "Offline: showing the catalogue from <date>" in yellow.
+- [ ] Quit the app, disconnect the network, then reopen: the lists open from the HDD copy, with "Offline: showing the catalogue from <date>" in yellow. Pages you've already scrolled through show; ones you haven't show the network error in the row.
 - [ ] Still offline, open an item and press Cross: "No network connection. Check Settings > Network Settings ...".
 - [ ] Set the PS3's date to a year far in the future, reconnect and download: "The secure connection to dl.ps3.world failed. Check the PS3's date and time ...". Set the date back afterwards.
 - [ ] Disk full: hard to set up on purpose. The CI test covers it (an impossible size is refused with "Not enough free space (X MB needed, Y MB free)").

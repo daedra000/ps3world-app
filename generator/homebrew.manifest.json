@@ -3,7 +3,7 @@
     {
       "file": "homebrewgames/Avoidance v1.3.pkg",
       "title": "Avoidance",
-      "author": "",
+      "author": "ThatOtherPerson",
       "version": "1.3",
       "description": "Use the analog stick (either one) to move around and avoid the approaching red squares.",
       "group": "Games",
@@ -13,7 +13,7 @@
     {
       "file": "homebrewgames/ps3sweeperplus-v0.4.1.pkg",
       "title": "PS3Sweeper+",
-      "author": "",
+      "author": "AcidNT3.1",
       "version": "0.4.1",
       "description": "Isn't it the most awesome minesweeper game to play on YOUR PS3? Well, I hope so! With multiple chapters, multiple routes, and much more upon awaits you in this simple homebrew, made by one person! Currently, this version only contains first chapter and the main route among many, but it's at…",
       "group": "Games",
@@ -43,7 +43,7 @@
     {
       "file": "homebrewmisc/IRISMAN_4.91.2.pkg",
       "title": "IRISMAN",
-      "author": "",
+      "author": "aldostools",
       "version": "4.91.2",
       "description": "A fork of Iris Manager originally created by Estwald and D_Skywalk, and modified by aldostools (& at times updated and contributed by other devs, including Joonie, Habib, Alexander, NzV, Orion, EvilNat, etc.).",
       "group": "Misc",
@@ -73,7 +73,7 @@
     {
       "file": "homebrewtools/ArtemisPS3-GUI.pkg",
       "title": "Artemis",
-      "author": "",
+      "author": "bucanero",
       "version": "",
       "description": "An Open Source PlayStation 3 Hacking System created under the Project Artemis initiative.",
       "group": "Tools",
@@ -83,7 +83,7 @@
     {
       "file": "homebrewtools/FileManager_v1.42_nightly_4a11fa4.pkg",
       "title": "File Manager",
-      "author": "",
+      "author": "Zar",
       "version": "1.42 nightly",
       "description": "A file management tool for your PS3.",
       "group": "Tools",
@@ -93,7 +93,7 @@
     {
       "file": "homebrewtools/gamepadtester.pkg.404.v1.0_brewology_com.pkg",
       "title": "PS3 GamePad Test",
-      "author": "",
+      "author": "zar",
       "version": "1.0",
       "description": "A simple utility to test your GamePad functions.",
       "group": "Tools",
@@ -113,7 +113,7 @@
     {
       "file": "homebrewtools/multiMAN_MOD.pkg",
       "title": "multiMAN",
-      "author": "",
+      "author": "deank",
       "version": "",
       "description": "The classic all-in-one backup and file manager. Still handy alongside webMAN MOD.",
       "group": "Tools",
@@ -123,7 +123,7 @@
     {
       "file": "homebrewtools/pkgi-ps3.pkg",
       "title": "PKGi PS3",
-      "author": "",
+      "author": "bucanero",
       "version": "",
       "description": "A homebrew app that allows you to download and install .pkg files directly on your PS3.",
       "group": "Tools",
@@ -133,7 +133,7 @@
     {
       "file": "homebrewtools/prepISO_1.33.pkg",
       "title": "prepISO",
-      "author": "",
+      "author": "aldostools",
       "version": "1.33",
       "description": "Tool that scans content stored in exFAT/NTFS/ext2/3/4 external drives.",
       "group": "Tools",
@@ -153,7 +153,7 @@
     {
       "file": "homebrewtools/thermal-bench.pkg",
       "title": "Thermal Bench",
-      "author": "",
+      "author": "mohasi",
       "version": "",
       "description": "Monitor and test your PS3's thermal performance with precision.",
       "group": "Tools",
@@ -163,7 +163,7 @@
     {
       "file": "homebrewtools/webMAN_MOD_1.47.50_Installer.pkg",
       "title": "webMAN MOD",
-      "author": "",
+      "author": "aldostools",
       "version": "1.47.50",
       "description": "A homebrew plugin with many features added on the original webMAN/sMAN by Deank.",
       "group": "Tools",
@@ -173,7 +173,7 @@
     {
       "file": "mediaplayers/JellyFin-PS3.pkg",
       "title": "JellyFin PS3 (Lossless Audio)",
-      "author": "",
+      "author": "MontyMcK",
       "version": "",
       "description": "A native Jellyfin client for PS3 that streams movies, TV and music from your own Jellyfin server. This fork by vortigauntlet (based on MontyMcK’s original) adds lossless TrueHD and DTS-HD Master Audio in 5.1 or 7.1, plus smoother high-bitrate 1080p playback.",
       "group": "Media",
@@ -193,7 +193,7 @@
     {
       "file": "mediaplayers/Spotify-PS3.pkg",
       "title": "Spotify PS3",
-      "author": "",
+      "author": "vortigauntlet",
       "version": "",
       "description": "A Spotify Connect receiver for PS3: pick PS3 in the Spotify app and music plays through the console, with synced lyrics and your queue on screen.",
       "group": "Media",
@@ -203,7 +203,7 @@
     {
       "file": "mediaplayers/yo-player.pkg",
       "title": "Yo! Player",
-      "author": "",
+      "author": "mohasi",
       "version": "",
       "description": "A YouTube client for PS3 that streams videos up to 1080p, supports live streams, subscriptions, Watch Later, downloads, subtitles, and SponsorBlock.",
       "group": "Media",
@@ -213,7 +213,7 @@
     {
       "file": "ports/Bubble_Bobble_-_BUBL00002-v1.5(normal).pkg",
       "title": "Bubble Bobble",
-      "author": "",
+      "author": "voda123 & sundungas",
       "version": "1.5",
       "description": "Originally released in 1986, Bubble Bobble is a classic arcade game where players control cute dinosaurs, Bub and Bob, as they work their way through level after level. Defeat enemies by trapping them in bubbles, pop them, collect fruit for points, and ride bubbles by jumping on them. The game features…",
       "group": "Ports",
@@ -223,7 +223,7 @@
     {
       "file": "ports/doodlebob-ps3-port.pkg",
       "title": "DoodleBob and the Magic Pencil",
-      "author": "",
+      "author": "AcidNT3.1",
       "version": "",
       "description": "A PS3 port of the fan-made SpongeBob game by Ethan Wake (TechnoSuperGuy).",
       "group": "Ports",
@@ -233,7 +233,7 @@
     {
       "file": "ports/DUCK_HUNT_CLASSIC.pkg",
       "title": "Duck Hunt (PlayStation® Move)",
-      "author": "",
+      "author": "KioSensey",
       "version": "",
       "description": "A classic 1984 light gun shooter video game developed and published by Nintendo for the Nintendo Entertainment System (NES).",
       "group": "Ports",
@@ -243,7 +243,7 @@
     {
       "file": "ports/fnaf-2-ps3.pkg",
       "title": "Five Nights at Freddy's 2 Lite",
-      "author": "",
+      "author": "AlexDev2",
       "version": "",
       "description": "The survival horror classic, now on PS3. Monitor cameras, survive five nights, and avoid the new animatronic cast. Use the Freddy Fazbear head to fool them if they enter your office. Fazbear Entertainment is not responsible for death or dismemberment.",
       "group": "Ports",
@@ -263,7 +263,7 @@
     {
       "file": "ports/hheretic.pkg.890.v1.0_brewology_com.pkg",
       "title": "Heretic",
-      "author": "",
+      "author": "stingziz0u",
       "version": "1.0",
       "description": "Developed by Raven Software in 1994, this fantasy-themed first-person shooter was among the pioneers in the FPS genre to incorporate inventory management and the capability to look vertically.",
       "group": "Ports",
@@ -273,7 +273,7 @@
     {
       "file": "ports/hhexen.pkg.775.v1.0_brewology_com.pkg",
       "title": "Hexen: Beyond Heretic",
-      "author": "",
+      "author": "stingziz0u",
       "version": "1.0",
       "description": "A first-person shooter created by Raven Software in 1995, this game serves as the follow-up to Heretic and is the second installment in the Serpent Riders series.",
       "group": "Ports",
@@ -283,7 +283,7 @@
     {
       "file": "ports/MK64PS2.pkg",
       "title": "Mario Kart 64 (PS2)",
-      "author": "",
+      "author": "anthoo582",
       "version": "",
       "description": "Mario Kart 64 is a classic 1996 kart racing game developed and published by Nintendo for the Nintendo 64.",
       "group": "Ports",
@@ -313,7 +313,7 @@
     {
       "file": "ports/sonic1forever.pkg",
       "title": "Sonic Forever",
-      "author": "",
+      "author": "DropSonic0",
       "version": "",
       "description": "The definitive way to play Sonic 1 on PS3. Based on the mobile port.",
       "group": "Ports",
@@ -363,7 +363,7 @@
     {
       "file": "ports/Undertale.pkg",
       "title": "Undertale",
-      "author": "",
+      "author": "OnMyPS3",
       "version": "",
       "description": "The player controls a child who has fallen into the Underground: a large, secluded region under the surface of the Earth, separated by a magical barrier. The player meets various monsters during the journey back to the surface, some of which may engage in combat. They can opt to pacify or subdue…",
       "group": "Ports",
@@ -373,7 +373,7 @@
     {
       "file": "ports/UP0001-BLES00752_Thrill_Kill_Uncensored_00-XxZer0ModZxX.pkg",
       "title": "Thrill Kill",
-      "author": "",
+      "author": "Arsenal-7865Plays",
       "version": "",
       "description": "A cancelled fighting video game developed by Paradox Development for the PlayStation. The game's plot involves ten people who all get sent to Hell after dying on Earth and are forced by Marukka, the Goddess of Secrets, to fight to the death for a chance at reincarnation.",
       "group": "Ports",

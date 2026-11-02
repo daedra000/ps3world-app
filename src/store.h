@@ -1,7 +1,9 @@
 /*
 store.h: what the app keeps on the PS3, and where downloads go.
 
-  USRDIR/cache/catalog.json     the last catalogue that parsed (the app opens offline)
+  USRDIR/cache/catalog.json     the last index that parsed (the app opens offline)
+  USRDIR/cache/files/<sha256>   pages and search.txt files, named by their sha256
+                                (a cached one is good exactly when the index's sha256 matches)
   USRDIR/cache/icons/<id>.jpg   icons, fetched once
   USRDIR/downloaded.txt         "id<TAB>sha256<TAB>path" for each finished download
   USRDIR/settings.txt           "avatar_profile=00000001"
@@ -13,9 +15,13 @@ store.h: what the app keeps on the PS3, and where downloads go.
 
 void store_init(void);
 
-// the cached catalogue (NULL if none, or it no longer parses)
-catalog_t *store_load_catalog(void);
-void store_save_catalog(const char *json, size_t len);	// only after it parsed
+// the cached index (NULL if none, or it no longer parses)
+cat_index_t *store_load_index(void);
+void store_save_index(const char *json, size_t len);	// only after it parsed
+
+// a page or search.txt: from the cache if its sha256 matches, else fetched, checked and
+// cached. The bytes (NUL-terminated, caller frees) or NULL with *err_kind / err set
+char *store_get_file(const cat_file_t *f, size_t *len, volatile int *cancel, int *err_kind, char *err, int errsize);
 
 void store_icon_path(const cat_item_t *it, char *out, int size);
 

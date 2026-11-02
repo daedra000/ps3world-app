@@ -1,12 +1,22 @@
 # Catalogue generator
 
-Builds `catalog/v1/catalog.json` and `catalog/v1/icons/*.jpg` for the PS3 World app from the site build data and the local copies of every download. It never uploads anything.
+Builds the PS3 World app's catalogue from the site build data and the local copies of every download. It never uploads anything.
+
+| File | What |
+|---|---|
+| `catalog/v1/catalog.json` | the index (~30 KB): each section's lists, their page files with sha256s, counts, where each letter starts |
+| `catalog/v1/homebrew/<category>/N.json` | homebrew, one list per site category (Games, Ports, Tools, Media, Misc), 100 items a page |
+| `catalog/v1/theme/N.json`, `avatar/N.json` | themes and avatars, 100 items a page |
+| `.../search.txt` | one line per item (title, author, group), so the app can search a list without loading every page |
+| `catalog/v1/icons/<id>.jpg` | 128 px JPEG icons |
+
+The app loads only the index at start, then each page as the list reaches it.
 
 ```
 npm install
 node make-catalog.mjs              # everything (first run hashes ~60 GB; later runs use the cache)
 node make-catalog.mjs --limit 3    # a quick sample: the first 3 of each type
-node make-catalog.mjs --verify     # re-hash every file listed in catalog.json, ignoring the cache
+node make-catalog.mjs --verify     # re-hash every page and file the index lists, ignoring the cache
 ```
 
 Paths are in `CONFIG` at the top of `make-catalog.mjs`. Output goes to `G:\ps3world-catalog`. The hash cache is kept in `.cache\` there, and it is not part of the upload.
