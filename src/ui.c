@@ -227,37 +227,45 @@ static void Card_Frame(int x, int y, int w, int h, int on)
 	else gfx_round_rect(x, y, w, h, 18, 0xff0e131f);
 }
 
+#define CHIP_H		36
+
 static int Chip(int x, int y, const char *text)
 {
-	int w = font_width(FONT_MEDIUM, 18, text) + 28;
-	gfx_round_rect(x, y, w, 36, 18, 0x14ffffff);
-	gfx_round_rect(x + 1, y + 1, w - 2, 34, 17, 0xbf05070d);
-	font_draw(FONT_MEDIUM, 18, x + 14, y + 7, text, C_TEXT2, 0);
+	int w = font_width(FONT_MEDIUM, 18, text) + 32;
+	gfx_round_rect(x, y, w, CHIP_H, CHIP_H / 2, 0x1fffffff);
+	gfx_round_rect(x + 1, y + 1, w - 2, CHIP_H - 2, CHIP_H / 2 - 1, 0xbf05070d);
+	font_draw(FONT_MEDIUM, 18, x + 16, y + (CHIP_H - 18) / 2, text, C_TEXT2, 0);	// (font_draw centres capitals in px)
 	return w;
 }
+
+// font_draw centres the capitals in a box px high (font.c Ascent), Em 0.8 px and caps 0.7 Em:
+// where the letters you see start and end below its y
+static int Cap_Top(int px) { return px * 22 / 100; }
+static int Cap_Bottom(int px) { return px * 78 / 100; }
 
 static void Card(int x, int y, int w, int h, int on, const image_t *art, const char *kicker, const char *title,
 	int title_px, const char *blurb, const char **chips, int num_chips)
 {
 	Card_Frame(x, y, w, h, on);
 	if (art) gfx_image(art, x, y, w, h, 18, on ? 255 : 160);		// the site's 0.8 on hover, 0.5 off
-	int tx = x + 28, ty = y + 26, chip_y = y + h - 26 - 36;
+	// spaced by the letters, not their boxes: 16 px from the kicker to the title, 20 to the text
+	int tx = x + 28, ty = y + 24, chip_y = y + h - 26 - CHIP_H;
 	if (kicker) {
 		font_draw(FONT_BOLD, 20, tx, ty, kicker, C_CYAN, w - 56);
-		ty += 34;
+		ty += Cap_Bottom(20) + 16 - Cap_Top(title_px);
 	}
 	font_draw(FONT_BOLD, title_px, tx, ty, title, C_TEXT, w - 56);
-	ty += title_px + 16;
+	ty += Cap_Bottom(title_px) + 20 - Cap_Top(21);
 	char lines[4][256];
-	int max = (chip_y - 8 - ty) / 30;
+	int max = (chip_y - 8 - ty) / 32;
 	int bw = w * 2 / 3 < 340 ? w * 2 / 3 : 340;		// (the site's max-width: 34ch, about; the art shows to its right)
 	int n = blurb && max > 0 ? Wrap(FONT_REGULAR, 21, blurb, bw, lines, max > 4 ? 4 : max) : 0;
 	for (int i = 0; i < n; i++)
-		font_draw(FONT_REGULAR, 21, tx, ty + i * 30, lines[i], C_TEXT2, 0);
+		font_draw(FONT_REGULAR, 21, tx, ty + i * 32, lines[i], C_TEXT2, 0);
 	// the chips that fit on one line
 	int cx = tx;
 	for (int i = 0; i < num_chips; i++) {
-		if (cx + font_width(FONT_MEDIUM, 18, chips[i]) + 28 > x + w - 28) break;
+		if (cx + font_width(FONT_MEDIUM, 18, chips[i]) + 32 > x + w - 28) break;
 		cx += Chip(cx, chip_y, chips[i]) + 8;
 	}
 }

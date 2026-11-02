@@ -14,7 +14,7 @@ Tick each box. Where a step fails, note what the screen said and copy `/dev_hdd0
 - [ ] It opens to "Loading the catalogue..." (a few seconds at most: only the small index downloads), then the home screen: three cards as on ps3.world's home page (Homebrew large on the left, Themes and Avatars on the right), each with its character art, a cyan kicker, its title, a line of text and category chips.
 - [ ] D-pad moves between the cards: the selected one has a blue outline and brighter art.
 - [ ] Cross on **Homebrew** shows its categories as four art cards: Games 5, Ports 17, Tools 13, Media 5. Circle goes back home.
-- [ ] Cross on **Themes** shows a grid: All themes 13,303, then 17 categories (Games, Anime & Comics, Movies & TV...). Down scrolls the grid. **Avatars**: All avatars 507 packs, then US, Other, Japan, EU, Asia.
+- [ ] Cross on **Themes** shows a grid: All themes 13,303, then 17 categories (Games, Anime & Comics, Movies & TV...). Down scrolls the grid. **Avatars**: All avatars 507 packs, then US, EU, Japan, Asia, and Other last.
 - [ ] The Homebrew card's title doesn't cover Kratos's face.
 - [ ] R1 from any category screen or list goes to the next section's categories (R1 crashed in the first build).
 

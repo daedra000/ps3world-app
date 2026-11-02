@@ -344,7 +344,7 @@ async function build() {
   fs.writeFileSync(cachePath, JSON.stringify(hashCache));
 
   // the index: each section's lists (homebrew: one per category; themes, avatars: all, then one
-  // per category or region, the biggest first), each in pages
+  // per category or region, the biggest first, Other last), each in pages
   const index = {
     schema: SCHEMA,
     generated: new Date().toISOString().replace(/\.\d+Z$/, 'Z'),
@@ -367,7 +367,10 @@ async function build() {
       section.lists.push(writeList(`All ${type}s`, rows(all, `${CATALOG_DIR}/${type}/all`), `${CATALOG_DIR}/${type}/all`));
       const by = {};
       for (const i of all) (by[i._list] ||= []).push(i);
-      for (const [name, list] of Object.entries(by).sort((a, b) => b[1].length - a[1].length)) {
+      // the biggest first (avatars: by packs, the count the app shows); "Other" (no region) last
+      const size = list => (type === 'avatar' ? new Set(list.map(i => i._pack)).size : list.length);
+      for (const [name, list] of Object.entries(by).sort((a, b) =>
+        (a[0] === 'Other') - (b[0] === 'Other') || size(b[1]) - size(a[1]))) {
         const relDir = `${CATALOG_DIR}/${type}/${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
         section.lists.push(writeList(name, rows(list, relDir), relDir));
       }
