@@ -5,7 +5,8 @@ ui.c: the screens.
   picker   a section's categories: Homebrew's (Games, Ports, Tools...) as the site's
            cards; Themes' and Avatars' (All, then each category or region) as a grid
   list     one list: icon/title/author/version/size per row; Triangle searches
-           (the system keyboard), L2/R2 jump a letter; L1/R1 change section
+           (the system keyboard), L2/R2 jump a letter; L1/R1 change section.
+           An avatar list's rows are packs: Cross opens one as a list (a folder)
   detail   the description, where it'll be saved, Download (X) with progress,
            speed and Cancel (O); the result, or why it failed
   profile  which user an avatar is for, when the PS3 has more than one
@@ -248,7 +249,8 @@ static void Card(int x, int y, int w, int h, int on, const image_t *art, const c
 	ty += title_px + 16;
 	char lines[4][256];
 	int max = (chip_y - 8 - ty) / 30;
-	int n = blurb && max > 0 ? Wrap(FONT_REGULAR, 21, blurb, w * 2 / 3, lines, max > 4 ? 4 : max) : 0;
+	int bw = w * 2 / 3 < 340 ? w * 2 / 3 : 340;		// (the site's max-width: 34ch, about; the art shows to its right)
+	int n = blurb && max > 0 ? Wrap(FONT_REGULAR, 21, blurb, bw, lines, max > 4 ? 4 : max) : 0;
 	for (int i = 0; i < n; i++)
 		font_draw(FONT_REGULAR, 21, tx, ty + i * 30, lines[i], C_TEXT2, 0);
 	// the chips that fit on one line
@@ -445,11 +447,28 @@ static int cur;						// the section shown
 static int cur_list[NUM_TYPES];		// its list, or -1 for its category picker
 static int picker_sel, picker_top;	// (picker_top: the first row of tiles shown)
 static int home_sel;
+static cat_list_t folder;			// an avatar pack opened from a list, shown as a list (pages NULL: none)
+static view_t folder_view;
 
 static cat_list_t *List(int t, int l) { return ix && l >= 0 && l < ix->num_lists[t] ? &ix->lists[t][l] : NULL; }
 static int Picking(void) { return ix && ix->num_lists[cur] > 1 && cur_list[cur] < 0; }
-static cat_list_t *Cur_List(void) { return Picking() ? NULL : List(cur, cur_list[cur] < 0 ? 0 : cur_list[cur]); }
-static view_t *Cur_View(void) { return Cur_List() && views[cur] ? &views[cur][cur_list[cur] < 0 ? 0 : cur_list[cur]] : NULL; }
+static cat_list_t *Cur_List(void)
+{
+	if (folder.pages) return &folder;
+	return Picking() ? NULL : List(cur, cur_list[cur] < 0 ? 0 : cur_list[cur]);
+}
+static view_t *Cur_View(void)
+{
+	if (folder.pages) return &folder_view;
+	return Cur_List() && views[cur] ? &views[cur][cur_list[cur] < 0 ? 0 : cur_list[cur]] : NULL;
+}
+
+static void Folder_Close(void)
+{
+	free(folder_view.results);
+	memset(&folder_view, 0, sizeof(folder_view));
+	catalog_free_list(&folder);
+}
 static int View_Count(const view_t *v, const cat_list_t *l) { return v->results ? v->num_results : l->count; }
 static int View_Pos(const view_t *v, int row) { return v->results ? v->results[row] : row; }
 
@@ -517,6 +536,7 @@ static void Index_Use(cat_index_t *n)
 		}
 	}
 	Views_Free();
+	Folder_Close();		// (its pages may have changed)
 	catalog_free_index(ix);
 	ix = n;
 	for (int t = 0; t < NUM_TYPES; t++) {
@@ -899,6 +919,7 @@ static int Picker_Rows_Shown(void) { return cur == TYPE_HOMEBREW ? 99 : (CARD_H 
 
 static void Open_Section(int t)
 {
+	Folder_Close();
 	cur = t;
 	screen = SCR_LIST;
 	if (ix->num_lists[t] > 1) {		// its categories first, on the last one opened
@@ -978,6 +999,11 @@ static void Input_List(uint32_t p)
 		dirty = 1;
 		return;
 	}
+	if ((p & BTN_CIRCLE) && folder.pages) {		// out of the pack, back to the packs
+		Folder_Close();
+		dirty = 1;
+		return;
+	}
 	if ((p & BTN_CIRCLE) && ix->num_lists[cur] > 1) {		// back to the section's categories
 		picker_sel = cur_list[cur];
 		picker_top = picker_sel / Picker_Cols() - Picker_Rows_Shown() + 1;
@@ -995,6 +1021,16 @@ static void Input_List(uint32_t p)
 	if ((p & BTN_CROSS) && count) {
 		file_slot_t *slot;
 		const cat_item_t *it = Item_At(l, View_Pos(v, v->sel), &slot);
+		if (it && it->list[0]) {		// a pack: its avatars, as a list
+			cat_list_t f;
+			if (catalog_parse_list(it->list, &f)) {
+				Folder_Close();
+				folder = f;
+			} else
+				plat_log("catalog: %s's folder didn't check out", it->id);
+			dirty = 1;
+			return;
+		}
 		if (it && (det = catalog_item_copy(it))) {
 			result_msg[0] = 0;		// (the last item's download says nothing about this one)
 			result_ok = 0;
@@ -1182,11 +1218,12 @@ static void Draw_Top(const char *crumb)
 	else if (fetch_job) font_draw_right(FONT_REGULAR, 18, SCREEN_W - LIST_X, 68, "Checking for updates...", C_DIM);
 }
 
+// a list's count: an avatar list's rows are packs
 static void Count_Text(int t, int n, char *out, int size)
 {
 	char num[16];
 	Fmt_Count(n, num, sizeof(num));
-	snprintf(out, size, "%s %s%s", num, t == TYPE_THEME ? "theme" : t == TYPE_AVATAR ? "avatar" : "item", n == 1 ? "" : "s");
+	snprintf(out, size, "%s %s%s", num, t == TYPE_THEME ? "theme" : t == TYPE_AVATAR ? "pack" : "item", n == 1 ? "" : "s");
 }
 
 static void Draw_Home(void)
@@ -1285,13 +1322,17 @@ static void Draw_List(void)
 		Fmt_Size(it->size, size, sizeof(size));
 		int rx = LIST_X + LIST_W - 12;
 		rx -= font_draw_right(FONT_MEDIUM, 19, rx, y + 22, size, C_DIM) + 14;
-		if (store_downloaded(it)) Badge(&rx, y + 20, "Downloaded", C_OK);
-		if (it->requires == REQ_CFW) Badge(&rx, y + 20, "CFW only", C_WARN);
-		else if (it->requires == REQ_HEN) Badge(&rx, y + 20, "HEN / CFW", C_DIM);
+		if (it->list[0])		// a pack: how many avatars, and its regions
+			snprintf(sub, sizeof(sub), "%s%s%s", it->description, it->group[0] ? "  ·  " : "", it->group);
+		else {
+			if (store_downloaded(it)) Badge(&rx, y + 20, "Downloaded", C_OK);
+			if (it->requires == REQ_CFW) Badge(&rx, y + 20, "CFW only", C_WARN);
+			else if (it->requires == REQ_HEN) Badge(&rx, y + 20, "HEN / CFW", C_DIM);
+			snprintf(sub, sizeof(sub), "%s%s%s%s%s", it->author[0] ? it->author : "Unknown author",
+				it->version[0] ? "  ·  v" : "", it->version, it->group[0] && it->type != TYPE_HOMEBREW ? "  ·  " : "",
+				it->type != TYPE_HOMEBREW ? it->group : "");
+		}
 		font_draw(FONT_MEDIUM, 22, tx, y + 8, it->title, C_TEXT, rx - tx - 10);
-		snprintf(sub, sizeof(sub), "%s%s%s%s%s", it->author[0] ? it->author : "Unknown author",
-			it->version[0] ? "  ·  v" : "", it->version, it->group[0] && it->type != TYPE_HOMEBREW ? "  ·  " : "",
-			it->type != TYPE_HOMEBREW ? it->group : "");
 		font_draw(FONT_REGULAR, 17, tx, y + 37, sub, C_DIM, rx - tx - 10);
 	}
 	// where in the list, and the letter
@@ -1305,6 +1346,7 @@ static void Draw_List(void)
 	x = Hint(x, G_CROSS, "Open");
 	x = Hint(x, G_TRIANGLE, "Search");
 	if (v->query[0]) x = Hint(x, G_SQUARE, "Clear search");
+	else if (folder.pages) x = Hint(x, G_CIRCLE, "Packs");
 	else if (ix->num_lists[cur] > 1) x = Hint(x, G_CIRCLE, "Categories");
 	else x = Hint(x, G_CIRCLE, "Back");
 	if (!v->results && count > 50) x = Hint2(x, G_L2, G_R2, "A-Z");

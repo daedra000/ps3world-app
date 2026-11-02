@@ -68,9 +68,9 @@ const cardBg = `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"
   <rect width="256" height="256" fill="url(#p)"/><rect width="256" height="256" fill="url(#g)"/>
 </svg>`;
 
-// [file, the site's art, width, height]: the sizes src/ui.c draws them at
+// [file, the site's art, width, height, art height (default: the card's)]: the sizes src/ui.c draws them at
 const CARDS = [
-  ['home-homebrew', 'homebrew', 640, 528],
+  ['home-homebrew', 'homebrew', 640, 528, 380],	// smaller, so his face is below and right of the text
   ['home-themes', 'themes', 504, 256],
   ['home-avatars', 'resources', 504, 256],		// the site has no avatars art: its Resources card links to them
   ['cat-games', 'homebrew-games', 572, 256],
@@ -82,24 +82,24 @@ const CARDS = [
 
 // the art at the card's height, against its right edge, under the site's
 // mask (linear-gradient(to left, #000 25%, transparent 85%)) at the selected card's 0.8
-async function cardArt(src, w, h) {
-  let art = sharp(src).resize({ height: h });
+async function cardArt(src, w, h, ah = h) {
+  let art = sharp(src).resize({ height: ah });
   const { info } = await art.clone().toBuffer({ resolveWithObject: true });
-  if (info.width > w) art = art.extract({ left: info.width - w, top: 0, width: w, height: h });
+  if (info.width > w) art = art.extract({ left: info.width - w, top: 0, width: w, height: ah });
   const aw = Math.min(info.width, w);
   const mask = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">
     <defs><linearGradient id="m" x1="0" x2="1" y1="0" y2="0"><stop offset="0.15" stop-color="#fff" stop-opacity="0"/><stop offset="0.75" stop-color="#fff" stop-opacity="0.8"/></linearGradient></defs>
     <rect width="${w}" height="${h}" fill="url(#m)"/></svg>`;
   return sharp({ create: { width: w, height: h, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
-    .composite([{ input: await art.png().toBuffer(), left: w - aw, top: 0 }, { input: Buffer.from(mask), blend: 'dest-in' }])
+    .composite([{ input: await art.png().toBuffer(), left: w - aw, top: h - ah }, { input: Buffer.from(mask), blend: 'dest-in' }])
     .png();
 }
 
 fs.mkdirSync(path.join(ROOT, 'art'), { recursive: true });
 fs.mkdirSync(path.join(ROOT, 'data/cards'), { recursive: true });
 await sharp(Buffer.from(cardBg)).png().toFile(path.join(ROOT, 'data/cards/bg.png'));
-for (const [name, src, w, h] of CARDS)
-  await (await cardArt(path.join(site, 'images/home', src + '.webp'), w, h)).toFile(path.join(ROOT, 'data/cards', name + '.png'));
+for (const [name, src, w, h, ah] of CARDS)
+  await (await cardArt(path.join(site, 'images/home', src + '.webp'), w, h, ah)).toFile(path.join(ROOT, 'data/cards', name + '.png'));
 await sharp(path.join(site, 'files/meta.jpg')).resize(320, 176, { fit: 'cover' }).png().toFile(path.join(ROOT, 'art/ICON0.PNG'));
 await sharp(Buffer.from(wavesSvg(1920, 1080))).png().toFile(path.join(ROOT, 'art/PIC1.PNG'));
 await sharp(Buffer.from(wavesSvg(1280, 720))).png().toFile(path.join(ROOT, 'data/backdrop.png'));

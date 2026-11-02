@@ -14,7 +14,8 @@ Tick each box. Where a step fails, note what the screen said and copy `/dev_hdd0
 - [ ] It opens to "Loading the catalogue..." (a few seconds at most: only the small index downloads), then the home screen: three cards as on ps3.world's home page (Homebrew large on the left, Themes and Avatars on the right), each with its character art, a cyan kicker, its title, a line of text and category chips.
 - [ ] D-pad moves between the cards: the selected one has a blue outline and brighter art.
 - [ ] Cross on **Homebrew** shows its categories as four art cards: Games 5, Ports 17, Tools 13, Media 5. Circle goes back home.
-- [ ] Cross on **Themes** shows a grid: All themes 13,303, then 17 categories (Games, Anime & Comics, Movies & TV...). Down scrolls the grid. **Avatars**: All avatars 6,323, then US, Other, Japan, EU, Asia.
+- [ ] Cross on **Themes** shows a grid: All themes 13,303, then 17 categories (Games, Anime & Comics, Movies & TV...). Down scrolls the grid. **Avatars**: All avatars 507 packs, then US, Other, Japan, EU, Asia.
+- [ ] The Homebrew card's title doesn't cover Kratos's face.
 - [ ] R1 from any category screen or list goes to the next section's categories (R1 crashed in the first build).
 
 ## 2. Browse
@@ -50,7 +51,8 @@ Tick each box. Where a step fails, note what the screen said and copy `/dev_hdd0
 
 ## 6. Avatar download (.edat)
 
-- [ ] Open any avatar. With one user on the PS3 it says "Saves to /dev_hdd0/home/0000000N/psn_avatar/PSNA_....edat". With several, Cross first asks which user.
+- [ ] Avatars > All avatars lists packs ("AeternoBlade  4 avatars · US"). Cross opens a pack as a list of its avatars; Circle goes back to the packs (on the same row).
+- [ ] Open any avatar in a pack. With one user on the PS3 it says "Saves to /dev_hdd0/home/0000000N/psn_avatar/PSNA_....edat". With several, Cross first asks which user.
 - [ ] Cross: "Checksum OK ... Saved to ...psn_avatar/PSNA_....edat".
 - [ ] XMB > PlayStation Network > Account Management > Avatar (or the profile's avatar setting) shows the new avatar. [unverified until this step passes]
 

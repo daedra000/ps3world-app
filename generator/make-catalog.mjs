@@ -5,7 +5,8 @@ make-catalog.mjs: builds the PS3 World app's catalogue under catalog/v1/:
                                 sha256s), counts and where each letter starts
   homebrew/<category>/N.json    homebrew, one list per site category, 100 items a page
   theme/<list>/N.json           themes: all of them, then one list per site category
-  avatar/<list>/N.json          avatars: all of them, then one list per region
+  avatar/<list>/N.json          avatars: all of them, then one list per region, as packs (folders):
+  avatar/<list>/packs/<pack>/   each pack's avatars, a list of its own (its item's "list")
   <list>/search.txt             "title<TAB>author<TAB>group" a line, for searching a list
   icons/<id>.jpg                128 px JPEG icons
 
@@ -48,7 +49,8 @@ const CONFIG = {
   includeNsfw: false,
 };
 
-const SCHEMA = 2;							// 2: an index (catalog.json) and lists in pages of PAGE_SIZE items
+const SCHEMA = 3;							// 2: an index (catalog.json) and lists in pages of PAGE_SIZE items
+											// 3: items can be folders (avatar packs) with a list of their own
 const CATALOG_DIR = 'catalog/v1';			// on dl.ps3.world and under outDir
 const PAGE_SIZE = 100;
 const TYPES = ['homebrew', 'theme', 'avatar'];
@@ -101,7 +103,7 @@ const letterRank = t => { const l = letterOf(t); return l === '#' ? 0 : l.charCo
 // one list: A-Z, written as pages of PAGE_SIZE and a search.txt; returns its index entry
 function writeList(name, list, relDir) {
   list.sort((a, b) => letterRank(a.title) - letterRank(b.title) ||
-    a.title.localeCompare(b.title, 'en', { sensitivity: 'base' }) || a.id.localeCompare(b.id));
+    a.title.localeCompare(b.title, 'en', { sensitivity: 'base', numeric: true }) || a.id.localeCompare(b.id));
   const dir = path.join(CONFIG.outDir, relDir);
   fs.mkdirSync(dir, { recursive: true });
   const entry = { name, count: list.length, pages: [], search: null, letters: {} };
@@ -112,7 +114,7 @@ function writeList(name, list, relDir) {
       items: list.slice(p * PAGE_SIZE, (p + 1) * PAGE_SIZE).map(s => ({
         id: s.id, type: s.type, title: s.title, author: s.author, version: s.version,
         description: s.description, group: s.group, size: s.size, sha256: s.sha256,
-        url: s.url, icon: s.icon, requires: s.requires,
+        url: s.url, icon: s.icon, requires: s.requires, list: s.list,
       })),
     };
     const json = JSON.stringify(page);
@@ -258,6 +260,7 @@ function avatarSources() {
       description: `Avatar ${a.title} from ${a.packName} (${[a.region, a.titleId].filter(Boolean).join(', ')})`,
       group: a.packName,
       _list: !a.region || a.region === 'Unknown' ? 'Other' : a.region,
+      _pack: a.pack,
       url: rel,
       requires: 'hen',
       _file: localFor(rel),
@@ -265,6 +268,31 @@ function avatarSources() {
     });
   }
   return out;
+}
+
+// avatars as folders: an item per pack, whose "list" (the index's list entry, as a string)
+// is the pack's avatars in pages of their own under relDir/packs/<pack>
+function packFolders(avatars, relDir) {
+  const packs = {};
+  for (const a of avatars) (packs[a._pack] ||= []).push(a);
+  return Object.values(packs).map(av => {
+    const entry = writeList(av[0].group, av, `${relDir}/packs/${av[0]._pack}`);
+    return {
+      id: `pk-${av[0]._pack}`,
+      type: 'avatar',
+      title: av[0].group,
+      author: '',
+      version: '',
+      description: `${av.length} avatar${av.length === 1 ? '' : 's'}`,
+      group: [...new Set(av.map(a => a._list))].join(', '),
+      size: av.reduce((n, a) => n + a.size, 0),
+      sha256: entry.pages[0].sha256,		// (its first page: a folder has no file of its own)
+      url: entry.pages[0].url,
+      icon: (av.find(a => a.icon) || {}).icon || '',
+      requires: 'hen',
+      list: JSON.stringify(entry),
+    };
+  });
 }
 
 // ---- build ----
@@ -308,11 +336,15 @@ async function build() {
         if (list.length) section.lists.push(writeList(name, list, `${CATALOG_DIR}/homebrew/${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`));
       }
     } else {
-      section.lists.push(writeList(`All ${type}s`, all, `${CATALOG_DIR}/${type}/all`));
+      // (avatars: a list's rows are its packs)
+      const rows = (list, relDir) => (type === 'avatar' ? packFolders(list, relDir) : list);
+      section.lists.push(writeList(`All ${type}s`, rows(all, `${CATALOG_DIR}/${type}/all`), `${CATALOG_DIR}/${type}/all`));
       const by = {};
       for (const i of all) (by[i._list] ||= []).push(i);
-      for (const [name, list] of Object.entries(by).sort((a, b) => b[1].length - a[1].length))
-        section.lists.push(writeList(name, list, `${CATALOG_DIR}/${type}/${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`));
+      for (const [name, list] of Object.entries(by).sort((a, b) => b[1].length - a[1].length)) {
+        const relDir = `${CATALOG_DIR}/${type}/${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+        section.lists.push(writeList(name, rows(list, relDir), relDir));
+      }
     }
     index.sections.push(section);
   }
@@ -343,13 +375,15 @@ async function verify() {
   let ok = 0, bad = 0;
   // every page against the index's sha256, then every item's file against the page's
   const cat = { items: [] };
-  for (const s of index.sections)
-    for (const l of s.lists)
-      for (const p of l.pages) {
-        const text = fs.readFileSync(path.join(CONFIG.outDir, p.url), 'utf8');
-        if (sha256Of(text) !== p.sha256) { bad++; warn(`MISMATCH page ${p.url}`); continue; }
-        cat.items.push(...JSON.parse(text).items);
-      }
+  const lists = index.sections.flatMap(s => s.lists);
+  for (let k = 0; k < lists.length; k++)		// (a folder's own list joins the queue)
+    for (const p of lists[k].pages) {
+      const text = fs.readFileSync(path.join(CONFIG.outDir, p.url), 'utf8');
+      if (sha256Of(text) !== p.sha256) { bad++; warn(`MISMATCH page ${p.url}`); continue; }
+      for (const it of JSON.parse(text).items)
+        if (it.list) lists.push(JSON.parse(it.list));
+        else cat.items.push(it);
+    }
   await pool(cat.items, HASH_JOBS, 'verifying', async it => {
     const local = it.type === 'homebrew' ? homebrewByUrl[it.url] : localFor(it.url);
     const info = local && await fileInfo(local, false);

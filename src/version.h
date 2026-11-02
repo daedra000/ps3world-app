@@ -2,6 +2,6 @@
 #define VERSION_H
 
 #define APP_NAME		"PS3 World"
-#define APP_VERSION		"0.3.3"
+#define APP_VERSION		"0.4.0"
 
 #endif

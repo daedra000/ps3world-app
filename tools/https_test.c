@@ -262,6 +262,42 @@ static int Get(const char *url, const char *headers, sink_t *s, http_res_t *res)
 	return http_request(&req, res);
 }
 
+// the sample catalogue: every page of a list against its sha256, parsed; a folder's list (an avatar pack) too
+typedef struct {
+	const char *root;
+	int lists, folders, pages, items, want, bad;	// (want: the lists' counts; "All" repeats the rest)
+	char err[160];
+} sample_t;
+
+static void Sample_List(sample_t *s, const cat_list_t *l)
+{
+	s->lists++;
+	s->want += l->count;
+	for (int p = 0; p < l->num_pages; p++) {
+		char path[600];
+		unsigned char d[32];
+		size_t plen;
+		snprintf(path, sizeof(path), "%s/%s", s->root, l->pages[p].url);
+		char *page = (char *)plat_read_file(path, &plen);
+		mbedtls_sha256((const unsigned char *)(page ? page : ""), page ? plen : 0, d, 0);
+		catalog_t *c = page && !memcmp(d, l->pages[p].sha256, 32) ? catalog_parse_page(page, plen, s->err, sizeof(s->err)) : NULL;
+		if (!c) s->bad++;
+		for (int i = 0; c && i < c->count; i++) {
+			cat_list_t f;
+			if (!c->items[i].list[0]) continue;
+			if (catalog_parse_list(c->items[i].list, &f)) {
+				s->folders++;
+				Sample_List(s, &f);
+				catalog_free_list(&f);
+			} else
+				s->bad++;
+		}
+		if (c) { s->pages++; s->items += c->count; }
+		catalog_free(c);
+		free(page);
+	}
+}
+
 int main(int argc, char **argv)
 {
 	http_res_t res;
@@ -343,26 +379,14 @@ int main(int argc, char **argv)
 		snprintf(path, sizeof(path), "%s/catalog/v1/catalog.json", argv[1]);
 		char *buf = (char *)plat_read_file(path, &n);
 		cat_index_t *ix = buf ? catalog_parse_index(buf, n, err, sizeof(err)) : NULL;
-		int pages = 0, items = 0, want = 0, lists = 0, bad = 0;	// (want: the lists' counts; "All" repeats the rest)
+		sample_t s = {argv[1]};
 		for (int t = 0; ix && t < NUM_TYPES; t++)
-			for (int l = 0; l < ix->num_lists[t]; l++) {
-				lists++;
-				want += ix->lists[t][l].count;
-				for (int p = 0; p < ix->lists[t][l].num_pages; p++) {
-					const cat_file_t *pf = &ix->lists[t][l].pages[p];
-					size_t plen;
-					snprintf(path, sizeof(path), "%s/%s", argv[1], pf->url);
-					char *page = (char *)plat_read_file(path, &plen);
-					mbedtls_sha256((const unsigned char *)(page ? page : ""), page ? plen : 0, d, 0);
-					catalog_t *c = page && !memcmp(d, pf->sha256, 32) ? catalog_parse_page(page, plen, err, sizeof(err)) : NULL;
-					if (c) { pages++; items += c->count; } else bad++;
-					catalog_free(c);
-					free(page);
-				}
-			}
-		Result(ix && !bad && items == want, "sample catalogue parsed",
-			"%s: %d lists, %d pages, %d items (the lists say %d; %d homebrew, %d themes, %d avatars), %d bad %s", argv[1],
-			lists, pages, items, want, ix ? ix->count[0] : 0, ix ? ix->count[1] : 0, ix ? ix->count[2] : 0, bad, err);
+			for (int l = 0; l < ix->num_lists[t]; l++)
+				Sample_List(&s, &ix->lists[t][l]);
+		Result(ix && !s.bad && s.folders && s.items == s.want, "sample catalogue parsed",
+			"%s: %d lists (%d of them folders), %d pages, %d items (the lists say %d; %d homebrew, %d themes, %d avatars), %d bad %s",
+			argv[1], s.lists, s.folders, s.pages, s.items, s.want, ix ? ix->count[0] : 0, ix ? ix->count[1] : 0,
+			ix ? ix->count[2] : 0, s.bad, s.err);
 		catalog_free_index(ix);
 		free(buf);
 	}

@@ -200,7 +200,7 @@ void catalog_free_index(cat_index_t *ix)
 Pages
 ==================
 */
-static const char *const fields[] = {"id", "title", "author", "version", "description", "group", "url", "icon"};
+static const char *const fields[] = {"id", "title", "author", "version", "description", "group", "url", "icon", "list"};
 #define NUM_FIELDS (int)(sizeof(fields) / sizeof(fields[0]))
 
 // checks one item; fills what doesn't need the string block
@@ -267,7 +267,7 @@ catalog_t *catalog_parse_page(const char *json, size_t len, char *err, int errsi
 		cat_item_t *it = &c->items[c->count];
 		if (c->count >= n || !Check(o, it)) continue;
 		const char **dst[NUM_FIELDS] = {&it->id, &it->title, &it->author, &it->version,
-			&it->description, &it->group, &it->url, &it->icon};
+			&it->description, &it->group, &it->url, &it->icon, &it->list};
 		for (int f = 0; f < NUM_FIELDS; f++) {
 			size_t l = strlen(Str(o, fields[f])) + 1;
 			memcpy(s, Str(o, fields[f]), l);
@@ -284,6 +284,22 @@ out:
 	return c;
 }
 
+int catalog_parse_list(const char *json, cat_list_t *l)
+{
+	cJSON *root = cJSON_Parse(json);
+	memset(l, 0, sizeof(*l));
+	int ok = root && List_Of(root, l);
+	cJSON_Delete(root);
+	if (!ok) catalog_free_list(l);
+	return ok;
+}
+
+void catalog_free_list(cat_list_t *l)
+{
+	free(l->pages);
+	memset(l, 0, sizeof(*l));
+}
+
 void catalog_free(catalog_t *c)
 {
 	if (!c) return;
@@ -294,14 +310,14 @@ void catalog_free(catalog_t *c)
 
 cat_item_t *catalog_item_copy(const cat_item_t *it)
 {
-	const char *src[NUM_FIELDS] = {it->id, it->title, it->author, it->version, it->description, it->group, it->url, it->icon};
+	const char *src[NUM_FIELDS] = {it->id, it->title, it->author, it->version, it->description, it->group, it->url, it->icon, it->list};
 	size_t total = sizeof(cat_item_t);
 	for (int f = 0; f < NUM_FIELDS; f++) total += strlen(src[f]) + 1;
 	cat_item_t *c = malloc(total);		// the struct, then its strings, in one block (one free)
 	if (!c) return NULL;
 	*c = *it;
 	char *s = (char *)(c + 1);
-	const char **dst[NUM_FIELDS] = {&c->id, &c->title, &c->author, &c->version, &c->description, &c->group, &c->url, &c->icon};
+	const char **dst[NUM_FIELDS] = {&c->id, &c->title, &c->author, &c->version, &c->description, &c->group, &c->url, &c->icon, &c->list};
 	for (int f = 0; f < NUM_FIELDS; f++) {
 		size_t l = strlen(src[f]) + 1;
 		memcpy(s, src[f], l);

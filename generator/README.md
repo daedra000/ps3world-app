@@ -7,7 +7,8 @@ Builds the PS3 World app's catalogue from the site build data and the local copi
 | `catalog/v1/catalog.json` | the index (~30 KB): each section's lists, their page files with sha256s, counts, where each letter starts |
 | `catalog/v1/homebrew/<category>/N.json` | homebrew, one list per site category (Games, Ports, Tools, Media, Misc), 100 items a page |
 | `catalog/v1/theme/<list>/N.json` | themes, 100 items a page: `all`, then one list per site category |
-| `catalog/v1/avatar/<list>/N.json` | avatars, 100 items a page: `all`, then one list per region |
+| `catalog/v1/avatar/<list>/N.json` | avatar packs, 100 a page: `all`, then one list per region. Each pack is a folder: its item carries its own list |
+| `catalog/v1/avatar/<list>/packs/<pack>/N.json` | a pack's avatars (in a region's list, only that region's) |
 | `.../search.txt` | one line per item (title, author, group), so the app can search a list without loading every page |
 | `catalog/v1/icons/<id>.jpg` | 128 px JPEG icons |
 
