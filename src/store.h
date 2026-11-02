@@ -29,8 +29,8 @@ void store_icon_path(const cat_item_t *it, char *out, int size);
 const char *store_downloaded(const cat_item_t *it);
 void store_mark_downloaded(const cat_item_t *it, const char *path);
 
-// where it goes. 0 with the reason in err (no USB drive, no profile picked...)
-enum { DEST_OK, DEST_NO_USB, DEST_NO_PROFILE, DEST_PICK_PROFILE };
+// where it goes, or why it can't yet (no profile picked...)
+enum { DEST_OK, DEST_NO_PROFILE, DEST_PICK_PROFILE };
 int store_dest(const cat_item_t *it, char *out, int size);
 const char *store_dest_message(int code);
 

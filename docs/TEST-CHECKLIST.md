@@ -6,7 +6,6 @@ Tick each box. Where a step fails, note what the screen said and copy `/dev_hdd0
 
 - [ ] The catalogue is uploaded: `rclone copy "G:\ps3world-catalog\catalog" R2:ps3wrld-content/catalog --progress`, then <https://dl.ps3.world/catalog/v1/catalog.json> opens in a browser.
 - [ ] The PS3 is on HEN (enabled this boot), online, and the date and time are right (Settings > Date and Time Settings). TLS checks certificate dates against the clock.
-- [ ] A FAT32 USB drive is ready for the theme test (leave it out until step 5).
 - [ ] `PS3World.pkg` from the latest GitHub Actions run (artifact **PS3World**) is installed: copy it to `/dev_hdd0/packages/` or a USB drive, then Package Manager > Install Package Files.
 
 ## 1. Open the app
@@ -45,11 +44,9 @@ Tick each box. Where a step fails, note what the screen said and copy `/dev_hdd0
 
 ## 5. Theme download (.p3t)
 
-- [ ] With no USB drive in, open any theme: the yellow line says to plug in a FAT32 USB drive, and Cross shows the same message.
-- [ ] Plug the drive in, then reopen the theme: "Saves to /dev_usb000/PS3/THEME/<name>.p3t" (the number can differ).
-- [ ] Cross: "Checksum OK ... Saved to /dev_usb00N/PS3/THEME/<name>.p3t".
-- [ ] XMB > Settings > Theme Settings > Theme > Install: the theme is listed and installs. [unverified until this step passes]
-- [ ] Optional (decides whether v2 can save themes to the HDD): FTP the same .p3t into `/dev_hdd0/theme/` and check whether it shows in Theme Settings > Theme without installing.
+- [ ] Open any theme: it says "Saves to /dev_hdd0/theme/<name>.p3t" (no USB drive needed).
+- [ ] Cross: "Checksum OK ... Saved to /dev_hdd0/theme/<name>.p3t".
+- [ ] XMB > Settings > Theme Settings > Theme: the theme is listed and applies. (FTPing a .p3t there works, so this should too.)
 
 ## 6. Avatar download (.edat)
 

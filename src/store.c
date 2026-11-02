@@ -3,8 +3,8 @@ store.c: see store.h.
 
 Install targets (v1):
   homebrew  /dev_hdd0/packages/<file>.pkg, for Package Manager > Install Package Files
-  theme     /dev_usb00N/PS3/THEME/<file>.p3t, for Settings > Theme Settings > Install
-            (the first USB drive plugged in; none: the UI says to plug one in)
+  theme     /dev_hdd0/theme/<file>.p3t, where the XMB lists themes (Settings > Theme
+            Settings > Theme), as themes.ps3.world's guide
   avatar    /dev_hdd0/home/<profile>/psn_avatar/<file>.edat, as avatars.ps3.world's guide
 */
 #include <stdio.h>
@@ -81,8 +81,7 @@ static void Records_Load(void)
 		snprintf(r->id, sizeof(r->id), "%s", line);
 		snprintf(r->sha, sizeof(r->sha), "%s", t1 + 1);
 		snprintf(r->path, sizeof(r->path), "%s", t2 + 1);
-		// only what's still there (a theme's USB drive may be out: it stays listed)
-		if (plat_file_size(r->path) >= 0 || !strncmp(r->path, "/dev_usb", 8))
+		if (plat_file_size(r->path) >= 0)		// only what's still there
 			num_records++;
 	}
 	free(s);
@@ -276,15 +275,8 @@ int store_dest(const cat_item_t *it, char *out, int size)
 		snprintf(out, size, "/dev_hdd0/packages/%s", name);
 		return DEST_OK;
 	case TYPE_THEME:
-		for (int u = 0; u < 8; u++) {
-			char dev[32];
-			snprintf(dev, sizeof(dev), "/dev_usb%03d", u);
-			if (plat_dir_exists(dev)) {
-				snprintf(out, size, "%s/PS3/THEME/%s", dev, name);
-				return DEST_OK;
-			}
-		}
-		return DEST_NO_USB;
+		snprintf(out, size, "/dev_hdd0/theme/%s", name);
+		return DEST_OK;
 	case TYPE_AVATAR: {
 		const char *p = store_avatar_profile();
 		if (!p[0]) {
@@ -301,8 +293,6 @@ int store_dest(const cat_item_t *it, char *out, int size)
 const char *store_dest_message(int code)
 {
 	switch (code) {
-	case DEST_NO_USB:
-		return "Themes are saved to a USB drive. Plug in a FAT32 USB drive and try again.";
 	case DEST_NO_PROFILE:
 		return "No user profiles were found in /dev_hdd0/home.";
 	case DEST_PICK_PROFILE:

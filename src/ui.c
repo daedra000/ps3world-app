@@ -799,7 +799,7 @@ static const char *Install_Hint(int type)
 {
 	switch (type) {
 	case TYPE_HOMEBREW: return "Install it from the XMB: Package Manager > Install Package Files.";
-	case TYPE_THEME: return "Install it from the XMB: Settings > Theme Settings > Theme > Install.";
+	case TYPE_THEME: return "Choose it on the XMB: Settings > Theme Settings > Theme.";
 	case TYPE_AVATAR: return "Choose it from the XMB: PlayStation Network > Account Management > Avatar.";
 	}
 	return "";
