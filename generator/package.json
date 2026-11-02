@@ -1,0 +1,14 @@
+{
+  "name": "ps3world-catalog-generator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Builds catalog.json and icons for the PS3 World app",
+  "scripts": {
+    "build": "node make-catalog.mjs",
+    "sample": "node make-catalog.mjs --limit 3",
+    "verify": "node make-catalog.mjs --verify"
+  },
+  "dependencies": {
+    "sharp": "0.35.5"
+  }
+}

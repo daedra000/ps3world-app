@@ -1,0 +1,88 @@
+#---------------------------------------------------------------------------------
+# PS3 World -- PS3 (PSL1GHT) build (from Resonant-PS3's)
+#
+#   make -f Makefile.ps3        the PKG (EBOOT + data)
+#   make -f Makefile.ps3 clean
+#
+# Needs PS3DEV/PSL1GHT (ps3toolchain + PSL1GHT) and mbedTLS built for the PPU
+# (MBEDTLS_DIR): .github/workflows/ps3.yml does all of it.
+#
+# Flags as NZ:P PS3 / thug-ps3 run on hardware with this toolchain: -O2,
+# -mcpu=cell, no AltiVec, -mminimal-toc and --no-multi-toc (a split TOC hangs
+# at boot). video_ps3.c at -O1 -fno-inline (PSL1GHT's syscall stubs don't
+# survive aggressive inlining).
+#---------------------------------------------------------------------------------
+.SUFFIXES:
+
+ifeq ($(strip $(PSL1GHT)),)
+$(error "Set PSL1GHT (and PS3DEV) in your environment")
+endif
+
+ROOT     := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
+
+include $(PSL1GHT)/ppu_rules
+BUILD    := $(ROOT)/build/ps3
+OBJDIR   := $(BUILD)/obj
+
+export TITLE     := PS3 World
+export APPID     := PSWD00001
+export CONTENTID := UP0001-$(APPID)_00-0000000000000000
+export ICON0     := $(ROOT)/art/ICON0.PNG
+export BUILDDIR  := $(BUILD)/package
+export PKGFILES  := $(BUILD)/pkgfiles
+
+TARGET   := $(BUILD)/ps3world
+
+ifneq ($(strip $(PS3PY_DIR)),)
+PKG := python3 $(PS3PY_DIR)/pkg.py
+endif
+
+SOURCES := src/app.c src/gfx.c src/font.c src/input.c src/jobs.c src/lang.c src/ui.c src/catalog.c \
+	src/http_common.c src/thirdparty/cJSON.c \
+	src/ps3/main_ps3.c src/ps3/video_ps3.c src/ps3/input_ps3.c src/ps3/http_ps3.c src/ps3/osk_ps3.c
+OBJECTS := $(patsubst %.c,$(OBJDIR)/%.o,$(SOURCES))
+
+MBEDTLS_DIR ?= $(PORTLIBS)
+DEFINES  := -D__PS3__ -DAPP_DIR='"/dev_hdd0/game/$(APPID)/USRDIR"'
+INCLUDES := -Isrc -Isrc/ps3 $(LIBPSL1GHT_INC) -I$(MBEDTLS_DIR)/include -I$(PORTLIBS)/include
+
+OPT      := -O2
+CFLAGS   := $(OPT) -mcpu=cell -mtune=cell -mno-altivec -mminimal-toc $(MACHDEP) \
+	-std=gnu99 -fsigned-char -fno-strict-aliasing -fno-common -fwrapv \
+	-Wall -Wno-unused-variable -Wno-unused-but-set-variable -Wno-pointer-sign \
+	-Wno-unused-function -Wno-format-truncation -Wno-stringop-truncation \
+	-MMD -MP $(DEFINES) $(INCLUDES)
+LDFLAGS  := $(MACHDEP) -Wl,--no-multi-toc $(LIBPSL1GHT_LIB) -L$(MBEDTLS_DIR)/library -L$(PORTLIBS)/lib
+LIBS     := -lrsx -lgcm_sys -lio -lmbedtls -lmbedx509 -lmbedcrypto -lsysfs -lsysmodule \
+	-lsysutil -lnet -lrt -llv2 -lm
+
+.PHONY: all pkg self clean pkgfiles
+
+all: pkg
+pkg: $(TARGET).pkg
+self: $(TARGET).self
+
+$(OBJDIR)/%.o: %.c
+	@mkdir -p $(@D)
+	@echo $<
+	@$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJDIR)/src/ps3/video_ps3.o: CFLAGS := $(filter-out $(OPT),$(CFLAGS)) -O1 -fno-inline
+
+$(TARGET).elf: $(OBJECTS)
+	@echo linking $(notdir $@)
+	@$(CC) $(LDFLAGS) $(OBJECTS) $(LIBS) -o $@
+
+# what ppu_rules' %.pkg rule copies next to EBOOT.BIN
+pkgfiles:
+	@rm -rf $(PKGFILES)
+	@mkdir -p $(PKGFILES)/USRDIR
+	@cp art/PIC1.PNG $(PKGFILES)/PIC1.PNG
+	@cp -r data $(PKGFILES)/USRDIR/data
+
+$(TARGET).pkg: | pkgfiles
+
+clean:
+	rm -rf $(ROOT)/build/ps3
+
+-include $(OBJECTS:.o=.d)

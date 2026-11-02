@@ -1,0 +1,209 @@
+name: PS3 build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # The same toolchain as Resonant-PS3, nzp-ps3 and thug-ps3 (pinned: the cache
+  # only rebuilds when these are bumped on purpose).
+  PS3TOOLCHAIN_REF: de85d7d5d11dc0a99d823ece3d440eea46c34d0f
+  PSL1GHT_REF: f649a08fd536a9e27c08c7db2d93a2d7ee4c3bbe
+  TOOLCHAIN_CACHE_KEY: ps3dev-v1-de85d7d5-f649a08f
+
+jobs:
+  # http_ps3.c and the same Mbed TLS build, on the runner, against dl.ps3.world:
+  # the handshake and certificate chain, Range resume, 404s, a bad certificate,
+  # and catalog.json parsed by catalog.c (fast; no PS3 toolchain)
+  https:
+    name: HTTPS test (dl.ps3.world)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Mbed TLS (host) and root certificates
+        run: |
+          sh tools/build-mbedtls.sh "$RUNNER_TEMP/mbedtls" gcc ar "-O2"
+          python3 tools/make-ca-bundle.py src/ps3/ca_bundle.h
+      - name: Build
+        run: |
+          M="$RUNNER_TEMP/mbedtls"
+          gcc -O1 -g -Wall -Wno-pointer-sign -Itools/hostshim -Isrc -Isrc/ps3 -I"$M/include" -o https_test \
+            tools/https_test.c src/ps3/http_ps3.c src/http_common.c src/catalog.c src/lang.c src/thirdparty/cJSON.c \
+            -L"$M/library" -lmbedtls -lmbedx509 -lmbedcrypto -lpthread
+      - name: Run
+        run: ./https_test tests/sample-catalog.json
+
+  toolchain:
+    name: PS3 toolchain (cached)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - name: Look for the cached toolchain
+        id: cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ runner.temp }}/ps3dev
+          key: ${{ env.TOOLCHAIN_CACHE_KEY }}
+          lookup-only: true
+
+      - name: Install build requirements
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install \
+            autoconf automake bison flex gcc g++ libelf-dev make texinfo \
+            libncurses-dev patch python3 python-is-python3 python3-dev \
+            wget zlib1g-dev libtool-bin bzip2 libgmp-dev pkg-config libssl-dev
+
+      - name: Fetch ps3toolchain and PSL1GHT
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          git clone https://github.com/ps3dev/ps3toolchain "$RUNNER_TEMP/ps3toolchain"
+          git -C "$RUNNER_TEMP/ps3toolchain" checkout "$PS3TOOLCHAIN_REF"
+          git clone https://github.com/ps3dev/PSL1GHT "$RUNNER_TEMP/psl1ght"
+          git -C "$RUNNER_TEMP/psl1ght" checkout "$PSL1GHT_REF"
+
+      - name: Set up environment
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          echo "PS3DEV=$RUNNER_TEMP/ps3dev" >> "$GITHUB_ENV"
+          echo "PSL1GHT=$RUNNER_TEMP/ps3dev" >> "$GITHUB_ENV"
+          echo "BUILD_PS3TOOLCHAIN_ONLY=1" >> "$GITHUB_ENV"
+          echo "NO_SAVANNAH=1" >> "$GITHUB_ENV"
+          echo "$RUNNER_TEMP/ps3dev/bin" >> "$GITHUB_PATH"
+          echo "$RUNNER_TEMP/ps3dev/ppu/bin" >> "$GITHUB_PATH"
+          echo "$RUNNER_TEMP/ps3dev/spu/bin" >> "$GITHUB_PATH"
+          mkdir -p "$RUNNER_TEMP/ps3dev"
+
+      - name: Download toolchain sources
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: ${{ runner.temp }}/ps3toolchain
+        run: mkdir -p build && cd build && ../download.sh
+
+      - name: Binutils (PPU)
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: ${{ runner.temp }}/ps3toolchain
+        run: ./toolchain.sh 001
+      - name: GCC + newlib (PPU)
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: ${{ runner.temp }}/ps3toolchain
+        run: ./toolchain.sh 002
+      - name: Symlinks (PPU)
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: ${{ runner.temp }}/ps3toolchain
+        run: ./toolchain.sh 004
+      - name: Binutils (SPU)
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: ${{ runner.temp }}/ps3toolchain
+        run: ./toolchain.sh 005
+      - name: GCC + newlib (SPU)
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: ${{ runner.temp }}/ps3toolchain
+        run: ./toolchain.sh 006
+
+      - name: PSL1GHT
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: ${{ runner.temp }}/psl1ght
+        run: make install-ctrl && make && make install
+
+      - name: Save toolchain to cache
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ runner.temp }}/ps3dev
+          key: ${{ env.TOOLCHAIN_CACHE_KEY }}
+
+  app:
+    name: PS3 World EBOOT + PKG
+    needs: toolchain
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Restore toolchain
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ runner.temp }}/ps3dev
+          key: ${{ env.TOOLCHAIN_CACHE_KEY }}
+          fail-on-cache-miss: true
+
+      - name: Set up environment
+        run: |
+          sudo apt-get update && sudo apt-get -y install libelf-dev python3
+          echo "PS3DEV=$RUNNER_TEMP/ps3dev" >> "$GITHUB_ENV"
+          echo "PSL1GHT=$RUNNER_TEMP/ps3dev" >> "$GITHUB_ENV"
+          echo "$RUNNER_TEMP/ps3dev/bin" >> "$GITHUB_PATH"
+          echo "$RUNNER_TEMP/ps3dev/ppu/bin" >> "$GITHUB_PATH"
+
+      - name: PSL1GHT's pkg.py
+        run: |
+          git clone -q https://github.com/ps3dev/PSL1GHT "$RUNNER_TEMP/psl1ght-py"
+          git -C "$RUNNER_TEMP/psl1ght-py" checkout -q "$PSL1GHT_REF"
+          pip install --quiet setuptools
+          cd "$RUNNER_TEMP/psl1ght-py/tools/ps3py"
+          python3 setup.py build -q
+          cp build/lib.*/pkgcrypt*.so .
+          python3 -c "import sys; sys.path.insert(0, '.'); import pkgcrypt"
+          echo "PS3PY_DIR=$RUNNER_TEMP/psl1ght-py/tools/ps3py" >> "$GITHUB_ENV"
+
+      # librsx calls the command-buffer wrap callback through an asm trampoline
+      # that declares almost no clobbers; at -O2 GCC's IPA register allocation
+      # trusts that (nzp-ps3's RSX hang). Rebuilt with -fno-ipa-ra.
+      - name: librsx without IPA-RA
+        run: |
+          cd "$RUNNER_TEMP/psl1ght-py/ppu/librsx"
+          sed -i 's/-O2 -mregnames/-O2 -fno-ipa-ra -mregnames/' Makefile
+          make -s install
+
+      # HTTPS (dl.ps3.world): the PS3's own cellHttps is too old (see tools/build-mbedtls.sh)
+      - name: Mbed TLS (PPU) and root certificates
+        run: |
+          sh tools/build-mbedtls.sh "$RUNNER_TEMP/mbedtls" ppu-gcc ppu-ar \
+            "-O2 -mcpu=cell -mtune=cell -mno-altivec -mminimal-toc -fno-strict-aliasing -I$PSL1GHT/ppu/include -I$PS3DEV/ppu/include"
+          echo "MBEDTLS_DIR=$RUNNER_TEMP/mbedtls" >> "$GITHUB_ENV"
+          python3 tools/make-ca-bundle.py src/ps3/ca_bundle.h
+
+      - name: Build
+        run: |
+          set -o pipefail
+          ppu-gcc --version | head -1
+          make -f Makefile.ps3 MBEDTLS_DIR="$MBEDTLS_DIR" -k -j"$(nproc)" self 2>&1 | tee build.log
+
+      - name: Report errors
+        if: failure()
+        run: |
+          grep -E 'error|undefined reference|multiple definition|No rule|Error [0-9]' build.log \
+            | grep -v '^\s*|' | awk '!seen[$0]++' | head -120 > errors.txt || true
+          for part in 0 1 2 3; do
+            chunk=$(sed -n "$((part*30+1)),$((part*30+30))p" errors.txt)
+            [ -n "$chunk" ] || break
+            printf '::error title=build errors %d::%s\n' "$part" \
+              "$(printf '%s' "$chunk" | sed -e 's/%/%25/g' | awk '{printf "%s%%0A", $0}')"
+          done
+
+      - name: Link checks
+        run: |
+          elf=build/ps3/ps3world.elf
+          echo "::notice title=r2off TOC-split stubs (must be 0)::$(ppu-nm $elf | grep -c r2off || true)"
+          ppu-size $elf
+
+      - name: PKG
+        run: |
+          make -f Makefile.ps3 MBEDTLS_DIR="$MBEDTLS_DIR" PS3PY_DIR="$PS3PY_DIR" pkg
+          ls -la build/ps3/*.pkg
+          for f in USRDIR/EBOOT.BIN USRDIR/data/fonts/Poppins-Regular.ttf USRDIR/data/logo.png USRDIR/data/backdrop.png USRDIR/data/licenses/GPL-2.0.txt PIC1.PNG ICON0.PNG; do
+            [ -e "build/ps3/package/pkg/$f" ] || { echo "::error title=missing from PKG::$f"; exit 1; }
+          done
+          cp build/ps3/ps3world.gnpdrm.pkg PS3World.pkg
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: PS3World
+          retention-days: 7
+          path: PS3World.pkg
+          if-no-files-found: error
