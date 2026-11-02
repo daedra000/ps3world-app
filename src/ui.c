@@ -1,7 +1,9 @@
 /*
 ui.c: the screens.
 
-  picker   Homebrew's categories (Games, Ports, Tools...), as on ps3.world
+  home     Homebrew, Themes and Avatars as cards, styled as ps3.world's home page
+  picker   a section's categories: Homebrew's (Games, Ports, Tools...) as the site's
+           cards; Themes' and Avatars' (All, then each category or region) as a grid
   list     one list: icon/title/author/version/size per row; Triangle searches
            (the system keyboard), L2/R2 jump a letter; L1/R1 change section
   detail   the description, where it'll be saved, Download (X) with progress,
@@ -40,6 +42,9 @@ Resonant (swapped on consoles that confirm with Circle).
 #define C_WARN		0xffffc861
 #define C_PANEL		0x8c0a0e18
 #define C_ROW_ON	0x552b8fff
+#define C_CYAN		0xff4ad9ff
+#define C_TEXT2		0xffa2acc0
+#define C_BORDER	0xff1f2533
 
 #define LIST_X		60
 #define LIST_Y		150
@@ -50,8 +55,13 @@ Resonant (swapped on consoles that confirm with Circle).
 #define ICON_BIG	200
 #define GLYPH		28
 #define MAX_RESULTS	2000
+#define CARD_Y		104			// the home and picker cards fill CARD_Y..CARD_Y + CARD_H
+#define CARD_H		528
+#define CARD_GAP	16
+#define TILE_H		112			// the picker's small cards (themes, avatars)
+#define TILE_COLS	3
 
-enum { SCR_START, SCR_LIST, SCR_DETAIL, SCR_PROFILE };
+enum { SCR_START, SCR_HOME, SCR_LIST, SCR_DETAIL, SCR_PROFILE };
 
 static int screen = SCR_START;
 static int dirty = 1;
@@ -170,6 +180,91 @@ static int Hint2(int x, int g1, int g2, const char *label)
 {
 	Glyph(g1, x, SCREEN_H - 58);
 	return Hint(x + GLYPH + 4, g2, label);
+}
+
+/*
+==================
+Cards, as ps3.world's .explore-card: the art faded in from the right, a cyan
+kicker, the title, a line or two, and chips (data/cards: tools/make-art.mjs)
+==================
+*/
+typedef struct {
+	const char *list, *art, *kicker, *title, *blurb;
+} card_text_t;
+
+static const card_text_t home_cards[NUM_TYPES] = {
+	{NULL, "home-homebrew", "Apps · Games · Ports", "Homebrew", "Homebrew tools and games, PC ports and media players for HEN & CFW."},
+	{NULL, "home-themes", "Customise your XMB", "Themes", "Custom themes from the full theme archive, by category."},
+	{NULL, "home-avatars", "Your profile picture", "Avatars", "XMB avatars from every region, saved to your PS3 user."},
+};
+static const card_text_t cat_cards[] = {
+	{"Games", "cat-games", "Play", "Homebrew Games", "Grid Siege, Super Mario War, PS3Sweeper+ and more."},
+	{"Ports", "cat-ports", "PC & retro", "Ports", "Undertale, Nazi Zombies: Portable, Mario Kart 64 and more. No game files needed."},
+	{"Tools", "cat-tools", "Essentials", "Homebrew Tools", "Apollo, IRISMAN, webMAN MOD, PKGi, multiMAN and more."},
+	{"Media", "cat-media", "Watch & listen", "Media Players", "Movian, Yo! Player, Jellyfin, Spotify and Resonant for Plex."},
+	{"Misc", "cat-misc", "Prototypes & demos", "Miscellaneous", "Unreleased prototypes, demos and more."},
+};
+#define NUM_CAT_CARDS	((int)(sizeof(cat_cards) / sizeof(cat_cards[0])))
+
+static image_t *card_bg, *home_art[NUM_TYPES], *cat_art[NUM_CAT_CARDS];
+
+static const card_text_t *Cat_Card(const char *list, image_t **art)
+{
+	for (int i = 0; i < NUM_CAT_CARDS; i++)
+		if (!strcmp(cat_cards[i].list, list)) { *art = cat_art[i]; return &cat_cards[i]; }
+	*art = NULL;
+	return NULL;
+}
+
+// the card's frame: a blue ring when it's selected, the site's 1px border when not, and its gradient
+static void Card_Frame(int x, int y, int w, int h, int on)
+{
+	if (on) gfx_round_rect(x - 3, y - 3, w + 6, h + 6, 21, C_ACCENT);
+	else gfx_round_rect(x - 1, y - 1, w + 2, h + 2, 19, C_BORDER);
+	if (card_bg) gfx_image(card_bg, x, y, w, h, 18, 255);
+	else gfx_round_rect(x, y, w, h, 18, 0xff0e131f);
+}
+
+static int Chip(int x, int y, const char *text)
+{
+	int w = font_width(FONT_MEDIUM, 18, text) + 28;
+	gfx_round_rect(x, y, w, 36, 18, 0x14ffffff);
+	gfx_round_rect(x + 1, y + 1, w - 2, 34, 17, 0xbf05070d);
+	font_draw(FONT_MEDIUM, 18, x + 14, y + 7, text, C_TEXT2, 0);
+	return w;
+}
+
+static void Card(int x, int y, int w, int h, int on, const image_t *art, const char *kicker, const char *title,
+	int title_px, const char *blurb, const char **chips, int num_chips)
+{
+	Card_Frame(x, y, w, h, on);
+	if (art) gfx_image(art, x, y, w, h, 18, on ? 255 : 160);		// the site's 0.8 on hover, 0.5 off
+	int tx = x + 28, ty = y + 26, chip_y = y + h - 26 - 36;
+	if (kicker) {
+		font_draw(FONT_BOLD, 20, tx, ty, kicker, C_CYAN, w - 56);
+		ty += 34;
+	}
+	font_draw(FONT_BOLD, title_px, tx, ty, title, C_TEXT, w - 56);
+	ty += title_px + 16;
+	char lines[4][256];
+	int max = (chip_y - 8 - ty) / 30;
+	int n = blurb && max > 0 ? Wrap(FONT_REGULAR, 21, blurb, w * 2 / 3, lines, max > 4 ? 4 : max) : 0;
+	for (int i = 0; i < n; i++)
+		font_draw(FONT_REGULAR, 21, tx, ty + i * 30, lines[i], C_TEXT2, 0);
+	// the chips that fit on one line
+	int cx = tx;
+	for (int i = 0; i < num_chips; i++) {
+		if (cx + font_width(FONT_MEDIUM, 18, chips[i]) + 28 > x + w - 28) break;
+		cx += Chip(cx, chip_y, chips[i]) + 8;
+	}
+}
+
+// a small card: a category of themes or avatars, and how many
+static void Tile(int x, int y, int w, int h, int on, const char *title, const char *count)
+{
+	Card_Frame(x, y, w, h, on);
+	font_draw(FONT_BOLD, 26, x + 24, y + 22, title, C_TEXT, w - 48);
+	font_draw(FONT_MEDIUM, 19, x + 24, y + h - 44, count, on ? C_CYAN : C_TEXT2, w - 48);
 }
 
 static const char *Error_Text(int kind, const char *detail_msg)
@@ -347,8 +442,9 @@ typedef struct {
 
 static view_t *views[NUM_TYPES];	// one per list
 static int cur;						// the section shown
-static int cur_list[NUM_TYPES];		// its list, or -1 for Homebrew's category picker
-static int picker_sel;
+static int cur_list[NUM_TYPES];		// its list, or -1 for its category picker
+static int picker_sel, picker_top;	// (picker_top: the first row of tiles shown)
+static int home_sel;
 
 static cat_list_t *List(int t, int l) { return ix && l >= 0 && l < ix->num_lists[t] ? &ix->lists[t][l] : NULL; }
 static int Picking(void) { return ix && ix->num_lists[cur] > 1 && cur_list[cur] < 0; }
@@ -427,7 +523,8 @@ static void Index_Use(cat_index_t *n)
 		views[t] = keep[t] ? keep[t] : calloc(ix->num_lists[t] ? ix->num_lists[t] : 1, sizeof(view_t));
 		if (!same) cur_list[t] = ix->num_lists[t] > 1 ? -1 : 0;
 	}
-	if (screen == SCR_START) screen = SCR_LIST;
+	if (!same) picker_sel = picker_top = 0;
+	if (screen == SCR_START) screen = SCR_HOME;
 	dirty = 1;
 }
 
@@ -796,21 +893,59 @@ static void Letter_Jump(view_t *v, const cat_list_t *l, int dir)
 	v->top = v->sel;
 }
 
+// Homebrew's few categories are big cards, two a row; Themes' and Avatars' are tiles, TILE_COLS a row
+static int Picker_Cols(void) { return cur == TYPE_HOMEBREW ? 2 : TILE_COLS; }
+static int Picker_Rows_Shown(void) { return cur == TYPE_HOMEBREW ? 99 : (CARD_H + CARD_GAP) / (TILE_H + CARD_GAP); }
+
+static void Open_Section(int t)
+{
+	cur = t;
+	screen = SCR_LIST;
+	if (ix->num_lists[t] > 1) {		// its categories first, on the last one opened
+		picker_sel = cur_list[t] > 0 ? cur_list[t] : 0;
+		picker_top = 0;
+		cur_list[t] = -1;
+	}
+	dirty = 1;
+}
+
 static void Section_Step(int dir)
 {
-	cur = (cur + NUM_TYPES + dir) % NUM_TYPES;
-	dirty = 1;
+	Open_Section((cur + NUM_TYPES + dir) % NUM_TYPES);
+}
+
+static void Input_Home(uint32_t p)
+{
+	// Homebrew on the left, Themes over Avatars on the right
+	if ((p & BTN_RIGHT) && home_sel == TYPE_HOMEBREW) home_sel = TYPE_THEME;
+	else if (p & BTN_LEFT) home_sel = TYPE_HOMEBREW;
+	else if ((p & BTN_DOWN) && home_sel == TYPE_THEME) home_sel = TYPE_AVATAR;
+	else if ((p & BTN_UP) && home_sel == TYPE_AVATAR) home_sel = TYPE_THEME;
+	if (p & BTN_CROSS) Open_Section(home_sel);
+	if (p) dirty = 1;
 }
 
 static void Input_Picker(uint32_t p)
 {
-	int n = ix->num_lists[cur];
+	int n = ix->num_lists[cur], cols = Picker_Cols(), shown = Picker_Rows_Shown();
 	if (p & BTN_R1) { Section_Step(1); return; }
 	if (p & BTN_L1) { Section_Step(-1); return; }
-	if (p & BTN_DOWN) picker_sel++;
-	if (p & BTN_UP) picker_sel--;
+	if (p & BTN_CIRCLE) {
+		home_sel = cur;
+		screen = SCR_HOME;
+		dirty = 1;
+		return;
+	}
+	if (p & BTN_RIGHT) picker_sel++;
+	if (p & BTN_LEFT) picker_sel--;
+	if ((p & BTN_DOWN) && picker_sel + cols < n) picker_sel += cols;
+	else if ((p & BTN_DOWN) && picker_sel / cols < (n - 1) / cols) picker_sel = n - 1;	// onto a shorter last row
+	if ((p & BTN_UP) && picker_sel >= cols) picker_sel -= cols;
 	if (picker_sel >= n) picker_sel = n - 1;
 	if (picker_sel < 0) picker_sel = 0;
+	int row = picker_sel / cols;
+	if (row < picker_top) picker_top = row;
+	if (row >= picker_top + shown) picker_top = row - shown + 1;
 	if (p & BTN_CROSS) cur_list[cur] = picker_sel;
 	if (p) dirty = 1;
 }
@@ -843,9 +978,17 @@ static void Input_List(uint32_t p)
 		dirty = 1;
 		return;
 	}
-	if ((p & BTN_CIRCLE) && ix->num_lists[cur] > 1) {		// back to Homebrew's categories
+	if ((p & BTN_CIRCLE) && ix->num_lists[cur] > 1) {		// back to the section's categories
 		picker_sel = cur_list[cur];
+		picker_top = picker_sel / Picker_Cols() - Picker_Rows_Shown() + 1;
+		if (picker_top < 0) picker_top = 0;
 		cur_list[cur] = -1;
+		dirty = 1;
+		return;
+	}
+	if (p & BTN_CIRCLE) {		// back to the home cards
+		home_sel = cur;
+		screen = SCR_HOME;
 		dirty = 1;
 		return;
 	}
@@ -912,6 +1055,16 @@ void ui_init(void)
 		int px = (int)(GLYPH * gfx_scale() + 0.5f);
 		glyphs[i] = Load_Image(name, px, px);
 	}
+	// the cards' art, at the sizes Draw_Home and Draw_Picker draw them (tools/make-art.mjs makes them so)
+	card_bg = Load_Image("cards/bg.png", 256, 256);
+	for (int t = 0; t < NUM_TYPES; t++) {
+		snprintf(name, sizeof(name), "cards/%s.png", home_cards[t].art);
+		home_art[t] = Load_Image(name, t == TYPE_HOMEBREW ? LIST_W - 504 - CARD_GAP : 504, t == TYPE_HOMEBREW ? CARD_H : (CARD_H - CARD_GAP) / 2);
+	}
+	for (int i = 0; i < NUM_CAT_CARDS; i++) {
+		snprintf(name, sizeof(name), "cards/%s.png", cat_cards[i].art);
+		cat_art[i] = Load_Image(name, (LIST_W - CARD_GAP) / 2, (CARD_H - CARD_GAP) / 2);
+	}
 	store_init();
 	cat_index_t *c = store_load_index();
 	if (c) {
@@ -952,6 +1105,7 @@ void ui_update(void)
 	case SCR_START:
 		if ((p & BTN_CROSS) && start_err) Fetch_Start();
 		break;
+	case SCR_HOME: Input_Home(p); break;
 	case SCR_LIST:
 		if (Picking()) Input_Picker(p);
 		else Input_List(p);
@@ -1013,21 +1167,80 @@ static void Badge(int *rx, int y, const char *text, uint32_t c)
 	*rx -= 8;
 }
 
+// the logo, where we are (as the site's crumbs), and the catalogue's state, over the cards
+static void Draw_Top(const char *crumb)
+{
+	if (logo) gfx_image(logo, LIST_X, 40, 220, 31, 0, 255);
+	if (crumb) {
+		int w = font_width(FONT_BOLD, 18, crumb) + 28;
+		gfx_round_rect(LIST_X + 236, 38, w, 34, 17, 0x404ad9ff);
+		gfx_round_rect(LIST_X + 237, 39, w - 2, 32, 16, 0xff0a1622);
+		font_draw(FONT_BOLD, 18, LIST_X + 250, 44, crumb, C_CYAN, 0);
+	}
+	if (banner[0]) font_draw_right(FONT_REGULAR, 18, SCREEN_W - LIST_X, 68, banner, C_WARN);
+	else if (fetch_job) font_draw_right(FONT_REGULAR, 18, SCREEN_W - LIST_X, 68, "Checking for updates...", C_DIM);
+}
+
+static void Count_Text(int t, int n, char *out, int size)
+{
+	char num[16];
+	Fmt_Count(n, num, sizeof(num));
+	snprintf(out, size, "%s %s%s", num, t == TYPE_THEME ? "theme" : t == TYPE_AVATAR ? "avatar" : "item", n == 1 ? "" : "s");
+}
+
+static void Draw_Home(void)
+{
+	Draw_Top(NULL);
+	int rw = 504, lw = LIST_W - rw - CARD_GAP, rh = (CARD_H - CARD_GAP) / 2;
+	for (int t = 0; t < NUM_TYPES; t++) {
+		const card_text_t *c = &home_cards[t];
+		const char *chips[16];
+		int n = 0;
+		for (int l = 0; l < ix->num_lists[t] && n < 16; l++)		// its categories ("All ..." is the whole section)
+			if (strncmp(ix->lists[t][l].name, "All ", 4)) chips[n++] = ix->lists[t][l].name;
+		if (t == TYPE_HOMEBREW)
+			Card(LIST_X, CARD_Y, lw, CARD_H, home_sel == t, home_art[t], c->kicker, c->title, 64, c->blurb, chips, n);
+		else
+			Card(LIST_X + lw + CARD_GAP, CARD_Y + (t - 1) * (rh + CARD_GAP), rw, rh, home_sel == t, home_art[t],
+				c->kicker, c->title, 44, c->blurb, chips, n);
+	}
+	Hint(LIST_X, G_CROSS, "Open");
+}
+
 static void Draw_Picker(void)
 {
-	Draw_Header();
-	int n = ix->num_lists[cur];
-	gfx_round_rect(LIST_X - 12, LIST_Y - 8, LIST_W + 24, ROWS * ROW_H + 16, 14, C_PANEL);
-	for (int i = 0; i < n && i < ROWS; i++) {
-		const cat_list_t *l = &ix->lists[cur][i];
-		int y = LIST_Y + i * ROW_H;
-		char count[48];
-		if (i == picker_sel) gfx_round_rect(LIST_X - 4, y, LIST_W + 8, ROW_H - 4, 10, C_ROW_ON);
-		font_draw(FONT_BOLD, 26, LIST_X + 24, y + 16, l->name, C_TEXT, 0);
-		snprintf(count, sizeof(count), "%d item%s", l->count, l->count == 1 ? "" : "s");
-		font_draw_right(FONT_MEDIUM, 20, LIST_X + LIST_W - 16, y + 20, count, C_DIM);
+	Draw_Top(section_names[cur]);
+	int n = ix->num_lists[cur], cols = Picker_Cols();
+	char count[48];
+	if (cur == TYPE_HOMEBREW) {
+		int rows = (n + cols - 1) / cols;
+		int w = (LIST_W - CARD_GAP) / cols, h = (CARD_H - CARD_GAP * (rows - 1)) / rows;
+		for (int i = 0; i < n; i++) {
+			const cat_list_t *l = &ix->lists[cur][i];
+			image_t *art;
+			const card_text_t *c = Cat_Card(l->name, &art);
+			const char *chips[1] = {count};
+			Count_Text(cur, l->count, count, sizeof(count));
+			Card(LIST_X + (i % cols) * (w + CARD_GAP), CARD_Y + (i / cols) * (h + CARD_GAP), w, h, i == picker_sel, art,
+				c ? c->kicker : NULL, c ? c->title : l->name, 40, c ? c->blurb : NULL, chips, 1);
+		}
+	} else {
+		int w = (LIST_W - CARD_GAP * (cols - 1)) / cols, shown = Picker_Rows_Shown();
+		for (int i = picker_top * cols; i < n && i < (picker_top + shown) * cols; i++) {
+			const cat_list_t *l = &ix->lists[cur][i];
+			int r = i / cols - picker_top;
+			Count_Text(cur, l->count, count, sizeof(count));
+			Tile(LIST_X + (i % cols) * (w + CARD_GAP), CARD_Y + r * (TILE_H + CARD_GAP), w, TILE_H, i == picker_sel, l->name, count);
+		}
+		int rows = (n + cols - 1) / cols;
+		if (rows > shown) {		// where in the grid
+			int h = shown * (TILE_H + CARD_GAP) - CARD_GAP, bh = h * shown / rows;
+			int by = CARD_Y + (h - bh) * picker_top / (rows - shown);
+			gfx_round_rect(LIST_X + LIST_W + 8, by, 4, bh, 2, 0x99ffffff);
+		}
 	}
 	int x = Hint(LIST_X, G_CROSS, "Open");
+	x = Hint(x, G_CIRCLE, "Back");
 	Hint2(x, G_L1, G_R1, "Section");
 }
 
@@ -1092,6 +1305,7 @@ static void Draw_List(void)
 	x = Hint(x, G_TRIANGLE, "Search");
 	if (v->query[0]) x = Hint(x, G_SQUARE, "Clear search");
 	else if (ix->num_lists[cur] > 1) x = Hint(x, G_CIRCLE, "Categories");
+	else x = Hint(x, G_CIRCLE, "Back");
 	if (!v->results && count > 50) x = Hint2(x, G_L2, G_R2, "A-Z");
 	x = Hint2(x, G_L1, G_R1, "Section");
 	if (count) {
@@ -1208,6 +1422,7 @@ void ui_render(void)
 		}
 		if (start_err) Hint(SCREEN_W / 2 - 90, G_CROSS, "Try again");
 		break;
+	case SCR_HOME: Draw_Home(); break;
 	case SCR_LIST:
 		if (Picking()) Draw_Picker();
 		else Draw_List();

@@ -26,7 +26,7 @@ typedef struct {
 
 #define NUM_LETTERS 27			// '#', then A..Z
 typedef struct {
-	char name[32];				// "Games", "Ports"... ("" for themes and avatars)
+	char name[32];				// "Games", "Ports"...; "All themes", "Anime & Comics"...; "All avatars", "US"...
 	int count;
 	int num_pages;
 	cat_file_t *pages;

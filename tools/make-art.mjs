@@ -7,6 +7,9 @@ make-art.mjs: the XMB pictures and the in-app background, from the site.
   art/PIC1.PNG      1920x1080, the site's index-page waves
   data/backdrop.png 1280x720, the same waves for the app's screens
   data/logo.png     the site's wordmark (files/PS3-WORLD-logo.png)
+  data/cards/*.png  the home and Homebrew cards: the site's .explore-card art (images/home)
+                    at each card's size, faded in from the right as the site's mask does,
+                    and bg.png, the cards' gradient (src/ui.c draws them)
 
 Uses sharp from generator/node_modules (cd generator && npm install first).
 */
@@ -55,10 +58,50 @@ function wavesSvg(w, h) {
   </svg>`;
 }
 
+// .explore-card's background: a 160deg panel gradient and a blue glow from the bottom right
+// (the app stretches it to each card, as the site's percentages do)
+const cardBg = `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256">
+  <defs>
+    <linearGradient id="p" x1="0.33" y1="0.03" x2="0.67" y2="0.97"><stop offset="0" stop-color="#121826"/><stop offset="1" stop-color="#0a0e17"/></linearGradient>
+    <radialGradient id="g" cx="1" cy="1" r="1.2"><stop offset="0" stop-color="#2b8fff" stop-opacity="0.16"/><stop offset="0.6" stop-color="#2b8fff" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="256" height="256" fill="url(#p)"/><rect width="256" height="256" fill="url(#g)"/>
+</svg>`;
+
+// [file, the site's art, width, height]: the sizes src/ui.c draws them at
+const CARDS = [
+  ['home-homebrew', 'homebrew', 640, 528],
+  ['home-themes', 'themes', 504, 256],
+  ['home-avatars', 'resources', 504, 256],		// the site has no avatars art: its Resources card links to them
+  ['cat-games', 'homebrew-games', 572, 256],
+  ['cat-ports', 'ports', 572, 256],
+  ['cat-tools', 'homebrew-tools', 572, 256],
+  ['cat-media', 'homebrew-media', 572, 256],
+  ['cat-misc', 'homebrew-misc', 572, 256],
+];
+
+// the art at the card's height, against its right edge, under the site's
+// mask (linear-gradient(to left, #000 25%, transparent 85%)) at the selected card's 0.8
+async function cardArt(src, w, h) {
+  let art = sharp(src).resize({ height: h });
+  const { info } = await art.clone().toBuffer({ resolveWithObject: true });
+  if (info.width > w) art = art.extract({ left: info.width - w, top: 0, width: w, height: h });
+  const aw = Math.min(info.width, w);
+  const mask = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">
+    <defs><linearGradient id="m" x1="0" x2="1" y1="0" y2="0"><stop offset="0.15" stop-color="#fff" stop-opacity="0"/><stop offset="0.75" stop-color="#fff" stop-opacity="0.8"/></linearGradient></defs>
+    <rect width="${w}" height="${h}" fill="url(#m)"/></svg>`;
+  return sharp({ create: { width: w, height: h, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
+    .composite([{ input: await art.png().toBuffer(), left: w - aw, top: 0 }, { input: Buffer.from(mask), blend: 'dest-in' }])
+    .png();
+}
+
 fs.mkdirSync(path.join(ROOT, 'art'), { recursive: true });
-fs.mkdirSync(path.join(ROOT, 'data'), { recursive: true });
+fs.mkdirSync(path.join(ROOT, 'data/cards'), { recursive: true });
+await sharp(Buffer.from(cardBg)).png().toFile(path.join(ROOT, 'data/cards/bg.png'));
+for (const [name, src, w, h] of CARDS)
+  await (await cardArt(path.join(site, 'images/home', src + '.webp'), w, h)).toFile(path.join(ROOT, 'data/cards', name + '.png'));
 await sharp(path.join(site, 'files/meta.jpg')).resize(320, 176, { fit: 'cover' }).png().toFile(path.join(ROOT, 'art/ICON0.PNG'));
 await sharp(Buffer.from(wavesSvg(1920, 1080))).png().toFile(path.join(ROOT, 'art/PIC1.PNG'));
 await sharp(Buffer.from(wavesSvg(1280, 720))).png().toFile(path.join(ROOT, 'data/backdrop.png'));
 fs.copyFileSync(path.join(site, 'files/PS3-WORLD-logo.png'), path.join(ROOT, 'data/logo.png'));
-console.log('art/ICON0.PNG, art/PIC1.PNG, data/backdrop.png, data/logo.png');
+console.log('art/ICON0.PNG, art/PIC1.PNG, data/backdrop.png, data/logo.png, data/cards/*.png');

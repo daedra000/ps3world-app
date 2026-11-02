@@ -8,7 +8,7 @@
       "description": "Use the analog stick (either one) to move around and avoid the approaching red squares.",
       "group": "Games",
       "requires": "hen",
-      "icon": ""
+      "icon": "images/homebrew-games/avoidance.webp"
     },
     {
       "file": "homebrewgames/gridsiege (v2.7.2).pkg",
@@ -329,26 +329,6 @@
       "group": "Ports",
       "requires": "hen",
       "icon": ""
-    },
-    {
-      "file": "ports/sonic1forever.pkg",
-      "title": "Sonic Forever",
-      "author": "DropSonic0",
-      "version": "",
-      "description": "The definitive way to play Sonic 1 on PS3. Based on the mobile port.",
-      "group": "Ports",
-      "requires": "hen",
-      "icon": "images/ports/sonic1.webp"
-    },
-    {
-      "file": "ports/SonicMania.pkg",
-      "title": "Sonic Mania Plus",
-      "author": "",
-      "version": "",
-      "description": "Optimised to run on PS3 hardware.",
-      "group": "Ports",
-      "requires": "hen",
-      "icon": "images/ports/sonicmania.webp"
     },
     {
       "file": "ports/Super Smash Bros 64 by Videogames SCZ - SMAS00006.pkg",

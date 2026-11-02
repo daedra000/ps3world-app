@@ -12,19 +12,21 @@ Tick each box. Where a step fails, note what the screen said and copy `/dev_hdd0
 ## 1. Open the app
 
 - [ ] **PS3 World** is on the XMB under Game with the PS3 World icon, and the waves picture shows behind it when highlighted.
-- [ ] It opens to "Loading the catalogue..." (a few seconds at most: only the small index downloads), then **Homebrew**'s categories: Games 5, Ports 19, Tools 13, Media 5.
-- [ ] The section tabs show counts that match the catalogue: Homebrew 42, Themes 13,303, Avatars 6,323.
-- [ ] R1 from Homebrew to Themes and Avatars opens their lists straight away (this crashed in the first build).
+- [ ] It opens to "Loading the catalogue..." (a few seconds at most: only the small index downloads), then the home screen: three cards as on ps3.world's home page (Homebrew large on the left, Themes and Avatars on the right), each with its character art, a cyan kicker, its title, a line of text and category chips.
+- [ ] D-pad moves between the cards: the selected one has a blue outline and brighter art.
+- [ ] Cross on **Homebrew** shows its categories as four art cards: Games 5, Ports 17, Tools 13, Media 5. Circle goes back home.
+- [ ] Cross on **Themes** shows a grid: All themes 13,303, then 17 categories (Games, Anime & Comics, Movies & TV...). Down scrolls the grid. **Avatars**: All avatars 6,323, then US, Other, Japan, EU, Asia.
+- [ ] R1 from any category screen or list goes to the next section's categories (R1 crashed in the first build).
 
 ## 2. Browse
 
-- [ ] In Homebrew, Cross opens a category and Circle goes back to the categories.
+- [ ] Cross opens a category's list, Circle goes back to the categories, and Circle again goes home.
 - [ ] Up/Down move one row, Left/Right a screen. Holding a direction repeats and speeds up.
-- [ ] In Themes, hold Down past item 100: rows show "Loading..." for a moment while the next page arrives, then fill in. Scrolling back up is instant.
+- [ ] In Themes > All themes, hold Down past item 100: rows show "Loading..." for a moment while the next page arrives, then fill in. Scrolling back up is instant.
 - [ ] Icons appear as you scroll (first time from the server, then from the HDD).
 - [ ] L1/R1 switch between Homebrew, Themes and Avatars.
-- [ ] In Themes, R2 jumps to the next letter and L2 to the previous one. The letter and position show bottom right.
-- [ ] Triangle opens the keyboard. Search "wolf" in Themes: only matching themes are listed, with "Search: "wolf"" at the top. Square (or Circle) clears it.
+- [ ] In All themes, R2 jumps to the next letter and L2 to the previous one. The letter and position show bottom right.
+- [ ] Triangle opens the keyboard. Search "wolf" in All themes: only matching themes are listed, with "Search: "wolf"" at the top. Square (or Circle) clears it.
 - [ ] Cross opens an item's detail screen (description, size, "Needs HEN or CFW" / "Any PS3", and "Saves to ..."). Circle goes back to the same row.
 
 ## 3. Homebrew download (PKG)

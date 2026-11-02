@@ -4,7 +4,8 @@ make-catalog.mjs: builds the PS3 World app's catalogue under catalog/v1/:
   catalog.json                  the index: each section's lists, their pages (with
                                 sha256s), counts and where each letter starts
   homebrew/<category>/N.json    homebrew, one list per site category, 100 items a page
-  theme/N.json, avatar/N.json   themes and avatars, 100 items a page
+  theme/<list>/N.json           themes: all of them, then one list per site category
+  avatar/<list>/N.json          avatars: all of them, then one list per region
   <list>/search.txt             "title<TAB>author<TAB>group" a line, for searching a list
   icons/<id>.jpg                128 px JPEG icons
 
@@ -229,6 +230,7 @@ function themeSources() {
       version: '',
       description: `${t.sourceName} · ${(t.categories || [t.category]).join(', ')}`,
       group: t.category || '',
+      _list: t.category || 'Misc',
       url: rel,
       requires: 'any',
       _file: localFor(rel),
@@ -255,6 +257,7 @@ function avatarSources() {
       version: '',
       description: `Avatar ${a.title} from ${a.packName} (${[a.region, a.titleId].filter(Boolean).join(', ')})`,
       group: a.packName,
+      _list: !a.region || a.region === 'Unknown' ? 'Other' : a.region,
       url: rel,
       requires: 'hen',
       _file: localFor(rel),
@@ -286,7 +289,8 @@ async function build() {
   });
   fs.writeFileSync(cachePath, JSON.stringify(hashCache));
 
-  // the index: each section's lists (homebrew: one per category; themes, avatars: one), each in pages
+  // the index: each section's lists (homebrew: one per category; themes, avatars: all, then one
+  // per category or region, the biggest first), each in pages
   const index = {
     schema: SCHEMA,
     generated: new Date().toISOString().replace(/\.\d+Z$/, 'Z'),
@@ -303,8 +307,13 @@ async function build() {
         const list = all.filter(i => i.group === name);
         if (list.length) section.lists.push(writeList(name, list, `${CATALOG_DIR}/homebrew/${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`));
       }
-    } else
-      section.lists.push(writeList('', all, `${CATALOG_DIR}/${type}`));
+    } else {
+      section.lists.push(writeList(`All ${type}s`, all, `${CATALOG_DIR}/${type}/all`));
+      const by = {};
+      for (const i of all) (by[i._list] ||= []).push(i);
+      for (const [name, list] of Object.entries(by).sort((a, b) => b[1].length - a[1].length))
+        section.lists.push(writeList(name, list, `${CATALOG_DIR}/${type}/${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`));
+    }
     index.sections.push(section);
   }
   const json = JSON.stringify(index);

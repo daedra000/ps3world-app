@@ -343,9 +343,11 @@ int main(int argc, char **argv)
 		snprintf(path, sizeof(path), "%s/catalog/v1/catalog.json", argv[1]);
 		char *buf = (char *)plat_read_file(path, &n);
 		cat_index_t *ix = buf ? catalog_parse_index(buf, n, err, sizeof(err)) : NULL;
-		int pages = 0, items = 0, bad = 0;
+		int pages = 0, items = 0, want = 0, lists = 0, bad = 0;	// (want: the lists' counts; "All" repeats the rest)
 		for (int t = 0; ix && t < NUM_TYPES; t++)
-			for (int l = 0; l < ix->num_lists[t]; l++)
+			for (int l = 0; l < ix->num_lists[t]; l++) {
+				lists++;
+				want += ix->lists[t][l].count;
 				for (int p = 0; p < ix->lists[t][l].num_pages; p++) {
 					const cat_file_t *pf = &ix->lists[t][l].pages[p];
 					size_t plen;
@@ -357,9 +359,10 @@ int main(int argc, char **argv)
 					catalog_free(c);
 					free(page);
 				}
-		Result(ix && !bad && items == ix->count[0] + ix->count[1] + ix->count[2], "sample catalogue parsed",
-			"%s: %d pages, %d items (index says %d homebrew, %d themes, %d avatars), %d bad %s", argv[1], pages, items,
-			ix ? ix->count[0] : 0, ix ? ix->count[1] : 0, ix ? ix->count[2] : 0, bad, err);
+			}
+		Result(ix && !bad && items == want, "sample catalogue parsed",
+			"%s: %d lists, %d pages, %d items (the lists say %d; %d homebrew, %d themes, %d avatars), %d bad %s", argv[1],
+			lists, pages, items, want, ix ? ix->count[0] : 0, ix ? ix->count[1] : 0, ix ? ix->count[2] : 0, bad, err);
 		catalog_free_index(ix);
 		free(buf);
 	}
