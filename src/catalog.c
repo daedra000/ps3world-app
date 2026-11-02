@@ -163,9 +163,10 @@ cat_index_t *catalog_parse_index(const char *json, size_t len, char *err, int er
 		int n = cJSON_GetArraySize(lists), k = 0;
 		ix->lists[t] = calloc(n ? n : 1, sizeof(cat_list_t));
 		if (!ix->lists[t]) continue;
+		int sum = 0;
 		cJSON_ArrayForEach(l, lists) {
 			if (List_Of(l, &ix->lists[t][k])) {
-				ix->count[t] += ix->lists[t][k].count;
+				sum += ix->lists[t][k].count;
 				k++;
 			} else {
 				free(ix->lists[t][k].pages);
@@ -174,6 +175,9 @@ cat_index_t *catalog_parse_index(const char *json, size_t len, char *err, int er
 			}
 		}
 		ix->num_lists[t] = k;
+		// the section's own count: an "All" list and its categories hold the same items twice
+		const cJSON *count = cJSON_GetObjectItemCaseSensitive(s, "count");
+		ix->count[t] = cJSON_IsNumber(count) ? count->valueint : sum;
 	}
 out:
 	cJSON_Delete(root);
