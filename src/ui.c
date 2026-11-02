@@ -996,7 +996,8 @@ static void Input_List(uint32_t p)
 		file_slot_t *slot;
 		const cat_item_t *it = Item_At(l, View_Pos(v, v->sel), &slot);
 		if (it && (det = catalog_item_copy(it))) {
-			result_msg[0] = 0;
+			result_msg[0] = 0;		// (the last item's download says nothing about this one)
+			result_ok = 0;
 			screen = SCR_DETAIL;
 		}
 	}
