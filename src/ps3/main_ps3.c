@@ -16,6 +16,8 @@ main_ps3.c: the PS3 backend's plat_* functions and main().
 #include <sysmodule/sysmodule.h>
 #include <net/net.h>
 #include <lv2/system.h>
+#include <lv2/sysfs.h>
+#include <sys/file.h>
 #include <ppu-lv2.h>
 
 #include "../plat.h"
@@ -165,6 +167,77 @@ int plat_write_file(const char *path, const void *data, size_t len)
 	if (!ok) { remove(tmp); return 0; }
 	remove(path);
 	return rename(tmp, path) == 0;
+}
+
+#define FS_S_IFMT	0170000		// lv2's st_mode bits, as CELL_FS_S_IFMT / CELL_FS_S_IFDIR
+#define FS_S_IFDIR	0040000
+#define FS_TYPE_DIR	1			// sysFSDirent.d_type for a folder
+
+long long plat_file_size(const char *path)
+{
+	sysFSStat st;
+	if (sysLv2FsStat(path, &st) != 0 || (st.st_mode & FS_S_IFMT) == FS_S_IFDIR)
+		return -1;
+	return (long long)st.st_size;
+}
+
+int plat_dir_exists(const char *path)
+{
+	s32 fd;
+	if (sysLv2FsOpenDir(path, &fd) != 0)
+		return 0;
+	sysLv2FsCloseDir(fd);
+	return 1;
+}
+
+int plat_mkdirs(const char *path)
+{
+	char buf[512];
+	snprintf(buf, sizeof(buf), "%s", path);
+	// from the folder under the device ("/dev_hdd0/packages": "/dev_hdd0" is there already)
+	char *p = strchr(buf + 1, '/');
+	while (p) {
+		*p = 0;
+		if (!plat_dir_exists(buf)) sysLv2FsMkdir(buf, 0777);
+		*p = '/';
+		p = strchr(p + 1, '/');
+	}
+	if (!plat_dir_exists(buf)) sysLv2FsMkdir(buf, 0777);
+	return plat_dir_exists(buf);
+}
+
+long long plat_free_bytes(const char *path)
+{
+	char dev[64];
+	u32 block = 0;
+	u64 blocks = 0;
+	// the device's root: "/dev_usb000/PS3/THEME" -> "/dev_usb000"
+	const char *e = strchr(path + 1, '/');
+	int n = e ? (int)(e - path) : (int)strlen(path);
+	snprintf(dev, sizeof(dev), "%.*s", n, path);
+	s32 r = sysFsGetFreeSize(dev, &block, &blocks);
+	if (r != 0) {
+		plat_log("plat: sysFsGetFreeSize(%s) = 0x%08x", dev, (unsigned)r);
+		return -1;
+	}
+	return (long long)block * (long long)blocks;
+}
+
+int plat_list_dirs(const char *path, char (*names)[64], int max)
+{
+	s32 fd;
+	sysFSDirent ent;
+	u64 nread;
+	int n = 0;
+	if (sysLv2FsOpenDir(path, &fd) != 0)
+		return 0;
+	while (n < max && sysLv2FsReadDir(fd, &ent, &nread) == 0 && nread > 0) {
+		if (ent.d_type != FS_TYPE_DIR || ent.d_name[0] == '.')
+			continue;
+		snprintf(names[n++], 64, "%s", ent.d_name);
+	}
+	sysLv2FsCloseDir(fd);
+	return n;
 }
 
 void plat_random(void *buf, int n)

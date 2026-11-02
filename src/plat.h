@@ -53,6 +53,13 @@ const char *plat_save_dir(void);		// settings, log (writable)
 // reads a whole file; NULL if it isn't there. *len gets the size. Caller frees.
 unsigned char *plat_read_file(const char *path, size_t *len);
 int plat_write_file(const char *path, const void *data, size_t len);
+// downloads and install targets: big files are written with stdio (fopen/fwrite), these do the rest
+long long plat_file_size(const char *path);		// -1 if it isn't there (or is a folder)
+int plat_dir_exists(const char *path);
+int plat_mkdirs(const char *path);				// every missing folder on the way; 1 if it's there after
+long long plat_free_bytes(const char *path);	// on the drive path is on; -1 if unknown
+// up to max names of the folders in path (each < 64 chars); returns how many
+int plat_list_dirs(const char *path, char (*names)[64], int max);
 
 // ---- screen ----
 // the canvas to draw the next frame into (SCREEN_W x SCREEN_H, 0xAARRGGBB)

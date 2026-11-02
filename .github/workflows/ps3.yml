@@ -18,7 +18,8 @@ env:
 jobs:
   # http_ps3.c and the same Mbed TLS build, on the runner, against dl.ps3.world:
   # the handshake and certificate chain, Range resume, 404s, a bad certificate,
-  # and catalog.json parsed by catalog.c (fast; no PS3 toolchain)
+  # catalog.json parsed by catalog.c, and download.c to disk (resume, checksum,
+  # disk full, cancel). Results are annotations on the run (fast; no PS3 toolchain)
   https:
     name: HTTPS test (dl.ps3.world)
     runs-on: ubuntu-24.04
@@ -32,7 +33,7 @@ jobs:
         run: |
           M="$RUNNER_TEMP/mbedtls"
           gcc -O1 -g -Wall -Wno-pointer-sign -Itools/hostshim -Isrc -Isrc/ps3 -I"$M/include" -o https_test \
-            tools/https_test.c src/ps3/http_ps3.c src/http_common.c src/catalog.c src/lang.c src/thirdparty/cJSON.c \
+            tools/https_test.c src/ps3/http_ps3.c src/http_common.c src/catalog.c src/download.c src/lang.c src/thirdparty/cJSON.c \
             -L"$M/library" -lmbedtls -lmbedx509 -lmbedcrypto -lpthread
       - name: Run
         run: ./https_test tests/sample-catalog.json

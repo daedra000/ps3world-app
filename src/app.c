@@ -72,6 +72,6 @@ void app_redraw(void)
 
 void app_shutdown(void)
 {
-	jobs_cancel_lane(LANE_DL);
+	ui_shutdown();
 	plat_log("bye");
 }
