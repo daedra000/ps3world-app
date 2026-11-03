@@ -35,7 +35,7 @@
 | Square | clear a search; cancel a download; delete in My downloads; get an update on the home screen |
 | Triangle | search a list; My downloads on the home screen |
 | Select | the language, on the home screen |
-| L1 / R1 | the previous / next section |
+| L1 / R1 | in a list, the previous / next category (Games, Ports, Edits...); on the categories screen, the previous / next section |
 | L2 / R2 | the previous / next letter |
 
 Hold R1 while the app starts to try the graphics chip again after a freeze, or L1 to use the CPU renderer that once.

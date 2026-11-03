@@ -1251,6 +1251,16 @@ static void Section_Step(int dir)
 	Open_Section((cur + NUM_TYPES + dir) % NUM_TYPES);
 }
 
+// in a list of a section with categories: the next one (round from the last to the first)
+static void List_Step(int dir)
+{
+	int n = ix->num_lists[cur];
+	Search_Banner_Clear();
+	Folder_Close();
+	cur_list[cur] = (cur_list[cur] + n + dir) % n;
+	dirty = 1;
+}
+
 static void Input_Home(uint32_t p)
 {
 	// Homebrew on the left, Themes over Avatars on the right
@@ -1319,8 +1329,10 @@ static void Input_List(uint32_t p)
 {
 	cat_list_t *l = Cur_List();
 	view_t *v = Cur_View();
-	if (p & BTN_R1) { Section_Step(1); return; }
-	if (p & BTN_L1) { Section_Step(-1); return; }
+	// L1/R1: the section's categories in a list (its sections from the categories screen)
+	int step = (p & BTN_R1) ? 1 : (p & BTN_L1) ? -1 : 0;
+	if (step && l && ix->num_lists[cur] > 1) { List_Step(step); return; }
+	if (step) { Section_Step(step); return; }
 	if (!l || !v) {		// an empty section: only the way out
 		if (p & BTN_CIRCLE) {
 			home_sel = cur;
@@ -1764,7 +1776,7 @@ static void Draw_List(void)
 	else if (ix->num_lists[cur] > 1) x = Hint(x, G_CIRCLE, tr("Categories"));
 	else x = Hint(x, G_CIRCLE, tr("Back"));
 	if (!v->results && count > 50) x = Hint2(x, G_L2, G_R2, tr("A-Z"));
-	x = Hint2(x, G_L1, G_R1, tr("Section"));
+	x = Hint2(x, G_L1, G_R1, tr(ix->num_lists[cur] > 1 ? "Category" : "Section"));
 	if (!Draw_Strip() && count) {
 		char pos[64], letter = '#';
 		int at = View_Pos(v, v->sel);
