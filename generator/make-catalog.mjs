@@ -13,8 +13,9 @@ make-catalog.mjs: builds the PS3 World app's catalogue under catalog/v1/:
                                 site's own, already on dl.ps3.world beside each download)
 
   node make-catalog.mjs                  everything
-  node make-catalog.mjs --limit 3        the first 3 of each type (a quick sample)
-  node make-catalog.mjs --only theme     one type (homebrew, theme, avatar; comma separated)
+  node make-catalog.mjs --limit 3 --out <dir>      the first 3 of each type (a quick sample)
+  node make-catalog.mjs --only theme --out <dir>   one type (homebrew, theme, avatar; comma separated)
+                                         (both need --out, so they can't replace the full catalogue)
   node make-catalog.mjs --out <dir>      write somewhere else (the default is CONFIG.outDir)
   node make-catalog.mjs --verify         re-hash every page and file the written index lists
 
@@ -69,6 +70,11 @@ const LIMIT = argVal('--limit') ? parseInt(argVal('--limit'), 10) : 0;
 const ONLY = (argVal('--only') || 'homebrew,theme,avatar').split(',');
 const VERIFY = args.includes('--verify');
 if (argVal('--out')) CONFIG.outDir = path.resolve(argVal('--out'));
+else if (LIMIT || argVal('--only')) {
+  // a partial catalogue in the live folder would go up with the next rclone copy
+  console.error('--limit and --only need --out <dir>: they would overwrite the full catalogue in ' + CONFIG.outDir);
+  process.exit(1);
+}
 
 const warnings = [];
 const warn = msg => { warnings.push(msg); };
@@ -111,6 +117,8 @@ function writeList(name, list, relDir) {
   const entry = { name, count: list.length, pages: [], search: null, letters: {} };
   list.forEach((s, i) => { const l = letterOf(s.title); if (!(l in entry.letters)) entry.letters[l] = i; });
   for (let p = 0; p * PAGE_SIZE < list.length; p++) {
+    const bad = list.slice(p * PAGE_SIZE, (p + 1) * PAGE_SIZE).find(s => !ID_RE.test(s.id));
+    if (bad) throw new Error(`id "${bad.id}" (${bad.title}) isn't one the app accepts`);
     const page = {
       schema: SCHEMA, page: p + 1,
       items: list.slice(p * PAGE_SIZE, (p + 1) * PAGE_SIZE).map(s => ({
@@ -212,6 +220,9 @@ async function makePreview(src, id) {
 }
 
 // ---- ids ----
+// the app (src/catalog.c Id_Ok) skips any other id: it names cache files
+const ID_RE = /^[a-z0-9][a-z0-9-]{0,62}$/;
+const slug = (base, max) => base.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, max).replace(/-+$/, '');
 const usedIds = new Set();
 function uniqueId(base) {
   const clean = base.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
@@ -303,7 +314,7 @@ function packFolders(avatars, relDir) {
   return Object.values(packs).map(av => {
     const entry = writeList(av[0].group, av, `${relDir}/packs/${av[0]._pack}`);
     return {
-      id: `pk-${av[0]._pack}`,
+      id: slug(`pk-${av[0]._pack}`, 63),		// the same in every list the pack is in
       type: 'avatar',
       title: av[0].group,
       author: '',

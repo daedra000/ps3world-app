@@ -91,11 +91,14 @@ static void Records_Load(void)
 static void Records_Save(void)
 {
 	char path[512];
-	size_t cap = (size_t)num_records * 400 + 1, n = 0;
+	size_t cap = (size_t)num_records * (sizeof(record_t) + 4) + 1, n = 0;		// a line is at most a record's fields
 	char *buf = malloc(cap);
 	if (!buf) return;
-	for (int i = 0; i < num_records; i++)
-		n += snprintf(buf + n, cap - n, "%s\t%s\t%s\n", records[i].id, records[i].sha, records[i].path);
+	for (int i = 0; i < num_records; i++) {
+		int r = snprintf(buf + n, cap - n, "%s\t%s\t%s\n", records[i].id, records[i].sha, records[i].path);
+		if (r < 0 || (size_t)r >= cap - n) break;
+		n += r;
+	}
 	snprintf(path, sizeof(path), "%s/downloaded.txt", plat_save_dir());
 	if (!plat_write_file(path, buf, n))
 		plat_log("store: couldn't write %s", path);

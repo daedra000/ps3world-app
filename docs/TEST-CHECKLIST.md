@@ -17,6 +17,8 @@ Tick each box. Where a step fails, note what the screen said and copy `/dev_hdd0
 - [ ] Cross on **Themes** shows a grid: All themes 13,303, then 17 categories (Games, Anime & Comics, Movies & TV...). Down scrolls the grid. **Avatars**: All avatars 507 packs, then US, EU, Japan, Asia, and Other last.
 - [ ] The Homebrew card's title doesn't cover Kratos's face.
 - [ ] R1 from any category screen or list goes to the next section's categories (R1 crashed in the first build).
+- [ ] Avatars > Asia: the BlazBlue and Dynasty Warriors packs show their icons (their ids were too long before 0.5.3, and the icons never loaded).
+- [ ] Open the app and quit straight away (PS button > Quit Game). Reopen it: the log says "drawn by the RSX", not "the CPU draws". If the CPU ever draws after a freeze, hold R1 while the app starts to try the graphics chip again.
 
 ## 2. Browse
 

@@ -203,6 +203,16 @@ Pages
 static const char *const fields[] = {"id", "title", "author", "version", "description", "group", "url", "icon", "preview", "list"};
 #define NUM_FIELDS (int)(sizeof(fields) / sizeof(fields[0]))
 
+// an id names cache files (icons/<id>.jpg ...) and downloaded.txt lines: lower-case
+// letters, digits and '-', 63 at most (what the generator makes)
+static int Id_Ok(const char *id)
+{
+	size_t n = strlen(id);
+	if (n < 1 || n > 63 || *id == '-')
+		return 0;
+	return strspn(id, "abcdefghijklmnopqrstuvwxyz0123456789-") == n;
+}
+
 // checks one item; fills what doesn't need the string block
 static int Check(const cJSON *o, cat_item_t *it)
 {
@@ -212,7 +222,7 @@ static int Check(const cJSON *o, cat_item_t *it)
 
 	for (t = 0; t < NUM_TYPES; t++)
 		if (!strcmp(type, type_names[t])) break;
-	if (t == NUM_TYPES || !*Str(o, "id") || !*Str(o, "title") || !cJSON_IsNumber(size) || size->valuedouble < 0)
+	if (t == NUM_TYPES || !Id_Ok(Str(o, "id")) || !*Str(o, "title") || !cJSON_IsNumber(size) || size->valuedouble < 0)
 		return 0;
 	if (!Safe_Path(Str(o, "url")) || (*Str(o, "icon") && !Safe_Path(Str(o, "icon"))) ||
 		(*Str(o, "preview") && !Safe_Path(Str(o, "preview"))))

@@ -32,7 +32,7 @@ jobs:
       - name: Build
         run: |
           M="$RUNNER_TEMP/mbedtls"
-          gcc -O1 -g -Wall -Wno-pointer-sign -Itools/hostshim -Isrc -Isrc/ps3 -I"$M/include" -o https_test \
+          gcc -O1 -g -Wall -Wno-pointer-sign -DCJSON_NESTING_LIMIT=16 -Itools/hostshim -Isrc -Isrc/ps3 -I"$M/include" -o https_test \
             tools/https_test.c src/ps3/http_ps3.c src/http_common.c src/catalog.c src/download.c src/lang.c src/thirdparty/cJSON.c \
             -L"$M/library" -lmbedtls -lmbedx509 -lmbedcrypto -lpthread
       - name: Run

@@ -395,6 +395,15 @@ static target_t Screen_Target(void)
 	return tg;
 }
 
+// frames and reflips both count: the UI only draws when something changes
+static void Frame_Good(void)
+{
+	if (++good_frames == 300) {
+		sysLv2FsUnlink(GPU_TRYING);
+		Glog("300 frames: the RSX stays on");
+	}
+}
+
 void gpu_frame_submit(const gquad_t *q, int nq, const gbatch_t *b, int nb)
 {
 	if (!gpu_mode || !ready) return;
@@ -404,10 +413,7 @@ void gpu_frame_submit(const gquad_t *q, int nq, const gbatch_t *b, int nb)
 	Draw_Batches(&tg, b, nb, nq);
 	Flip();
 	last_q = q; last_nq = nq; last_b = b; last_nb = nb;
-	if (++good_frames == 300) {
-		sysLv2FsUnlink(GPU_TRYING);
-		Glog("300 frames: the RSX stays on");
-	}
+	Frame_Good();
 }
 
 /*
@@ -735,25 +741,31 @@ int ps3_video_init(void)
 	u8 vid_aspect = VIDEO_ASPECT_16_9;
 	videoState state;
 
+	// L1 held while it starts: the CPU draws this time. R1: the RSX is tried again, even
+	// after a freeze (the pads take a moment to answer)
+	uint32_t held = 0;
+	for (int i = 0; i < 15 && !(held & (BTN_L1 | BTN_R1)); i++) {
+		held = plat_input_held();
+		usleep(20000);
+	}
+	if (held & BTN_R1) {
+		plat_log("video: R1 held: the RSX is tried again");
+		plat_renderer_set_cpu(0);
+		sysLv2FsUnlink(GPU_TRYING);
+	}
+
 	// the RSX, unless it froze last time (the marker's still there) or once before
 	int try_gpu = !File_Exists(GPU_FAILED) && !File_Exists(USE_CPU);
 	if (try_gpu && File_Exists(GPU_TRYING)) {
 		sysLv2FsRename(GPU_TRYING, GPU_FAILED);
-		plat_log("video: the RSX didn't make it through the last start: the CPU draws (delete %s to try again)", GPU_FAILED);
+		plat_log("video: the RSX didn't make it through the last start: the CPU draws (hold R1 while it starts to try again)");
 		try_gpu = 0;
 	} else if (!try_gpu) {
-		plat_log("video: the CPU draws (%s is there)", GPU_FAILED);
+		plat_log("video: the CPU draws (%s is there; hold R1 while it starts to try the RSX again)", GPU_FAILED);
 	}
-	if (try_gpu) {
-		// L1 held while it starts: the CPU draws this time (the pads take a moment to answer)
-		for (int i = 0; i < 15; i++) {
-			if (plat_input_held() & BTN_L1) {
-				plat_log("video: L1 held: the CPU draws this time");
-				try_gpu = 0;
-				break;
-			}
-			usleep(20000);
-		}
+	if (try_gpu && (held & BTN_L1)) {
+		plat_log("video: L1 held: the CPU draws this time");
+		try_gpu = 0;
 	}
 
 	io_buffer = memalign(1024 * 1024, IO_SIZE);
@@ -875,6 +887,7 @@ void ps3_video_reflip(void)
 		Begin_Target(&tg, 0x000000);
 		Draw_Batches(&tg, last_b, last_nb, last_nq);
 		Flip();
+		Frame_Good();
 		return;
 	}
 	if (cpu_canvas) ps3_video_present(cpu_canvas);
@@ -885,6 +898,8 @@ void ps3_video_shutdown(void)
 	if (!ready)
 		return;
 	ready = 0;
+	if (gpu_mode)
+		sysLv2FsUnlink(GPU_TRYING);		// it got to a clean quit: no freeze
 	gcmSetFlipHandler(NULL);
 	for (int waited = 0; flips_done != flips_queued && waited < 2000; waited++)
 		usleep(100);

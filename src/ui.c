@@ -1010,9 +1010,16 @@ static void Input_List(uint32_t p)
 {
 	cat_list_t *l = Cur_List();
 	view_t *v = Cur_View();
-	if (!l || !v) return;
 	if (p & BTN_R1) { Section_Step(1); return; }
 	if (p & BTN_L1) { Section_Step(-1); return; }
+	if (!l || !v) {		// an empty section: only the way out
+		if (p & BTN_CIRCLE) {
+			home_sel = cur;
+			screen = SCR_HOME;
+			dirty = 1;
+		}
+		return;
+	}
 	int count = View_Count(v, l);
 	if (p & BTN_DOWN) v->sel++;
 	if (p & BTN_UP) v->sel--;
@@ -1323,7 +1330,11 @@ static void Draw_List(void)
 	view_t *v = Cur_View();
 	Draw_Header();
 	gfx_round_rect(LIST_X - 12, LIST_Y - 8, LIST_W + 24, ROWS * ROW_H + 16, 14, C_PANEL);
-	if (!l || !v) return;
+	if (!l || !v) {		// a section with no lists (none in the catalogue, or none passed)
+		font_draw_center(FONT_MEDIUM, 22, SCREEN_W / 2, LIST_Y + 180, "Nothing here yet.", C_DIM, SCREEN_W - 200);
+		Hint2(Hint(LIST_X, G_CIRCLE, "Back"), G_L1, G_R1, "Section");
+		return;
+	}
 	int count = View_Count(v, l);
 	Clamp(v, count);		// (every path in: a section's view is never drawn out of range)
 	if (!count && !v->search_wait)

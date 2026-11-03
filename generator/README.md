@@ -17,7 +17,7 @@ The app loads only the index at start, then each page as the list reaches it.
 ```
 npm install
 node make-catalog.mjs              # everything (first run hashes ~60 GB; later runs use the cache)
-node make-catalog.mjs --limit 3    # a quick sample: the first 3 of each type
+node make-catalog.mjs --limit 3 --out ..\tests\sample   # a quick sample: the first 3 of each type (--limit and --only need --out)
 node make-catalog.mjs --verify     # re-hash every page and file the index lists, ignoring the cache
 ```
 

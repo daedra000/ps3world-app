@@ -43,7 +43,8 @@ SOURCES := src/app.c src/gfx.c src/font.c src/input.c src/jobs.c src/lang.c src/
 OBJECTS := $(patsubst %.c,$(OBJDIR)/%.o,$(SOURCES))
 
 MBEDTLS_DIR ?= $(PORTLIBS)
-DEFINES  := -D__PS3__ -DAPP_DIR='"/dev_hdd0/game/$(APPID)/USRDIR"'
+# cJSON recurses once a level: the catalogue nests 7 deep, and 1000 could run a thread's stack out
+DEFINES  := -D__PS3__ -DAPP_DIR='"/dev_hdd0/game/$(APPID)/USRDIR"' -DCJSON_NESTING_LIMIT=16
 INCLUDES := -Isrc -Isrc/ps3 $(LIBPSL1GHT_INC) -I$(MBEDTLS_DIR)/include -I$(PORTLIBS)/include
 
 OPT      := -O2
