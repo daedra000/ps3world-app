@@ -10,6 +10,7 @@ Install targets (v1):
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "mbedtls/sha256.h"
 #include "plat.h"
 #include "download.h"
@@ -22,6 +23,9 @@ typedef struct {
 	char id[64];
 	char sha[65];
 	char path[300];
+	char title[128];		// (lines from before 0.6.0 have none)
+	long long when;			// time() it finished, 0 if not known
+	long long size;			// on disk, read at start
 } record_t;
 
 static record_t *records;
@@ -72,16 +76,21 @@ static void Records_Load(void)
 	for (char *line = s, *next; line && *line && num_records < MAX_RECORDS; line = next) {
 		next = strchr(line, '\n');
 		if (next) *next++ = 0;
-		char *t1 = strchr(line, '\t'), *t2 = t1 ? strchr(t1 + 1, '\t') : NULL;
-		if (!t2) continue;
-		*t1 = *t2 = 0;
-		char *cr = strchr(t2 + 1, '\r');
+		char *cr = strchr(line, '\r');
 		if (cr) *cr = 0;
+		// id, sha256, path, then (0.6.0 on) when and the title
+		char *f[5] = {line};
+		int nf = 1;
+		for (char *t = line; nf < 5 && (t = strchr(t, '\t')); nf++) { *t++ = 0; f[nf] = t; }
+		if (nf < 3) continue;
 		record_t *r = &records[num_records];
-		snprintf(r->id, sizeof(r->id), "%s", line);
-		snprintf(r->sha, sizeof(r->sha), "%s", t1 + 1);
-		snprintf(r->path, sizeof(r->path), "%s", t2 + 1);
-		if (plat_file_size(r->path) >= 0)		// only what's still there
+		memset(r, 0, sizeof(*r));
+		snprintf(r->id, sizeof(r->id), "%s", f[0]);
+		snprintf(r->sha, sizeof(r->sha), "%s", f[1]);
+		snprintf(r->path, sizeof(r->path), "%s", f[2]);
+		if (nf > 3) r->when = atoll(f[3]);
+		if (nf > 4) snprintf(r->title, sizeof(r->title), "%s", f[4]);
+		if ((r->size = plat_file_size(r->path)) >= 0)		// only what's still there
 			num_records++;
 	}
 	free(s);
@@ -91,11 +100,12 @@ static void Records_Load(void)
 static void Records_Save(void)
 {
 	char path[512];
-	size_t cap = (size_t)num_records * (sizeof(record_t) + 4) + 1, n = 0;		// a line is at most a record's fields
+	size_t cap = (size_t)num_records * (sizeof(record_t) + 32) + 1, n = 0;		// a line: the fields, a number and tabs
 	char *buf = malloc(cap);
 	if (!buf) return;
 	for (int i = 0; i < num_records; i++) {
-		int r = snprintf(buf + n, cap - n, "%s\t%s\t%s\n", records[i].id, records[i].sha, records[i].path);
+		int r = snprintf(buf + n, cap - n, "%s\t%s\t%s\t%lld\t%s\n", records[i].id, records[i].sha, records[i].path,
+			records[i].when, records[i].title);
 		if (r < 0 || (size_t)r >= cap - n) break;
 		n += r;
 	}
@@ -139,10 +149,47 @@ void store_mark_downloaded(const cat_item_t *it, const char *path)
 		if (num_records == MAX_RECORDS) return;
 		num_records++;
 	}
-	snprintf(records[i].id, sizeof(records[i].id), "%s", it->id);
-	Hex(it->sha256, records[i].sha);
-	snprintf(records[i].path, sizeof(records[i].path), "%s", path);
+	record_t *r = &records[i];
+	snprintf(r->id, sizeof(r->id), "%s", it->id);
+	Hex(it->sha256, r->sha);
+	snprintf(r->path, sizeof(r->path), "%s", path);
+	snprintf(r->title, sizeof(r->title), "%s", it->title);
+	for (char *c = r->title; *c; c++)		// (a field of a tab-separated line)
+		if (*c == '\t' || *c == '\n' || *c == '\r') *c = ' ';
+	r->when = (long long)time(NULL);
+	r->size = it->size;
 	Records_Save();
+}
+
+int store_num_downloads(void) { return num_records; }
+
+// newest first
+int store_download_at(int i, store_rec_t *out)
+{
+	if (i < 0 || i >= num_records) return 0;
+	const record_t *r = &records[num_records - 1 - i];
+	out->id = r->id;
+	out->sha = r->sha;
+	out->path = r->path;
+	out->title = r->title;
+	out->when = r->when;
+	out->size = r->size;
+	return 1;
+}
+
+int store_delete_download(int i)
+{
+	if (i < 0 || i >= num_records) return 0;
+	int k = num_records - 1 - i;
+	if (remove(records[k].path) != 0 && plat_file_size(records[k].path) >= 0) {
+		plat_log("store: couldn't delete %s", records[k].path);
+		return 0;
+	}
+	plat_log("store: deleted %s", records[k].path);
+	memmove(&records[k], &records[k + 1], (num_records - 1 - k) * sizeof(record_t));
+	num_records--;
+	Records_Save();
+	return 1;
 }
 
 /*

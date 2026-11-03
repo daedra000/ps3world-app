@@ -39,6 +39,7 @@ const CONFIG = {
   avatarsJson: 'G:/PS3 Avatars/_site_avatars/data/avatars.json',
   manifest: path.join(HERE, 'homebrew.manifest.json'),
   homebrewRoot: 'D:/PS3 WORLD R2',				// manifest "file" paths are relative to this (and to the bucket)
+  appFolder: 'ps3world',						// under homebrewRoot (and the bucket): PS3World-<version>.pkg, the newest offered as the app's update
   siteRoot: 'G:/PS3 World Self Host Ver - Copy',	// manifest "icon" paths are relative to this
   // a dl.ps3.world path's first folder -> where those files are on this PC
   roots: {
@@ -331,6 +332,23 @@ function packFolders(avatars, relDir) {
   });
 }
 
+// ---- the app's own update: the newest PS3World-<version>.pkg in appFolder, or null ----
+async function appUpdate() {
+  const dir = path.join(CONFIG.homebrewRoot, CONFIG.appFolder);
+  let names;
+  try { names = await fsp.readdir(dir); } catch { warn(`no ${dir}: the catalogue offers no app update`); return null; }
+  const ver = v => v.split('.').map(Number);
+  const newer = (a, b) => { for (let i = 0; i < 3; i++) if ((a[i] || 0) !== (b[i] || 0)) return (a[i] || 0) > (b[i] || 0); return false; };
+  let best = null;
+  for (const n of names) {
+    const m = /^PS3World-(\d+\.\d+\.\d+)\.pkg$/.exec(n);
+    if (m && (!best || newer(ver(m[1]), ver(best.version)))) best = { version: m[1], file: n };
+  }
+  if (!best) { warn(`no PS3World-<version>.pkg in ${dir}: the catalogue offers no app update`); return null; }
+  const info = await fileInfo(path.join(dir, best.file));
+  return { version: best.version, url: encodePath(`${CONFIG.appFolder}/${best.file}`), size: info.size, sha256: info.sha256, _file: path.join(dir, best.file) };
+}
+
 // ---- build ----
 async function build() {
   await fsp.mkdir(path.join(CONFIG.outDir, CATALOG_DIR, 'icons'), { recursive: true });
@@ -352,6 +370,7 @@ async function build() {
     s.preview = s.type === 'homebrew' ? await makePreview(s._icon, s.id) : s._preview || '';
     items.push(s);
   });
+  const app = ONLY.includes('homebrew') ? await appUpdate() : null;
   fs.writeFileSync(cachePath, JSON.stringify(hashCache));
 
   // the index: each section's lists (homebrew: one per category; themes, avatars: all, then one
@@ -363,6 +382,8 @@ async function build() {
     page_size: PAGE_SIZE,
     sections: [],
   };
+  // (apps before 0.6.0 ignore it)
+  if (app) index.app = { version: app.version, url: app.url, size: app.size, sha256: app.sha256 };
   for (const type of TYPES) {
     const all = items.filter(i => i.type === type);
     const section = { type, count: all.length, lists: [] };
@@ -402,8 +423,11 @@ async function build() {
       console.log(`  ${s.type}${l.name ? '/' + l.name : ''}: ${l.count} items, ${l.pages.length} page(s), search.txt ${(l.search.size / 1024).toFixed(0)} KB`);
   console.log(`  pages: ${pages.length}, the biggest ${(Math.max(...pages.map(p => p.size)) / 1024).toFixed(1)} KB`);
   console.log(`  ${items.filter(i => !i.icon).length} without an icon`);
+  if (app) console.log(`  app update offered: PS3 World ${app.version} (${app.url}, ${(app.size / 1048576).toFixed(1)} MB)`);
   report();
   console.log('\nUpload (you run this; copy never deletes anything on R2):');
+  if (app)		// the PKG first: the index mustn't offer it before it's there
+    console.log(`  rclone copy "${path.join(CONFIG.homebrewRoot, CONFIG.appFolder).replace(/\//g, '\\')}" ${CONFIG.bucket}/${CONFIG.appFolder} --progress`);
   console.log(`  rclone copy "${path.join(CONFIG.outDir, 'catalog').replace(/\//g, '\\')}" ${CONFIG.bucket}/catalog --progress`);
 }
 
@@ -424,6 +448,10 @@ async function verify() {
         if (it.list) lists.push(JSON.parse(it.list));
         else cat.items.push(it);
     }
+  if (index.app) {		// the app's update, checked like an item
+    homebrewByUrl[index.app.url] = path.join(CONFIG.homebrewRoot, ...index.app.url.split('/').map(decodeURIComponent));
+    cat.items.push({ id: 'ps3world-app', type: 'homebrew', ...index.app });
+  }
   await pool(cat.items, HASH_JOBS, 'verifying', async it => {
     const local = it.type === 'homebrew' ? homebrewByUrl[it.url] : localFor(it.url);
     const info = local && await fileInfo(local, false);

@@ -21,6 +21,8 @@ node make-catalog.mjs --limit 3 --out ..\tests\sample   # a quick sample: the fi
 node make-catalog.mjs --verify     # re-hash every page and file the index lists, ignoring the cache
 ```
 
+To offer an app update, put the new PKG in `D:\PS3 WORLD R2\ps3world\` named `PS3World-<version>.pkg` (for example `PS3World-0.6.1.pkg`). The newest one goes into `catalog.json` as `"app"`, and any app older than that shows "PS3 World 0.6.1 is out". The printed upload commands send that folder first, then the catalogue.
+
 Paths are in `CONFIG` at the top of `make-catalog.mjs`. Output goes to `G:\ps3world-catalog`. The hash cache is kept in `.cache\` there, and it is not part of the upload.
 
 ## Sources

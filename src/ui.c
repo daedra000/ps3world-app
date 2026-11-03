@@ -24,6 +24,7 @@ Resonant (swapped on consoles that confirm with Circle).
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "plat.h"
 #include "gfx.h"
 #include "font.h"
@@ -63,7 +64,7 @@ Resonant (swapped on consoles that confirm with Circle).
 #define TILE_H		112			// the picker's small cards (themes, avatars)
 #define TILE_COLS	3
 
-enum { SCR_START, SCR_HOME, SCR_LIST, SCR_DETAIL, SCR_PROFILE };
+enum { SCR_START, SCR_HOME, SCR_LIST, SCR_DETAIL, SCR_PROFILE, SCR_DOWNLOADS };
 
 static int screen = SCR_START;
 static int dirty = 1;
@@ -810,21 +811,146 @@ static void Thumb_Draw(const cat_item_t *it, const char *title, int x, int y)
 
 /*
 ==================
-Downloads (one at a time, from the detail screen)
+Downloads: a queue, one at a time. Each entry keeps how it went (a finished
+one is dropped when the queue needs its place) for its detail screen.
 ==================
 */
+#define QUEUE_MAX	32
+enum { Q_WAITING, Q_RUNNING, Q_DONE, Q_FAILED };
+
+typedef struct {
+	cat_item_t *it;				// a copy
+	char dest[512];
+	int state, ok;
+	char msg[400];				// (Q_DONE, Q_FAILED) what happened
+} queued_t;
+
+static queued_t queue[QUEUE_MAX];
+static int queue_n;
 static cat_item_t *det;			// the detail screen's item (a copy: its page may go)
-static download_t *dl;
+static download_t *dl;			// the running one, queue[dl_q]
 static job_t *dl_job;
+static int dl_q = -1;
 static uint64_t dl_t_last;
 static long long dl_last_got;
 static double dl_speed;			// bytes a second, smoothed
-static char result_msg[400];		// what happened, on the detail screen
+static char result_msg[400];		// why the detail screen's item can't be queued (no profile...)
 static int result_ok;
+static int det_back = SCR_LIST;		// where Circle goes from the detail screen
+static long long free_bytes = -1;	// on /dev_hdd0, read every few seconds (home and My downloads)
+static uint64_t free_checked;
 
 static void Dl_Run(job_t *j) { download_run(j->arg); }
 static void Profiles_Load(void);
 
+// the newest entry for an item, or -1
+static int Queue_Find(const char *id)
+{
+	for (int i = queue_n - 1; i >= 0; i--)
+		if (!strcmp(queue[i].it->id, id)) return i;
+	return -1;
+}
+
+// waiting or running
+static int Queue_Active(int i) { return i >= 0 && i < queue_n && queue[i].state <= Q_RUNNING; }
+static int Queue_Busy(void)
+{
+	int n = 0;
+	for (int i = 0; i < queue_n; i++) n += Queue_Active(i);
+	return n;
+}
+
+static void Queue_Remove(int i)
+{
+	free(queue[i].it);
+	memmove(&queue[i], &queue[i + 1], (queue_n - 1 - i) * sizeof(queued_t));
+	queue_n--;
+	if (dl_q > i) dl_q--;
+}
+
+// the first waiting one, if nothing's running
+static void Queue_Next(void)
+{
+	while (!dl) {
+		int i;
+		for (i = 0; i < queue_n && queue[i].state != Q_WAITING; i++);
+		if (i == queue_n) return;
+		queued_t *q = &queue[i];
+		char dir[512];
+		snprintf(dir, sizeof(dir), "%s", q->dest);
+		char *slash = strrchr(dir, '/');
+		if (slash) *slash = 0;
+		if (!plat_mkdirs(dir)) {
+			snprintf(q->msg, sizeof(q->msg), "Couldn't make the folder %s", dir);
+			q->state = Q_FAILED;
+			continue;
+		}
+		download_t *d = calloc(1, sizeof(*d));
+		job_t *j = d ? job_new(Dl_Run, NULL) : NULL;
+		if (!j) {
+			free(d);
+			snprintf(q->msg, sizeof(q->msg), "Out of memory");
+			q->state = Q_FAILED;
+			continue;
+		}
+		snprintf(d->url, sizeof(d->url), "%s%s", CATALOG_BASE, q->it->url);
+		snprintf(d->dest, sizeof(d->dest), "%s", q->dest);
+		d->size = q->it->size;
+		memcpy(d->sha256, q->it->sha256, 32);
+		j->arg = d;
+		dl = d;
+		dl_job = j;
+		dl_q = i;
+		q->state = Q_RUNNING;
+		dl_last_got = 0;
+		dl_speed = 0;
+		dl_t_last = t_now;
+		job_post(j, LANE_DL);
+		plat_log("download: %s -> %s", d->url, d->dest);
+	}
+	dirty = 1;
+}
+
+// the item at the end of the queue (if it isn't in it already)
+static void Queue_Add(const cat_item_t *it, const char *dest)
+{
+	int i = Queue_Find(it->id);
+	if (Queue_Active(i)) return;
+	if (i >= 0) Queue_Remove(i);		// (how it went last time)
+	for (i = 0; queue_n == QUEUE_MAX && i < queue_n; i++)		// room: the oldest finished one goes
+		if (!Queue_Active(i)) { Queue_Remove(i); break; }
+	if (queue_n == QUEUE_MAX) {
+		snprintf(result_msg, sizeof(result_msg), "%d downloads are waiting already: add this one when some have finished.", QUEUE_MAX);
+		result_ok = 0;
+		return;
+	}
+	queued_t *q = &queue[queue_n];
+	memset(q, 0, sizeof(*q));
+	if (!(q->it = catalog_item_copy(it))) return;
+	snprintf(q->dest, sizeof(q->dest), "%s", dest);
+	q->state = Q_WAITING;
+	queue_n++;
+	Queue_Next();
+}
+
+// a waiting one leaves the queue; the running one stops (and what's arrived is deleted)
+static void Queue_Cancel(int i)
+{
+	if (!Queue_Active(i)) return;
+	if (queue[i].state == Q_RUNNING) dl->cancel = 1;
+	else Queue_Remove(i);
+	dirty = 1;
+}
+
+// how many are ahead of it
+static int Queue_Ahead(int i)
+{
+	int n = 0;
+	for (int k = 0; k < i; k++) n += Queue_Active(k);
+	return n;
+}
+
+// the detail screen's item into the queue, once it's known where it goes
 static void Download_Start(void)
 {
 	char dest[512];
@@ -835,37 +961,27 @@ static void Download_Start(void)
 		dirty = 1;
 		return;
 	}
+	result_msg[0] = 0;
 	if (code != DEST_OK) {
 		snprintf(result_msg, sizeof(result_msg), "%s", store_dest_message(code));
 		result_ok = 0;
 		dirty = 1;
 		return;
 	}
-	char dir[512];
-	snprintf(dir, sizeof(dir), "%s", dest);
-	char *slash = strrchr(dir, '/');
-	if (slash) *slash = 0;
-	if (!plat_mkdirs(dir)) {
-		snprintf(result_msg, sizeof(result_msg), "Couldn't make the folder %s", dir);
-		result_ok = 0;
-		dirty = 1;
-		return;
-	}
-	dl = calloc(1, sizeof(*dl));
-	if (!dl) return;
-	snprintf(dl->url, sizeof(dl->url), "%s%s", CATALOG_BASE, det->url);
-	snprintf(dl->dest, sizeof(dl->dest), "%s", dest);
-	dl->size = det->size;
-	memcpy(dl->sha256, det->sha256, 32);
-	dl_last_got = 0;
-	dl_speed = 0;
-	dl_t_last = t_now;
-	result_msg[0] = 0;
-	dl_job = job_new(Dl_Run, NULL);
-	if (!dl_job) { free(dl); dl = NULL; return; }
-	dl_job->arg = dl;
-	job_post(dl_job, LANE_DL);
-	plat_log("download: %s -> %s", dl->url, dl->dest);
+	Queue_Add(det, dest);
+	dirty = 1;
+}
+
+static void Detail_Open(const cat_item_t *it, int back)
+{
+	cat_item_t *c = catalog_item_copy(it);
+	if (!c) return;
+	free(det);
+	det = c;
+	result_msg[0] = 0;		// (the last item's says nothing about this one)
+	result_ok = 0;
+	det_back = back;
+	screen = SCR_DETAIL;
 	dirty = 1;
 }
 
@@ -891,34 +1007,38 @@ static void Download_Tick(void)
 		dirty = 1;
 	}
 	if (!job_done(dl_job)) return;
+	queued_t *q = &queue[dl_q];
+	q->ok = 0;
+	q->state = Q_FAILED;
 	switch (dl->state) {
 	case DL_DONE: {
 		char size[32];
 		Fmt_Size(dl->size, size, sizeof(size));
-		store_mark_downloaded(det, dl->dest);
-		snprintf(result_msg, sizeof(result_msg), "Checksum OK (%s). Saved to %s\n%s", size, dl->dest, Install_Hint(det->type));
-		result_ok = 1;
+		store_mark_downloaded(q->it, dl->dest);
+		snprintf(q->msg, sizeof(q->msg), "Checksum OK (%s). Saved to %s\n%s", size, dl->dest, Install_Hint(q->it->type));
+		q->ok = 1;
+		q->state = Q_DONE;
 		break;
 	}
 	case DL_CANCELLED:
-		snprintf(result_msg, sizeof(result_msg), "Download cancelled.");
-		result_ok = 0;
+		snprintf(q->msg, sizeof(q->msg), "Download cancelled.");
 		break;
 	case DL_PAUSED:
-		snprintf(result_msg, sizeof(result_msg), "Download paused. Press X to resume.");
-		result_ok = 0;
+		snprintf(q->msg, sizeof(q->msg), "Download paused. Press X to resume.");
 		break;
 	default:
-		snprintf(result_msg, sizeof(result_msg), "%s%s",
+		snprintf(q->msg, sizeof(q->msg), "%s%s",
 			dl->err_kind == ERR_CHECKSUM ? "The download didn't match its checksum, so it was deleted. Try again." :
 			Error_Text(dl->err_kind, dl->err),
 			dl->err_kind == ERR_NETWORK ? "\nPress X to resume where it stopped." : "");
-		result_ok = 0;
 	}
 	job_release(dl_job);
 	dl_job = NULL;
 	free(dl);
 	dl = NULL;
+	dl_q = -1;
+	free_checked = 0;		// (the space it took)
+	Queue_Next();
 	dirty = 1;
 }
 
@@ -941,6 +1061,139 @@ static void Profiles_Load(void)
 		free(name);
 	}
 	profile_sel = 0;
+}
+
+/*
+==================
+My downloads: the queue (what hasn't finished), then what's on the HDD, newest first
+==================
+*/
+static int dls_sel, dls_top, dls_confirm = -1;		// dls_confirm: the row Square was pressed on once
+
+static int Dls_Queue_Rows(void)
+{
+	int n = 0;
+	for (int i = 0; i < queue_n; i++) n += queue[i].state != Q_DONE;
+	return n;
+}
+
+// a queue row's entry
+static int Dls_Queue_At(int row)
+{
+	for (int i = 0; i < queue_n; i++)
+		if (queue[i].state != Q_DONE && row-- == 0) return i;
+	return -1;
+}
+
+static int Dls_Count(void) { return Dls_Queue_Rows() + store_num_downloads(); }
+
+// a homebrew item in the catalogue by id (its pages asked for as needed): NULL if it isn't (yet)
+static const cat_item_t *Homebrew_Find(const char *id)
+{
+	if (strncmp(id, "hb-", 3)) return NULL;		// (only homebrew gets new versions)
+	for (int l = 0; ix && l < ix->num_lists[TYPE_HOMEBREW]; l++)
+		for (int p = 0; p < ix->lists[TYPE_HOMEBREW][l].num_pages; p++) {
+			file_slot_t *s = File_Get(&ix->lists[TYPE_HOMEBREW][l].pages[p], 0);
+			if (!s || !s->page) continue;
+			for (int k = 0; k < s->page->count; k++)
+				if (!strcmp(s->page->items[k].id, id)) return &s->page->items[k];
+		}
+	return NULL;
+}
+
+// the catalogue has a different file for a download (a new version)
+static int Dls_Newer(const store_rec_t *r)
+{
+	const cat_item_t *it = Homebrew_Find(r->id);
+	char sha[65];
+	if (!it) return 0;
+	for (int i = 0; i < 32; i++) snprintf(sha + i * 2, 3, "%02x", it->sha256[i]);
+	return strcmp(sha, r->sha) != 0;
+}
+
+static void Input_Downloads(uint32_t p)
+{
+	int n = Dls_Count(), qrows = Dls_Queue_Rows();
+	if (p & BTN_CIRCLE) {
+		dls_confirm = -1;
+		if (!strncmp(banner, "Couldn't delete", 15)) banner[0] = 0;
+		screen = SCR_HOME;
+		dirty = 1;
+		return;
+	}
+	if (p & ~BTN_SQUARE) dls_confirm = -1;		// (anything else and the delete's off)
+	if (p & BTN_DOWN) dls_sel++;
+	if (p & BTN_UP) dls_sel--;
+	if (p & BTN_RIGHT) dls_sel += ROWS;
+	if (p & BTN_LEFT) dls_sel -= ROWS;
+	if (dls_sel >= n) dls_sel = n - 1;
+	if (dls_sel < 0) dls_sel = 0;
+	if (p & BTN_CROSS) {
+		store_rec_t r;
+		const cat_item_t *it;
+		if (dls_sel < qrows) Detail_Open(queue[Dls_Queue_At(dls_sel)].it, SCR_DOWNLOADS);
+		else if (store_download_at(dls_sel - qrows, &r) && (it = Homebrew_Find(r.id)))
+			Detail_Open(it, SCR_DOWNLOADS);
+	}
+	if ((p & BTN_SQUARE) && dls_sel < qrows) {
+		int q = Dls_Queue_At(dls_sel);
+		if (Queue_Active(q)) Queue_Cancel(q);
+		else if (q >= 0) Queue_Remove(q);		// a failed one: off the list
+	} else if ((p & BTN_SQUARE) && dls_sel < n) {
+		// twice to delete: the first press asks
+		if (dls_confirm == dls_sel) {
+			if (!store_delete_download(dls_sel - qrows))
+				snprintf(banner, sizeof(banner), "Couldn't delete that file");
+			dls_confirm = -1;
+			free_checked = 0;
+		} else
+			dls_confirm = dls_sel;
+	}
+	n = Dls_Count();
+	if (dls_sel >= n) dls_sel = n - 1;
+	if (dls_sel < 0) dls_sel = 0;
+	if (dls_top > dls_sel) dls_top = dls_sel;
+	if (dls_top < dls_sel - ROWS + 1) dls_top = dls_sel - ROWS + 1;
+	if (p) dirty = 1;
+}
+
+/*
+==================
+The app's own update, from the catalogue
+==================
+*/
+static int Version_Newer(const char *a, const char *b)
+{
+	int x[3] = {0}, y[3] = {0};
+	sscanf(a, "%d.%d.%d", &x[0], &x[1], &x[2]);
+	sscanf(b, "%d.%d.%d", &y[0], &y[1], &y[2]);
+	for (int i = 0; i < 3; i++)
+		if (x[i] != y[i]) return x[i] > y[i];
+	return 0;
+}
+
+static int Update_Available(void) { return ix && ix->app.version[0] && Version_Newer(ix->app.version, APP_VERSION); }
+
+// the update, as a homebrew item on the detail screen
+static void Update_Open(void)
+{
+	char title[64];
+	snprintf(title, sizeof(title), APP_NAME " %s", ix->app.version);
+	cat_item_t it;
+	memset(&it, 0, sizeof(it));
+	it.id = "ps3world-app";
+	it.title = title;
+	it.author = "PS3 World";
+	it.version = ix->app.version;
+	it.description = "A new version of this app. Once it's downloaded, install it from Package Manager > Install Package Files: "
+		"it installs over this one.";
+	it.group = it.icon = it.preview = it.list = "";
+	it.url = ix->app.file.url;
+	it.size = ix->app.size;
+	memcpy(it.sha256, ix->app.file.sha256, 32);
+	it.type = TYPE_HOMEBREW;
+	it.requires = REQ_HEN;
+	Detail_Open(&it, SCR_HOME);
 }
 
 /*
@@ -998,6 +1251,12 @@ static void Input_Home(uint32_t p)
 	else if ((p & BTN_DOWN) && home_sel == TYPE_THEME) home_sel = TYPE_AVATAR;
 	else if ((p & BTN_UP) && home_sel == TYPE_AVATAR) home_sel = TYPE_THEME;
 	if (p & BTN_CROSS) Open_Section(home_sel);
+	if (p & BTN_TRIANGLE) {
+		dls_sel = dls_top = 0;
+		dls_confirm = -1;
+		screen = SCR_DOWNLOADS;
+	}
+	if ((p & BTN_SQUARE) && Update_Available()) Update_Open();
 	if (p) dirty = 1;
 }
 
@@ -1094,11 +1353,7 @@ static void Input_List(uint32_t p)
 			dirty = 1;
 			return;
 		}
-		if (it && (det = catalog_item_copy(it))) {
-			result_msg[0] = 0;		// (the last item's download says nothing about this one)
-			result_ok = 0;
-			screen = SCR_DETAIL;
-		}
+		if (it) Detail_Open(it, SCR_LIST);
 	}
 	Clamp(v, View_Count(v, l));
 	if (p) dirty = 1;
@@ -1108,7 +1363,7 @@ static void Leave_Detail(void)
 {
 	free(det);
 	det = NULL;
-	screen = SCR_LIST;
+	screen = det_back;
 	if (pending) {
 		Index_Use(pending);
 		pending = NULL;
@@ -1118,12 +1373,10 @@ static void Leave_Detail(void)
 
 static void Input_Detail(uint32_t p)
 {
-	if (dl) {
-		if (p & BTN_CIRCLE) dl->cancel = 1;		// O cancels a download in progress
-		return;
-	}
-	if (p & BTN_CIRCLE) { Leave_Detail(); return; }
-	if ((p & BTN_CROSS) && det) Download_Start();
+	int q = det ? Queue_Find(det->id) : -1;
+	if (p & BTN_CIRCLE) { Leave_Detail(); return; }		// (a download carries on)
+	if ((p & BTN_SQUARE) && Queue_Active(q)) Queue_Cancel(q);
+	else if ((p & BTN_CROSS) && det && !Queue_Active(q)) Download_Start();
 	if (p) dirty = 1;
 }
 
@@ -1182,6 +1435,11 @@ void ui_update(void)
 	Files_Tick();
 	Icons_Tick();
 	Download_Tick();
+	if ((screen == SCR_HOME || screen == SCR_DOWNLOADS) && (!free_checked || t_now - free_checked > 10000000)) {
+		long long f = plat_free_bytes("/dev_hdd0");
+		free_checked = t_now;
+		if (f != free_bytes) { free_bytes = f; dirty = 1; }
+	}
 
 	if (searching) {
 		char q[128];
@@ -1212,6 +1470,7 @@ void ui_update(void)
 		break;
 	case SCR_DETAIL: Input_Detail(p); break;
 	case SCR_PROFILE: Input_Profile(p); break;
+	case SCR_DOWNLOADS: Input_Downloads(p); break;
 	}
 }
 
@@ -1281,6 +1540,41 @@ static void Draw_Top(const char *crumb)
 	else if (fetch_job) font_draw_right(FONT_REGULAR, 18, SCREEN_W - LIST_X, 68, "Checking for updates...", C_DIM);
 }
 
+// the download going on, bottom right (where the list's position goes otherwise): 1 if drawn
+static int Draw_Strip(void)
+{
+	if (!dl) return 0;
+	int right = SCREEN_W - LIST_X, bw = 120, y = SCREEN_H - 55, more = Queue_Busy() - 1;
+	float frac = dl->size ? (float)dl->got / (float)dl->size : 0;
+	if (frac > 1) frac = 1;
+	gfx_round_rect(right - bw, y + 9, bw, 8, 4, 0x40ffffff);
+	gfx_round_rect(right - bw, y + 9, (int)(bw * frac), 8, 4, C_ACCENT);
+	char name[1][256], line[320];
+	Wrap(FONT_MEDIUM, 19, queue[dl_q].it->title, 180, name, 1);
+	if (more > 0) snprintf(line, sizeof(line), "%s  %d%%  ·  %d more", name[0], (int)(frac * 100), more);
+	else snprintf(line, sizeof(line), "%s  %d%%", name[0], (int)(frac * 100));
+	font_draw_right(FONT_MEDIUM, 19, right - bw - 14, y, line, C_TEXT);
+	return 1;
+}
+
+// "3 Nov 2026", or "" when it isn't known
+static void Fmt_Date(long long t, char *out, int size)
+{
+	time_t tt = (time_t)t;
+	struct tm *tm = t > 0 ? localtime(&tt) : NULL;
+	out[0] = 0;
+	if (tm) strftime(out, size, "%d %b %Y", tm);
+}
+
+// "212 GB free on the HDD  ·  14 downloaded"
+static void Space_Line(char *out, int size)
+{
+	char fr[32];
+	int n = store_num_downloads();
+	Fmt_Size(free_bytes, fr, sizeof(fr));
+	snprintf(out, size, "%s%s%d downloaded", free_bytes >= 0 ? fr : "", free_bytes >= 0 ? " free on the HDD  ·  " : "", n);
+}
+
 // a list's count: an avatar list's rows are packs
 static void Count_Text(int t, int n, char *out, int size)
 {
@@ -1305,7 +1599,19 @@ static void Draw_Home(void)
 			Card(LIST_X + lw + CARD_GAP, CARD_Y + (t - 1) * (rh + CARD_GAP), rw, rh, home_sel == t, home_art[t],
 				c->kicker, c->title, 44, c->blurb, chips, n);
 	}
-	Hint(LIST_X, G_CROSS, "Open");
+	if (!banner[0] && !fetch_job && Update_Available()) {
+		char line[96];
+		snprintf(line, sizeof(line), APP_NAME " %s is out: press Square to get it", ix->app.version);
+		font_draw_right(FONT_MEDIUM, 19, SCREEN_W - LIST_X, 67, line, C_CYAN);
+	}
+	int x = Hint(LIST_X, G_CROSS, "Open");
+	x = Hint(x, G_TRIANGLE, "My downloads");
+	if (Update_Available()) Hint(x, G_SQUARE, "Update");
+	if (!Draw_Strip()) {
+		char line[128];
+		Space_Line(line, sizeof(line));
+		font_draw_right(FONT_MEDIUM, 19, SCREEN_W - LIST_X, SCREEN_H - 55, line, C_DIM);
+	}
 }
 
 static void Draw_Picker(void)
@@ -1343,6 +1649,7 @@ static void Draw_Picker(void)
 	int x = Hint(LIST_X, G_CROSS, "Open");
 	x = Hint(x, G_CIRCLE, "Back");
 	Hint2(x, G_L1, G_R1, "Section");
+	Draw_Strip();
 }
 
 static void Draw_List(void)
@@ -1422,7 +1729,7 @@ static void Draw_List(void)
 	else x = Hint(x, G_CIRCLE, "Back");
 	if (!v->results && count > 50) x = Hint2(x, G_L2, G_R2, "A-Z");
 	x = Hint2(x, G_L1, G_R1, "Section");
-	if (count) {
+	if (!Draw_Strip() && count) {
 		char pos[64], letter = '#';
 		int at = View_Pos(v, v->sel);
 		for (int i = 0; i < NUM_LETTERS; i++)
@@ -1497,8 +1804,8 @@ static void Draw_Detail(void)
 	// under the preview: the download, how it went, or how to use it after
 	x = DET_PX;
 	w = DET_PW;
-	int by = DET_PY + DET_PH + 24;
-	if (dl) {
+	int by = DET_PY + DET_PH + 24, q = Queue_Find(it->id);
+	if (q >= 0 && q == dl_q) {
 		const char *what = dl->state == DL_CHECKING ? "Checking what's there already..." :
 			dl->state == DL_VERIFYING ? "Checking the sha256..." : "Downloading";
 		float frac = dl->size ? (float)dl->got / (float)dl->size : 0;
@@ -1518,10 +1825,18 @@ static void Draw_Detail(void)
 			snprintf(line, sizeof(line), "Resumed from %s", got);
 			font_draw(FONT_REGULAR, 17, x, by + 56, line, C_DIM, w);
 		}
-	} else if (result_msg[0]) {
-		n = Wrap(FONT_MEDIUM, 20, result_msg, w, lines, 4);
+	} else if (Queue_Active(q)) {
+		int ahead = Queue_Ahead(q);
+		snprintf(line, sizeof(line), "Queued: %d download%s ahead of it. You can go back and keep browsing.", ahead, ahead == 1 ? "" : "s");
+		n = Wrap(FONT_MEDIUM, 20, line, w, lines, 3);
 		for (int i = 0; i < n; i++)
-			font_draw(FONT_MEDIUM, 20, x, by + i * 28, lines[i], result_ok ? C_OK : C_ERR, 0);
+			font_draw(FONT_MEDIUM, 20, x, by + i * 28, lines[i], C_TEXT, 0);
+	} else if (result_msg[0] || q >= 0) {
+		const char *msg = result_msg[0] ? result_msg : queue[q].msg;
+		int ok = result_msg[0] ? result_ok : queue[q].ok;
+		n = Wrap(FONT_MEDIUM, 20, msg, w, lines, 4);
+		for (int i = 0; i < n; i++)
+			font_draw(FONT_MEDIUM, 20, x, by + i * 28, lines[i], ok ? C_OK : C_ERR, 0);
 	} else {
 		snprintf(line, sizeof(line), "After it downloads: %s", Install_Hint(it->type));
 		n = Wrap(FONT_REGULAR, 19, line, w, lines, 3);
@@ -1530,11 +1845,13 @@ static void Draw_Detail(void)
 	}
 
 	int hx = LIST_X;
-	if (dl) Hint(hx, G_CIRCLE, "Cancel download");
+	if (Queue_Active(q)) hx = Hint(hx, G_SQUARE, "Cancel download");
 	else {
-		hx = Hint(hx, G_CROSS, have || result_ok ? "Download again" : result_msg[0] && !result_ok ? "Try again" : "Download");
-		Hint(hx, G_CIRCLE, "Back");
+		int failed = result_msg[0] ? !result_ok : q >= 0 && !queue[q].ok;
+		hx = Hint(hx, G_CROSS, failed ? "Try again" : have ? "Download again" : "Download");
 	}
+	Hint(hx, G_CIRCLE, "Back");
+	if (q != dl_q) Draw_Strip();		// another one downloading
 }
 
 static void Draw_Profile(void)
@@ -1551,6 +1868,71 @@ static void Draw_Profile(void)
 		font_draw_center(FONT_MEDIUM, 22, SCREEN_W / 2, y, line, C_TEXT, 580);
 	}
 	int x = Hint(LIST_X, G_CROSS, "Choose");
+	Hint(x, G_CIRCLE, "Back");
+}
+
+static void Draw_Downloads(void)
+{
+	Draw_Top("My downloads");
+	int n = Dls_Count(), qrows = Dls_Queue_Rows();
+	long long total = 0;
+	store_rec_t r;
+	for (int i = 0; store_download_at(i, &r); i++) total += r.size;
+	char line[400], size[32], when[32], fr[32];
+	Fmt_Size(total, size, sizeof(size));
+	Fmt_Size(free_bytes, fr, sizeof(fr));
+	snprintf(line, sizeof(line), "%d on the HDD (%s)%s%s%s", store_num_downloads(), size,
+		free_bytes >= 0 ? "  ·  " : "", free_bytes >= 0 ? fr : "", free_bytes >= 0 ? " free" : "");
+	font_draw(FONT_MEDIUM, 20, LIST_X, 104, line, C_DIM, 0);
+	gfx_round_rect(LIST_X - 12, LIST_Y - 8, LIST_W + 24, ROWS * ROW_H + 16, 14, C_PANEL);
+	if (!n)
+		font_draw_center(FONT_MEDIUM, 22, SCREEN_W / 2, LIST_Y + 180, "Nothing downloaded yet.", C_DIM, SCREEN_W - 200);
+	int can_open = 0, is_queue = dls_sel < qrows, q_active = 0;
+	for (int row = dls_top; row < n && row < dls_top + ROWS; row++) {
+		int y = LIST_Y + (row - dls_top) * ROW_H, tx = LIST_X + 6 + ICON_LIST + 16, rx = LIST_X + LIST_W - 12;
+		const char *title, *sub;
+		char subbuf[400];
+		if (row == dls_sel) gfx_round_rect(LIST_X - 4, y, LIST_W + 8, ROW_H - 4, 10, C_ROW_ON);
+		if (row < qrows) {		// in the queue: waiting, downloading, or failed
+			const queued_t *q = &queue[Dls_Queue_At(row)];
+			title = q->it->title;
+			Fmt_Size(q->it->size, size, sizeof(size));
+			rx -= font_draw_right(FONT_MEDIUM, 19, rx, y + 22, size, C_DIM) + 14;
+			if (q->state == Q_RUNNING && dl) {
+				snprintf(subbuf, sizeof(subbuf), "Downloading %d%%", dl->size ? (int)(dl->got * 100 / dl->size) : 0);
+				Badge(&rx, y + 20, subbuf, C_ACCENT);
+			} else if (q->state == Q_WAITING) Badge(&rx, y + 20, "Queued", C_DIM);
+			else Badge(&rx, y + 20, "Failed", C_ERR);
+			sub = q->state == Q_FAILED ? q->msg : q->dest;
+			if (row == dls_sel) { can_open = 1; q_active = q->state <= Q_RUNNING; }
+		} else {
+			store_download_at(row - qrows, &r);
+			const char *file = strrchr(r.path, '/');
+			title = r.title[0] ? r.title : file ? file + 1 : r.path;
+			Fmt_Size(r.size, size, sizeof(size));
+			rx -= font_draw_right(FONT_MEDIUM, 19, rx, y + 22, size, C_DIM) + 14;
+			if (Dls_Newer(&r)) Badge(&rx, y + 20, "New version", C_WARN);
+			Fmt_Date(r.when, when, sizeof(when));
+			snprintf(subbuf, sizeof(subbuf), "%s%s%s", r.path, when[0] ? "  ·  " : "", when);
+			sub = subbuf;
+			if (row == dls_sel) can_open = Homebrew_Find(r.id) != NULL;
+		}
+		Placeholder(title, LIST_X + 6, y + (ROW_H - 4 - ICON_LIST) / 2, ICON_LIST);
+		font_draw(FONT_MEDIUM, 22, tx, y + 8, title, C_TEXT, rx - tx - 10);
+		if (row == dls_confirm)
+			font_draw(FONT_MEDIUM, 17, tx, y + 37, "Press Square again to delete this file from the HDD.", C_WARN, rx - tx - 10);
+		else
+			font_draw(FONT_REGULAR, 17, tx, y + 37, sub, C_DIM, rx - tx - 10);
+	}
+	if (n > ROWS) {
+		int h = ROWS * ROW_H, bh = h * ROWS / n;
+		if (bh < 24) bh = 24;
+		int by = LIST_Y + (int)((long long)(h - bh) * dls_sel / (n - 1));
+		gfx_round_rect(LIST_X + LIST_W + 2, by, 4, bh, 2, 0x99ffffff);
+	}
+	int x = LIST_X;
+	if (can_open) x = Hint(x, G_CROSS, "Open");
+	if (n) x = Hint(x, G_SQUARE, !is_queue ? "Delete" : q_active ? "Cancel download" : "Clear");
 	Hint(x, G_CIRCLE, "Back");
 }
 
@@ -1576,13 +1958,14 @@ void ui_render(void)
 		break;
 	case SCR_DETAIL: if (det) Draw_Detail(); break;
 	case SCR_PROFILE: Draw_Profile(); break;
+	case SCR_DOWNLOADS: Draw_Downloads(); break;
 	}
 	font_draw_right(FONT_REGULAR, 16, SCREEN_W - LIST_X, 40, APP_NAME " " APP_VERSION, C_DIM);
 }
 
 void ui_shutdown(void)
 {
-	// a download in progress keeps what's arrived: it resumes next time
+	// a download in progress keeps what's arrived: it resumes next time (the queue is forgotten)
 	if (dl) dl->pause = 1;
 	jobs_wait_lane(LANE_DL, 3000000);
 }

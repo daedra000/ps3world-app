@@ -43,10 +43,19 @@ Tick each box. Where a step fails, note what the screen said and copy `/dev_hdd0
 
 ## 4. Cancel and resume
 
-- [ ] Open a big homebrew item (Homebrew > Ports > **Undertale**, 148 MB) and press Cross, then Circle part way: "Download cancelled", and no `Undertale.pkg.part` is left in `/dev_hdd0/packages/`.
+- [ ] Open a big homebrew item (Homebrew > Ports > **Undertale**, 148 MB) and press Cross, then Square part way: "Download cancelled", and no `Undertale.pkg.part` is left in `/dev_hdd0/packages/`.
 - [ ] Start it again, and part way pull the network cable (or turn Wi-Fi off). After about 30 s it shows the network error and "Press X to resume where it stopped".
 - [ ] Reconnect and press Cross: "Resumed from N MB" shows, and it finishes with "Checksum OK".
 - [ ] Optional: start it again and quit to the XMB (PS button > Quit Game) part way. Reopen the app and download again: it resumes rather than starting over.
+
+## 4b. Queue, My downloads, free space (0.6.0)
+
+- [ ] Home shows "N GB free on the HDD · N downloaded" bottom right, and the free space roughly matches Settings > System Settings > System Information.
+- [ ] Start Undertale, press Circle: the list shows the download bottom right ("Undertale 12%"), and you can keep browsing. Open two themes and press Cross on each: they say "Queued: N downloads ahead of it", and the strip says "+2 more". They download one after another.
+- [ ] Home > Triangle (**My downloads**): the queue first (Downloading / Queued badges), then what's on the HDD, newest first, with its path and date. Square on a queued one takes it off; on the running one it cancels.
+- [ ] On a finished download, Square once asks "Press Square again", and the second Square deletes the file (check over FTP that it's gone, and that the free space goes up).
+- [ ] Downloads from before 0.6.0 show with their file name and no date.
+- [ ] Update check: once a newer `PS3World-<version>.pkg` is uploaded with the catalogue, home says "PS3 World <version> is out: press Square to get it". Square opens it, Cross downloads it to /dev_hdd0/packages, and it installs over this one from Package Manager. Check that your downloads list and settings are still there afterwards. [unverified until this step passes]
 
 ## 5. Theme download (.p3t)
 

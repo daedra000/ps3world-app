@@ -54,6 +54,13 @@ static int Safe_Path(const char *p)
 	return 1;
 }
 
+// a size is a whole number of bytes, 8 GiB at most (it goes into the free-space sums)
+static int Size_Ok(const cJSON *size)
+{
+	return cJSON_IsNumber(size) && size->valuedouble >= 0 && size->valuedouble <= 8589934592.0 &&
+		(double)(long long)size->valuedouble == size->valuedouble;
+}
+
 static int Hex_Digest(const char *s, unsigned char out[32])
 {
 	if (strlen(s) != 64)
@@ -153,6 +160,14 @@ cat_index_t *catalog_parse_index(const char *json, size_t len, char *err, int er
 	ix = calloc(1, sizeof(*ix));
 	if (!ix) { snprintf(err, errsize, "Out of memory"); goto out; }
 	snprintf(ix->generated, sizeof(ix->generated), "%s", Str(root, "generated"));
+	// the app's update: "1.2.3", a PKG under the base, its size and sha256 (left out if any of it's off)
+	const cJSON *app = cJSON_GetObjectItemCaseSensitive(root, "app");
+	const char *ver = Str(app, "version");
+	if (cJSON_IsObject(app) && *ver && strlen(ver) < sizeof(ix->app.version) && strspn(ver, "0123456789.") == strlen(ver) &&
+		Size_Ok(cJSON_GetObjectItemCaseSensitive(app, "size")) && File_Of(app, &ix->app.file)) {
+		snprintf(ix->app.version, sizeof(ix->app.version), "%s", ver);
+		ix->app.size = (long long)cJSON_GetObjectItemCaseSensitive(app, "size")->valuedouble;
+	}
 	ix->page_size = ps->valueint;
 	cJSON_ArrayForEach(s, sections) {
 		int t;
@@ -222,10 +237,7 @@ static int Check(const cJSON *o, cat_item_t *it)
 
 	for (t = 0; t < NUM_TYPES; t++)
 		if (!strcmp(type, type_names[t])) break;
-	// a size is a whole number of bytes, 8 GiB at most (it goes into the free-space sums)
-	if (t == NUM_TYPES || !Id_Ok(Str(o, "id")) || !*Str(o, "title") || !cJSON_IsNumber(size) ||
-		!(size->valuedouble >= 0 && size->valuedouble <= 8589934592.0) ||
-		(double)(long long)size->valuedouble != size->valuedouble)
+	if (t == NUM_TYPES || !Id_Ok(Str(o, "id")) || !*Str(o, "title") || !Size_Ok(size))
 		return 0;
 	if (!Safe_Path(Str(o, "url")) || (*Str(o, "icon") && !Safe_Path(Str(o, "icon"))) ||
 		(*Str(o, "preview") && !Safe_Path(Str(o, "preview"))))

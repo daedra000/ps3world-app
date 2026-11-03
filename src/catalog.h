@@ -6,6 +6,7 @@ lists (homebrew: one per site category; themes and avatars: all, then one per
 category or region), and for each list its pages of up to page_size items, a
 search.txt and where each letter starts. Pages are fetched as the list reaches
 them. An avatar list's items are packs: folders, each with a list of its own.
+It may also name the newest PS3 World PKG ("app": version, url, size, sha256).
 */
 #ifndef CATALOG_H
 #define CATALOG_H
@@ -36,7 +37,14 @@ typedef struct {
 } cat_list_t;
 
 typedef struct {
+	char version[16];			// "" when the catalogue offers none
+	cat_file_t file;			// the PKG
+	long long size;
+} cat_app_t;
+
+typedef struct {
 	char generated[32];
+	cat_app_t app;				// the newest PS3 World (the app checks it against its own version)
 	int page_size;
 	int count[NUM_TYPES];
 	int num_lists[NUM_TYPES];

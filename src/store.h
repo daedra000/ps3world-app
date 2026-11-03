@@ -6,7 +6,8 @@ store.h: what the app keeps on the PS3, and where downloads go.
                                 (a cached one is good exactly when the index's sha256 matches)
   USRDIR/cache/icons/<id>.jpg   icons, fetched once
   USRDIR/cache/previews/<id>    previews (JPEG or PNG), fetched once
-  USRDIR/downloaded.txt         "id<TAB>sha256<TAB>path" for each finished download
+  USRDIR/downloaded.txt         "id<TAB>sha256<TAB>path<TAB>time<TAB>title" for each finished
+                                download (before 0.6.0: the first three)
   USRDIR/settings.txt           "avatar_profile=00000001"
 */
 #ifndef STORE_H
@@ -30,6 +31,15 @@ void store_preview_path(const cat_item_t *it, char *out, int size);
 // where a finished download of it is, if it's there and still the catalogue's version
 const char *store_downloaded(const cat_item_t *it);
 void store_mark_downloaded(const cat_item_t *it, const char *path);
+
+// the downloads recorded (and still on disk at start), newest first, for My downloads
+typedef struct {
+	const char *id, *sha, *path, *title;		// title "" for ones from before 0.6.0
+	long long when, size;						// when: time(), 0 if not known
+} store_rec_t;
+int store_num_downloads(void);
+int store_download_at(int i, store_rec_t *out);
+int store_delete_download(int i);		// deletes the file and its record; 0 if the file wouldn't go
 
 // where it goes, or why it can't yet (no profile picked...)
 enum { DEST_OK, DEST_NO_PROFILE, DEST_PICK_PROFILE };
