@@ -24,6 +24,15 @@ Tick each box. Where a step fails, note what the screen said and copy `/dev_hdd0
 
 - [ ] On a 4:3 TV (Settings > Display Settings > Video Output Settings, TV type 4:3): the picture is letterboxed, the right shape with black bars above and below, not squashed, with either renderer (hold L1 at start for the CPU one). The log says "(4:3, letterboxed)". On a 16:9 TV there are no bars.
 
+## 1b. Languages (1.1.0)
+
+- [ ] With the PS3 in Spanish (Settings > Language Settings > System Language), the app opens in Spanish: cards, hints, the detail screen, errors. Theme categories are Spanish too; item names and descriptions stay as they are on the site.
+- [ ] Home > Select: the language list. The first row is "The PS3's language (...)", the one in use is in blue. Pick **Français**: everything changes at once, and it's still French after quitting and reopening.
+- [ ] Pick **العربية** (Arabic): the letters are joined (not separate shapes) and read right to left; numbers and paths in a line (/dev_hdd0..., 45%) stay left to right.
+- [ ] Polish and Turkish letters (ą ę ł ż, ğ ş ı İ) show, not boxes.
+- [ ] Long German or French hints don't run into the download strip bottom right.
+- [ ] Back to "The PS3's language": it follows the console again.
+
 ## 2. Browse
 
 - [ ] Cross opens a category's list, Circle goes back to the categories, and Circle again goes home.

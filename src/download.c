@@ -7,6 +7,7 @@ download.c: see download.h.
 #include "mbedtls/sha256.h"
 #include "plat.h"
 #include "download.h"
+#include "lang.h"
 
 #define FREE_MARGIN		(1024 * 1024)	// left free on the drive beyond the file itself
 #define READ_CHUNK		65536
@@ -38,7 +39,7 @@ int download_error_kind(const char *e, int status)
 static void Fail(download_t *d, int kind, const char *fmt, const char *arg)
 {
 	d->err_kind = kind;
-	snprintf(d->err, sizeof(d->err), fmt, arg ? arg : "");
+	snprintf(d->err, sizeof(d->err), tr(fmt), arg ? arg : "");
 	d->state = DL_FAILED;
 }
 

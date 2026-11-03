@@ -35,6 +35,8 @@ Resonant (swapped on consoles that confirm with Circle).
 #include "store.h"
 #include "version.h"
 #include "ui.h"
+#include "lang.h"
+#include "i18n.h"
 
 #define C_BG		0xff05070d
 #define C_TEXT		0xffffffff
@@ -64,7 +66,7 @@ Resonant (swapped on consoles that confirm with Circle).
 #define TILE_H		112			// the picker's small cards (themes, avatars)
 #define TILE_COLS	3
 
-enum { SCR_START, SCR_HOME, SCR_LIST, SCR_DETAIL, SCR_PROFILE, SCR_DOWNLOADS };
+enum { SCR_START, SCR_HOME, SCR_LIST, SCR_DETAIL, SCR_PROFILE, SCR_DOWNLOADS, SCR_LANG };
 
 static int screen = SCR_START;
 static int dirty = 1;
@@ -166,8 +168,8 @@ static int Wrap(int font, int px, const char *s, int maxw, char (*lines)[256], i
 }
 
 // controller glyphs (Kenney's Input Prompts, CC0)
-enum { G_CROSS, G_CIRCLE, G_SQUARE, G_TRIANGLE, G_L1, G_R1, G_L2, G_R2, G_DPAD_UD, NUM_GLYPHS };
-static const char *glyph_files[NUM_GLYPHS] = {"cross", "circle", "square", "triangle", "l1", "r1", "l2", "r2", "dpad_ud"};
+enum { G_CROSS, G_CIRCLE, G_SQUARE, G_TRIANGLE, G_L1, G_R1, G_L2, G_R2, G_DPAD_UD, G_SELECT, NUM_GLYPHS };
+static const char *glyph_files[NUM_GLYPHS] = {"cross", "circle", "square", "triangle", "l1", "r1", "l2", "r2", "dpad_ud", "select"};
 static image_t *glyphs[NUM_GLYPHS];
 
 static void Glyph(int g, int x, int y)
@@ -259,22 +261,22 @@ static void Card(int x, int y, int w, int h, int on, const image_t *art, const c
 	// spaced by the letters, not their boxes: 16 px from the kicker to the title, 20 to the text
 	int tx = x + 28, ty = y + 24, chip_y = y + h - 26 - CHIP_H;
 	if (kicker) {
-		font_draw(FONT_BOLD, 20, tx, ty, kicker, C_CYAN, w - 56);
+		font_draw(FONT_BOLD, 20, tx, ty, tr(kicker), C_CYAN, w - 56);
 		ty += Cap_Bottom(20) + 16 - Cap_Top(title_px);
 	}
-	font_draw(FONT_BOLD, title_px, tx, ty, title, C_TEXT, w - 56);
+	font_draw(FONT_BOLD, title_px, tx, ty, tr(title), C_TEXT, w - 56);
 	ty += Cap_Bottom(title_px) + 20 - Cap_Top(21);
 	char lines[4][256];
 	int max = (chip_y - 8 - ty) / 32;
 	int bw = w * 2 / 3 < 340 ? w * 2 / 3 : 340;		// (the site's max-width: 34ch, about; the art shows to its right)
-	int n = blurb && max > 0 ? Wrap(FONT_REGULAR, 21, blurb, bw, lines, max > 4 ? 4 : max) : 0;
+	int n = blurb && max > 0 ? Wrap(FONT_REGULAR, 21, tr(blurb), bw, lines, max > 4 ? 4 : max) : 0;
 	for (int i = 0; i < n; i++)
 		font_draw(FONT_REGULAR, 21, tx, ty + i * 32, lines[i], C_TEXT2, 0);
 	// the chips that fit on one line
 	int cx = tx;
 	for (int i = 0; i < num_chips; i++) {
-		if (cx + font_width(FONT_MEDIUM, 18, chips[i]) + 32 > x + w - 28) break;
-		cx += Chip(cx, chip_y, chips[i]) + 8;
+		if (cx + font_width(FONT_MEDIUM, 18, tr(chips[i])) + 32 > x + w - 28) break;
+		cx += Chip(cx, chip_y, tr(chips[i])) + 8;
 	}
 }
 
@@ -282,7 +284,7 @@ static void Card(int x, int y, int w, int h, int on, const image_t *art, const c
 static void Tile(int x, int y, int w, int h, int on, const char *title, const char *count)
 {
 	Card_Frame(x, y, w, h, on);
-	font_draw(FONT_BOLD, 26, x + 24, y + 22, title, C_TEXT, w - 48);
+	font_draw(FONT_BOLD, 26, x + 24, y + 22, tr(title), C_TEXT, w - 48);
 	font_draw(FONT_MEDIUM, 19, x + 24, y + h - 44, count, on ? C_CYAN : C_TEXT2, w - 48);
 }
 
@@ -291,13 +293,13 @@ static const char *Error_Text(int kind, const char *detail_msg)
 	static char buf[300];
 	switch (kind) {
 	case ERR_NETWORK:
-		return "No network connection. Check Settings > Network Settings on the PS3, then try again.";
+		return tr("No network connection. Check Settings > Network Settings on the PS3, then try again.");
 	case ERR_TLS:
-		return "The secure connection to dl.ps3.world failed. Check the PS3's date and time (Settings > Date and Time Settings), then try again.";
+		return tr("The secure connection to dl.ps3.world failed. Check the PS3's date and time (Settings > Date and Time Settings), then try again.");
 	case ERR_NOT_FOUND:
-		return "Not found on the server (404). It may have moved: try again in a moment.";
+		return tr("Not found on the server (404). It may have moved: try again in a moment.");
 	case ERR_DISK_FULL:
-		snprintf(buf, sizeof(buf), "Not enough free space. %s", detail_msg);
+		snprintf(buf, sizeof(buf), tr("Not enough free space. %s"), detail_msg);
 		return buf;
 	}
 	snprintf(buf, sizeof(buf), "%s", detail_msg);
@@ -448,6 +450,7 @@ static cat_index_t *ix;
 static cat_index_t *pending;		// a newer one, used when the detail screen isn't open
 static job_t *fetch_job;
 static char banner[200];			// "Offline: ..." over the list
+static int search_banner;			// (it's "Search isn't available")
 static char start_msg[300];		// the start screen's line
 static int start_err;
 
@@ -573,7 +576,7 @@ static void Fetch_Run(job_t *j)
 
 	if (!body || res.status != 200) {
 		j->ival = download_error_kind(res.err, body ? res.status : 0);
-		if (body) snprintf(j->err, sizeof(j->err), "The catalogue wasn't found on the server (HTTP %d)", res.status);
+		if (body) snprintf(j->err, sizeof(j->err), tr("The catalogue wasn't found on the server (HTTP %d)"), res.status);
 		else snprintf(j->err, sizeof(j->err), "%s", res.err[0] ? res.err : "The catalogue didn't download");
 		free(body);
 		return;
@@ -593,7 +596,7 @@ static void Fetch_Start(void)
 {
 	if (fetch_job) return;
 	if (!ix) {
-		snprintf(start_msg, sizeof(start_msg), "Loading the catalogue...");
+		snprintf(start_msg, sizeof(start_msg), "%s", tr("Loading the catalogue..."));
 		start_err = 0;
 	}
 	fetch_job = job_new(Fetch_Run, Fetch_Cleanup);
@@ -621,7 +624,8 @@ static void Fetch_Tick(void)
 	} else {
 		plat_log("catalog: %s", fetch_job->err);
 		if (ix) {
-			snprintf(banner, sizeof(banner), "Offline: showing the catalogue from %.10s", ix->generated);
+			snprintf(banner, sizeof(banner), tr("Offline: showing the catalogue from %.10s"), ix->generated);
+			search_banner = 0;
 		} else {
 			snprintf(start_msg, sizeof(start_msg), "%s", Error_Text(fetch_job->ival, fetch_job->err));
 			start_err = 1;
@@ -635,7 +639,7 @@ static void Fetch_Tick(void)
 // "Search isn't available" goes with the search it was about (an offline banner stays)
 static void Search_Banner_Clear(void)
 {
-	if (!strncmp(banner, "Search isn't", 12)) banner[0] = 0;
+	if (search_banner) banner[0] = search_banner = 0;
 }
 
 // the search, once the list's search.txt is here
@@ -646,7 +650,8 @@ static void Search_Run(view_t *v, const cat_list_t *l)
 		v->search_wait = !(s && s->failed);
 		if (s && s->failed) {
 			// no search file (offline and never fetched): say so, and match nothing
-			snprintf(banner, sizeof(banner), "Search isn't available: %s", Error_Text(s->err_kind, s->err));
+			snprintf(banner, sizeof(banner), tr("Search isn't available: %s"), Error_Text(s->err_kind, s->err));
+			search_banner = 1;
 			free(v->results);
 			v->results = malloc(sizeof(int));
 			v->num_results = 0;
@@ -881,7 +886,7 @@ static void Queue_Next(void)
 		char *slash = strrchr(dir, '/');
 		if (slash) *slash = 0;
 		if (!plat_mkdirs(dir)) {
-			snprintf(q->msg, sizeof(q->msg), "Couldn't make the folder %s", dir);
+			snprintf(q->msg, sizeof(q->msg), tr("Couldn't make the folder %s"), dir);
 			q->state = Q_FAILED;
 			continue;
 		}
@@ -889,7 +894,7 @@ static void Queue_Next(void)
 		job_t *j = d ? job_new(Dl_Run, NULL) : NULL;
 		if (!j) {
 			free(d);
-			snprintf(q->msg, sizeof(q->msg), "Out of memory");
+			snprintf(q->msg, sizeof(q->msg), "%s", tr("Out of memory"));
 			q->state = Q_FAILED;
 			continue;
 		}
@@ -920,7 +925,7 @@ static void Queue_Add(const cat_item_t *it, const char *dest)
 	for (i = 0; queue_n == QUEUE_MAX && i < queue_n; i++)		// room: the oldest finished one goes
 		if (!Queue_Active(i)) { Queue_Remove(i); break; }
 	if (queue_n == QUEUE_MAX) {
-		snprintf(result_msg, sizeof(result_msg), "%d downloads are waiting already: add this one when some have finished.", QUEUE_MAX);
+		snprintf(result_msg, sizeof(result_msg), tr("%d downloads are waiting already: add this one when some have finished."), QUEUE_MAX);
 		result_ok = 0;
 		return;
 	}
@@ -963,7 +968,7 @@ static void Download_Start(void)
 	}
 	result_msg[0] = 0;
 	if (code != DEST_OK) {
-		snprintf(result_msg, sizeof(result_msg), "%s", store_dest_message(code));
+		snprintf(result_msg, sizeof(result_msg), "%s", tr(store_dest_message(code)));
 		result_ok = 0;
 		dirty = 1;
 		return;
@@ -988,9 +993,9 @@ static void Detail_Open(const cat_item_t *it, int back)
 static const char *Install_Hint(int type)
 {
 	switch (type) {
-	case TYPE_HOMEBREW: return "Install it from the XMB: Package Manager > Install Package Files.";
-	case TYPE_THEME: return "Choose it on the XMB: Settings > Theme Settings > Theme.";
-	case TYPE_AVATAR: return "Choose it from the XMB: PlayStation Network > Account Management > Avatar.";
+	case TYPE_HOMEBREW: return tr("Install it from the XMB: Package Manager > Install Package Files.");
+	case TYPE_THEME: return tr("Choose it on the XMB: Settings > Theme Settings > Theme.");
+	case TYPE_AVATAR: return tr("Choose it from the XMB: PlayStation Network > Account Management > Avatar.");
 	}
 	return "";
 }
@@ -1015,22 +1020,22 @@ static void Download_Tick(void)
 		char size[32];
 		Fmt_Size(dl->size, size, sizeof(size));
 		store_mark_downloaded(q->it, dl->dest);
-		snprintf(q->msg, sizeof(q->msg), "Checksum OK (%s). Saved to %s\n%s", size, dl->dest, Install_Hint(q->it->type));
+		snprintf(q->msg, sizeof(q->msg), tr("Checksum OK (%s). Saved to %s\n%s"), size, dl->dest, Install_Hint(q->it->type));
 		q->ok = 1;
 		q->state = Q_DONE;
 		break;
 	}
 	case DL_CANCELLED:
-		snprintf(q->msg, sizeof(q->msg), "Download cancelled.");
+		snprintf(q->msg, sizeof(q->msg), "%s", tr("Download cancelled."));
 		break;
 	case DL_PAUSED:
-		snprintf(q->msg, sizeof(q->msg), "Download paused. Press X to resume.");
+		snprintf(q->msg, sizeof(q->msg), "%s", tr("Download paused. Press X to resume."));
 		break;
 	default:
 		snprintf(q->msg, sizeof(q->msg), "%s%s",
-			dl->err_kind == ERR_CHECKSUM ? "The download didn't match its checksum, so it was deleted. Try again." :
+			dl->err_kind == ERR_CHECKSUM ? tr("The download didn't match its checksum, so it was deleted. Try again.") :
 			Error_Text(dl->err_kind, dl->err),
-			dl->err_kind == ERR_NETWORK ? "\nPress X to resume where it stopped." : "");
+			dl->err_kind == ERR_NETWORK ? tr("\nPress X to resume where it stopped.") : "");
 	}
 	job_release(dl_job);
 	dl_job = NULL;
@@ -1143,7 +1148,8 @@ static void Input_Downloads(uint32_t p)
 		// twice to delete: the first press asks
 		if (dls_confirm == dls_sel) {
 			if (!store_delete_download(dls_sel - qrows))
-				snprintf(banner, sizeof(banner), "Couldn't delete that file");
+				snprintf(banner, sizeof(banner), "%s", tr("Couldn't delete that file"));
+				search_banner = 0;
 			dls_confirm = -1;
 			free_checked = 0;
 		} else
@@ -1185,8 +1191,8 @@ static void Update_Open(void)
 	it.title = title;
 	it.author = "PS3 World";
 	it.version = ix->app.version;
-	it.description = "A new version of this app. Once it's downloaded, install it from Package Manager > Install Package Files: "
-		"it installs over this one.";
+	it.description = tr("A new version of this app. Once it's downloaded, install it from Package Manager > Install Package Files: "
+		"it installs over this one.");
 	it.group = it.icon = it.preview = it.list = "";
 	it.url = ix->app.file.url;
 	it.size = ix->app.size;
@@ -1202,6 +1208,7 @@ Input
 ==================
 */
 static int searching;
+static int lang_sel;		// the language screen's row: 0 the PS3's, then LANG_* + 1
 
 static void Letter_Jump(view_t *v, const cat_list_t *l, int dir)
 {
@@ -1257,6 +1264,28 @@ static void Input_Home(uint32_t p)
 		screen = SCR_DOWNLOADS;
 	}
 	if ((p & BTN_SQUARE) && Update_Available()) Update_Open();
+	if (p & BTN_SELECT) {
+		lang_sel = i18n_choice() + 1;
+		screen = SCR_LANG;
+	}
+	if (p) dirty = 1;
+}
+
+/*
+==================
+Language: the PS3's (the first row), or one of ours
+==================
+*/
+static void Input_Lang(uint32_t p)
+{
+	if (p & BTN_DOWN && lang_sel < LANG_COUNT) lang_sel++;
+	if (p & BTN_UP && lang_sel > 0) lang_sel--;
+	if (p & BTN_CIRCLE) screen = SCR_HOME;
+	if (p & BTN_CROSS) {
+		i18n_set(lang_sel - 1);
+		font_flush();		// (another language may draw characters from other fonts)
+		screen = SCR_HOME;
+	}
 	if (p) dirty = 1;
 }
 
@@ -1308,7 +1337,7 @@ static void Input_List(uint32_t p)
 	if (!v->results && (p & BTN_L2)) Letter_Jump(v, l, -1);
 	if (p & BTN_TRIANGLE) {
 		char title[64];
-		snprintf(title, sizeof(title), "Search %s%s%s", section_names[cur], l->name[0] ? ": " : "", l->name);
+		snprintf(title, sizeof(title), "%s %s%s%s", tr("Search"), tr(section_names[cur]), l->name[0] ? ": " : "", tr(l->name));
 		if (plat_osk_open(title, v->query)) searching = 1;
 	}
 	if ((p & (BTN_SQUARE | BTN_CIRCLE)) && (v->query[0] || v->search_wait)) {
@@ -1400,6 +1429,7 @@ Frame
 */
 void ui_init(void)
 {
+	i18n_init();
 	char name[64];
 	backdrop = Load_Image("backdrop.png", SCREEN_W, SCREEN_H);
 	logo = Load_Image("logo.png", 220, 31);
@@ -1471,6 +1501,7 @@ void ui_update(void)
 	case SCR_DETAIL: Input_Detail(p); break;
 	case SCR_PROFILE: Input_Profile(p); break;
 	case SCR_DOWNLOADS: Input_Downloads(p); break;
+	case SCR_LANG: Input_Lang(p); break;
 	}
 }
 
@@ -1495,7 +1526,7 @@ static void Draw_Header(void)
 	for (int t = 0; t < NUM_TYPES; t++) {
 		char label[64], n[16];
 		Fmt_Count(ix->count[t], n, sizeof(n));
-		snprintf(label, sizeof(label), "%s  %s", section_names[t], n);
+		snprintf(label, sizeof(label), "%s  %s", tr(section_names[t]), n);
 		int w = font_width(FONT_MEDIUM, 22, label) + 32;
 		if (t == cur) gfx_round_rect(x, 88, w, 36, 18, C_ROW_ON);
 		font_draw(FONT_MEDIUM, 22, x + 16, 94, label, t == cur ? C_TEXT : C_DIM, 0);
@@ -1506,15 +1537,15 @@ static void Draw_Header(void)
 	const cat_list_t *l = Cur_List();
 	char line[200];
 	if (v && (v->query[0] || v->search_wait)) {
-		if (v->search_wait) snprintf(line, sizeof(line), "Searching for \"%s\"...", v->query);
-		else snprintf(line, sizeof(line), "Search: \"%s\"  (%d%s)", v->query, v->num_results, v->num_results == MAX_RESULTS ? "+" : "");
+		if (v->search_wait) snprintf(line, sizeof(line), tr("Searching for \"%s\"..."), v->query);
+		else snprintf(line, sizeof(line), tr("Search: \"%s\"  (%d%s)"), v->query, v->num_results, v->num_results == MAX_RESULTS ? "+" : "");
 		font_draw_right(FONT_MEDIUM, 20, SCREEN_W - LIST_X, 96, line, C_WARN);
 	} else if (banner[0])
 		font_draw_right(FONT_REGULAR, 18, SCREEN_W - LIST_X, 98, banner, C_WARN);
 	else if (l && l->name[0])
-		font_draw_right(FONT_MEDIUM, 20, SCREEN_W - LIST_X, 96, l->name, C_TEXT);
+		font_draw_right(FONT_MEDIUM, 20, SCREEN_W - LIST_X, 96, tr(l->name), C_TEXT);
 	else if (fetch_job)
-		font_draw_right(FONT_REGULAR, 18, SCREEN_W - LIST_X, 98, "Checking for updates...", C_DIM);
+		font_draw_right(FONT_REGULAR, 18, SCREEN_W - LIST_X, 98, tr("Checking for updates..."), C_DIM);
 }
 
 static void Badge(int *rx, int y, const char *text, uint32_t c)
@@ -1537,7 +1568,7 @@ static void Draw_Top(const char *crumb)
 		font_draw(FONT_BOLD, 18, LIST_X + 250, 44, crumb, C_CYAN, 0);
 	}
 	if (banner[0]) font_draw_right(FONT_REGULAR, 18, SCREEN_W - LIST_X, 68, banner, C_WARN);
-	else if (fetch_job) font_draw_right(FONT_REGULAR, 18, SCREEN_W - LIST_X, 68, "Checking for updates...", C_DIM);
+	else if (fetch_job) font_draw_right(FONT_REGULAR, 18, SCREEN_W - LIST_X, 68, tr("Checking for updates..."), C_DIM);
 }
 
 // the download going on, bottom right (where the list's position goes otherwise): 1 if drawn
@@ -1551,7 +1582,7 @@ static int Draw_Strip(void)
 	gfx_round_rect(right - bw, y + 9, (int)(bw * frac), 8, 4, C_ACCENT);
 	char name[1][256], line[320];
 	Wrap(FONT_MEDIUM, 19, queue[dl_q].it->title, 180, name, 1);
-	if (more > 0) snprintf(line, sizeof(line), "%s  %d%%  ·  %d more", name[0], (int)(frac * 100), more);
+	if (more > 0) snprintf(line, sizeof(line), tr("%s  %d%%  ·  %d more"), name[0], (int)(frac * 100), more);
 	else snprintf(line, sizeof(line), "%s  %d%%", name[0], (int)(frac * 100));
 	font_draw_right(FONT_MEDIUM, 19, right - bw - 14, y, line, C_TEXT);
 	return 1;
@@ -1572,7 +1603,8 @@ static void Space_Line(char *out, int size)
 	char fr[32];
 	int n = store_num_downloads();
 	Fmt_Size(free_bytes, fr, sizeof(fr));
-	snprintf(out, size, "%s%s%d downloaded", free_bytes >= 0 ? fr : "", free_bytes >= 0 ? " free on the HDD  ·  " : "", n);
+	if (free_bytes >= 0) snprintf(out, size, tr("%s free on the HDD  ·  %d downloaded"), fr, n);
+	else snprintf(out, size, tr("%d downloaded"), n);
 }
 
 // a list's count: an avatar list's rows are packs
@@ -1580,7 +1612,9 @@ static void Count_Text(int t, int n, char *out, int size)
 {
 	char num[16];
 	Fmt_Count(n, num, sizeof(num));
-	snprintf(out, size, "%s %s%s", num, t == TYPE_THEME ? "theme" : t == TYPE_AVATAR ? "pack" : "item", n == 1 ? "" : "s");
+	const char *f = t == TYPE_THEME ? (n == 1 ? "%s theme" : "%s themes") : t == TYPE_AVATAR ? (n == 1 ? "%s pack" : "%s packs") :
+		(n == 1 ? "%s item" : "%s items");
+	snprintf(out, size, tr(f), num);
 }
 
 static void Draw_Home(void)
@@ -1601,12 +1635,13 @@ static void Draw_Home(void)
 	}
 	if (!banner[0] && !fetch_job && Update_Available()) {
 		char line[96];
-		snprintf(line, sizeof(line), APP_NAME " %s is out: press Square to get it", ix->app.version);
+		snprintf(line, sizeof(line), tr("PS3 World %s is out: press Square to get it"), ix->app.version);
 		font_draw_right(FONT_MEDIUM, 19, SCREEN_W - LIST_X, 67, line, C_CYAN);
 	}
-	int x = Hint(LIST_X, G_CROSS, "Open");
-	x = Hint(x, G_TRIANGLE, "My downloads");
-	if (Update_Available()) Hint(x, G_SQUARE, "Update");
+	int x = Hint(LIST_X, G_CROSS, tr("Open"));
+	x = Hint(x, G_TRIANGLE, tr("My downloads"));
+	if (Update_Available()) x = Hint(x, G_SQUARE, tr("Update"));
+	Hint(x, G_SELECT, tr("Language"));
 	if (!Draw_Strip()) {
 		char line[128];
 		Space_Line(line, sizeof(line));
@@ -1616,7 +1651,7 @@ static void Draw_Home(void)
 
 static void Draw_Picker(void)
 {
-	Draw_Top(section_names[cur]);
+	Draw_Top(tr(section_names[cur]));
 	int n = ix->num_lists[cur], cols = Picker_Cols();
 	char count[48];
 	if (cur == TYPE_HOMEBREW) {
@@ -1646,9 +1681,9 @@ static void Draw_Picker(void)
 			gfx_round_rect(LIST_X + LIST_W + 8, by, 4, bh, 2, 0x99ffffff);
 		}
 	}
-	int x = Hint(LIST_X, G_CROSS, "Open");
-	x = Hint(x, G_CIRCLE, "Back");
-	Hint2(x, G_L1, G_R1, "Section");
+	int x = Hint(LIST_X, G_CROSS, tr("Open"));
+	x = Hint(x, G_CIRCLE, tr("Back"));
+	Hint2(x, G_L1, G_R1, tr("Section"));
 	Draw_Strip();
 }
 
@@ -1659,16 +1694,16 @@ static void Draw_List(void)
 	Draw_Header();
 	gfx_round_rect(LIST_X - 12, LIST_Y - 8, LIST_W + 24, ROWS * ROW_H + 16, 14, C_PANEL);
 	if (!l || !v) {		// a section with no lists (none in the catalogue, or none passed)
-		font_draw_center(FONT_MEDIUM, 22, SCREEN_W / 2, LIST_Y + 180, "Nothing here yet.", C_DIM, SCREEN_W - 200);
-		Hint2(Hint(LIST_X, G_CIRCLE, "Back"), G_L1, G_R1, "Section");
+		font_draw_center(FONT_MEDIUM, 22, SCREEN_W / 2, LIST_Y + 180, tr("Nothing here yet."), C_DIM, SCREEN_W - 200);
+		Hint2(Hint(LIST_X, G_CIRCLE, tr("Back")), G_L1, G_R1, tr("Section"));
 		return;
 	}
 	int count = View_Count(v, l);
 	Clamp(v, count);		// (every path in: a section's view is never drawn out of range)
 	if (!count && !v->search_wait)
 		font_draw_center(FONT_MEDIUM, 22, SCREEN_W / 2, LIST_Y + 180,
-			!v->query[0] ? "Nothing here yet." : !strncmp(banner, "Search isn't", 12) ? banner :
-			"Nothing matches the search. Press Square to clear it.", C_DIM, SCREEN_W - 200);
+			!v->query[0] ? tr("Nothing here yet.") : search_banner ? banner :
+			tr("Nothing matches the search. Press Square to clear it."), C_DIM, SCREEN_W - 200);
 	for (int r = 0; r < ROWS && v->top + r < count; r++) {
 		int row = v->top + r, pos = View_Pos(v, row);
 		int y = LIST_Y + r * ROW_H;
@@ -1690,7 +1725,7 @@ static void Draw_List(void)
 			if (thumbs) Thumb_Draw(NULL, title[0] ? title : "?", LIST_X + 6, iy);
 			else Placeholder(title[0] ? title : "?", LIST_X + 6, iy, ICON_LIST);
 			if (title[0]) font_draw(FONT_MEDIUM, 22, tx, y + 8, title, C_TEXT, LIST_W - tx);
-			const char *state = slot && slot->failed ? Error_Text(slot->err_kind, slot->err) : "Loading...";
+			const char *state = slot && slot->failed ? Error_Text(slot->err_kind, slot->err) : tr("Loading...");
 			font_draw(FONT_REGULAR, 17, tx, title[0] ? y + 37 : y + 22, state, slot && slot->failed ? C_ERR : C_DIM, LIST_X + LIST_W - tx - 12);
 			continue;
 		}
@@ -1703,12 +1738,12 @@ static void Draw_List(void)
 		if (it->list[0])		// a pack: how many avatars, and its regions
 			snprintf(sub, sizeof(sub), "%s%s%s", it->description, it->group[0] ? "  ·  " : "", it->group);
 		else {
-			if (store_downloaded(it)) Badge(&rx, y + 20, "Downloaded", C_OK);
-			if (it->requires == REQ_CFW) Badge(&rx, y + 20, "CFW only", C_WARN);
-			else if (it->requires == REQ_HEN) Badge(&rx, y + 20, "HEN / CFW", C_DIM);
-			snprintf(sub, sizeof(sub), "%s%s%s%s%s", it->author[0] ? it->author : "Unknown author",
+			if (store_downloaded(it)) Badge(&rx, y + 20, tr("Downloaded"), C_OK);
+			if (it->requires == REQ_CFW) Badge(&rx, y + 20, tr("CFW only"), C_WARN);
+			else if (it->requires == REQ_HEN) Badge(&rx, y + 20, tr("HEN / CFW"), C_DIM);
+			snprintf(sub, sizeof(sub), "%s%s%s%s%s", it->author[0] ? it->author : tr("Unknown author"),
 				it->version[0] ? "  ·  v" : "", it->version, it->group[0] && it->type != TYPE_HOMEBREW ? "  ·  " : "",
-				it->type != TYPE_HOMEBREW ? it->group : "");
+				it->type != TYPE_HOMEBREW ? tr(it->group) : "");
 		}
 		font_draw(FONT_MEDIUM, 22, tx, y + 8, it->title, C_TEXT, rx - tx - 10);
 		font_draw(FONT_REGULAR, 17, tx, y + 37, sub, C_DIM, rx - tx - 10);
@@ -1721,14 +1756,14 @@ static void Draw_List(void)
 		gfx_round_rect(LIST_X + LIST_W + 2, by, 4, bh, 2, 0x99ffffff);
 	}
 	int x = LIST_X;
-	x = Hint(x, G_CROSS, "Open");
-	x = Hint(x, G_TRIANGLE, "Search");
-	if (v->query[0]) x = Hint(x, G_SQUARE, "Clear search");
-	else if (folder.pages) x = Hint(x, G_CIRCLE, "Packs");
-	else if (ix->num_lists[cur] > 1) x = Hint(x, G_CIRCLE, "Categories");
-	else x = Hint(x, G_CIRCLE, "Back");
-	if (!v->results && count > 50) x = Hint2(x, G_L2, G_R2, "A-Z");
-	x = Hint2(x, G_L1, G_R1, "Section");
+	x = Hint(x, G_CROSS, tr("Open"));
+	x = Hint(x, G_TRIANGLE, tr("Search"));
+	if (v->query[0]) x = Hint(x, G_SQUARE, tr("Clear search"));
+	else if (folder.pages) x = Hint(x, G_CIRCLE, tr("Packs"));
+	else if (ix->num_lists[cur] > 1) x = Hint(x, G_CIRCLE, tr("Categories"));
+	else x = Hint(x, G_CIRCLE, tr("Back"));
+	if (!v->results && count > 50) x = Hint2(x, G_L2, G_R2, tr("A-Z"));
+	x = Hint2(x, G_L1, G_R1, tr("Section"));
 	if (!Draw_Strip() && count) {
 		char pos[64], letter = '#';
 		int at = View_Pos(v, v->sel);
@@ -1775,7 +1810,7 @@ static void Draw_Detail(void)
 	else if (failed)
 		Icon_Draw(it, DET_PX + (DET_PW - ICON_BIG) / 2, DET_PY + (DET_PH - ICON_BIG) / 2, ICON_BIG);
 	else
-		font_draw_center(FONT_REGULAR, 18, DET_PX + DET_PW / 2, DET_PY + DET_PH / 2 - 12, "Loading the preview...", C_DIM, 0);
+		font_draw_center(FONT_REGULAR, 18, DET_PX + DET_PW / 2, DET_PY + DET_PH / 2 - 12, tr("Loading the preview..."), C_DIM, 0);
 
 	// what it is
 	int x = DET_PX + DET_PW + 32, w = SCREEN_W - LIST_X - 8 - x, y = DET_PY;
@@ -1784,16 +1819,16 @@ static void Draw_Detail(void)
 	for (int i = 0; i < n; i++, y += 40)
 		font_draw(FONT_BOLD, 32, x, y, lines[i], C_TEXT, 0);
 	y += 14;
-	if (it->author[0]) y = Info_Row(x, y, w, "Author", it->author, C_TEXT);
-	if (it->version[0]) y = Info_Row(x, y, w, "Version", it->version, C_TEXT);
+	if (it->author[0]) y = Info_Row(x, y, w, tr("Author"), it->author, C_TEXT);
+	if (it->version[0]) y = Info_Row(x, y, w, tr("Version"), it->version, C_TEXT);
 	Fmt_Size(it->size, size, sizeof(size));
-	y = Info_Row(x, y, w, "Size", size, C_TEXT);
-	if (it->group[0]) y = Info_Row(x, y, w, it->type == TYPE_AVATAR ? "Pack" : "Category", it->group, C_TEXT);
-	y = Info_Row(x, y, w, "Works on", it->requires == REQ_CFW ? "CFW only" : it->requires == REQ_HEN ? "HEN or CFW" : "Any PS3", C_TEXT);
+	y = Info_Row(x, y, w, tr("Size"), size, C_TEXT);
+	if (it->group[0]) y = Info_Row(x, y, w, tr(it->type == TYPE_AVATAR ? "Pack" : "Category"), tr(it->group), C_TEXT);
+	y = Info_Row(x, y, w, tr("Works on"), tr(it->requires == REQ_CFW ? "CFW only" : it->requires == REQ_HEN ? "HEN or CFW" : "Any PS3"), C_TEXT);
 	int code = store_dest(it, dest, sizeof(dest));
-	y = Info_Row(x, y, w, "Saves to", code == DEST_OK ? dest : store_dest_message(code), code == DEST_OK ? C_TEXT : C_WARN);
+	y = Info_Row(x, y, w, tr("Saves to"), code == DEST_OK ? dest : tr(store_dest_message(code)), code == DEST_OK ? C_TEXT : C_WARN);
 	const char *have = store_downloaded(it);
-	if (have) y = Info_Row(x, y, w, "Downloaded", "Yes", C_OK);
+	if (have) y = Info_Row(x, y, w, tr("Downloaded"), tr("Yes"), C_OK);
 	if (it->description[0]) {		// as much of it as fits above the panel's foot
 		int max = (SCREEN_H - 112 - (y + 8)) / 28;
 		n = max > 0 ? Wrap(FONT_REGULAR, 20, it->description, w, lines, max > 8 ? 8 : max) : 0;
@@ -1806,8 +1841,8 @@ static void Draw_Detail(void)
 	w = DET_PW;
 	int by = DET_PY + DET_PH + 24, q = Queue_Find(it->id);
 	if (q >= 0 && q == dl_q) {
-		const char *what = dl->state == DL_CHECKING ? "Checking what's there already..." :
-			dl->state == DL_VERIFYING ? "Checking the sha256..." : "Downloading";
+		const char *what = tr(dl->state == DL_CHECKING ? "Checking what's there already..." :
+			dl->state == DL_VERIFYING ? "Checking the sha256..." : "Downloading");
 		float frac = dl->size ? (float)dl->got / (float)dl->size : 0;
 		char got[32], tot[32], spd[32];
 		Fmt_Size(dl->got, got, sizeof(got));
@@ -1822,12 +1857,13 @@ static void Draw_Detail(void)
 		font_draw(FONT_MEDIUM, 20, x, by + 26, line, C_TEXT, w);
 		if (dl->resumed_from) {
 			Fmt_Size(dl->resumed_from, got, sizeof(got));
-			snprintf(line, sizeof(line), "Resumed from %s", got);
+			snprintf(line, sizeof(line), tr("Resumed from %s"), got);
 			font_draw(FONT_REGULAR, 17, x, by + 56, line, C_DIM, w);
 		}
 	} else if (Queue_Active(q)) {
 		int ahead = Queue_Ahead(q);
-		snprintf(line, sizeof(line), "Queued: %d download%s ahead of it. You can go back and keep browsing.", ahead, ahead == 1 ? "" : "s");
+		snprintf(line, sizeof(line), tr(ahead == 1 ? "Queued: %d download ahead of it. You can go back and keep browsing." :
+			"Queued: %d downloads ahead of it. You can go back and keep browsing."), ahead);
 		n = Wrap(FONT_MEDIUM, 20, line, w, lines, 3);
 		for (int i = 0; i < n; i++)
 			font_draw(FONT_MEDIUM, 20, x, by + i * 28, lines[i], C_TEXT, 0);
@@ -1838,26 +1874,26 @@ static void Draw_Detail(void)
 		for (int i = 0; i < n; i++)
 			font_draw(FONT_MEDIUM, 20, x, by + i * 28, lines[i], ok ? C_OK : C_ERR, 0);
 	} else {
-		snprintf(line, sizeof(line), "After it downloads: %s", Install_Hint(it->type));
+		snprintf(line, sizeof(line), tr("After it downloads: %s"), Install_Hint(it->type));
 		n = Wrap(FONT_REGULAR, 19, line, w, lines, 3);
 		for (int i = 0; i < n; i++)
 			font_draw(FONT_REGULAR, 19, x, by + i * 27, lines[i], C_DIM, 0);
 	}
 
 	int hx = LIST_X;
-	if (Queue_Active(q)) hx = Hint(hx, G_SQUARE, "Cancel download");
+	if (Queue_Active(q)) hx = Hint(hx, G_SQUARE, tr("Cancel download"));
 	else {
 		int failed = result_msg[0] ? !result_ok : q >= 0 && !queue[q].ok;
-		hx = Hint(hx, G_CROSS, failed ? "Try again" : have ? "Download again" : "Download");
+		hx = Hint(hx, G_CROSS, tr(failed ? "Try again" : have ? "Download again" : "Download"));
 	}
-	Hint(hx, G_CIRCLE, "Back");
+	Hint(hx, G_CIRCLE, tr("Back"));
 	if (q != dl_q) Draw_Strip();		// another one downloading
 }
 
 static void Draw_Profile(void)
 {
-	font_draw_center(FONT_BOLD, 30, SCREEN_W / 2, 140, "Which user is the avatar for?", C_TEXT, 0);
-	font_draw_center(FONT_REGULAR, 19, SCREEN_W / 2, 186, "It's saved in that user's psn_avatar folder.", C_DIM, 0);
+	font_draw_center(FONT_BOLD, 30, SCREEN_W / 2, 140, tr("Which user is the avatar for?"), C_TEXT, 0);
+	font_draw_center(FONT_REGULAR, 19, SCREEN_W / 2, 186, tr("It's saved in that user's psn_avatar folder."), C_DIM, 0);
 	// 7 rows fit above the hints: the list scrolls to keep the chosen one on screen
 	int top = profile_sel > 6 ? profile_sel - 6 : 0;
 	for (int i = top; i < num_profiles && i < top + 7; i++) {
@@ -1867,13 +1903,29 @@ static void Draw_Profile(void)
 		snprintf(line, sizeof(line), "%s   (%s)", profile_names[i], profiles[i]);
 		font_draw_center(FONT_MEDIUM, 22, SCREEN_W / 2, y, line, C_TEXT, 580);
 	}
-	int x = Hint(LIST_X, G_CROSS, "Choose");
-	Hint(x, G_CIRCLE, "Back");
+	int x = Hint(LIST_X, G_CROSS, tr("Choose"));
+	Hint(x, G_CIRCLE, tr("Back"));
+}
+
+static void Draw_Lang(void)
+{
+	Draw_Top(tr("Language"));
+	char line[160];
+	for (int i = 0; i <= LANG_COUNT; i++) {
+		int y = 120 + i * 38;
+		if (i == lang_sel) gfx_round_rect(SCREEN_W / 2 - 320, y - 6, 640, 36, 10, C_ROW_ON);
+		if (i == 0) snprintf(line, sizeof(line), tr("The PS3's language (%s)"), lang_name(i18n_system()));
+		else snprintf(line, sizeof(line), "%s", lang_name(i - 1));
+		int chosen = i == i18n_choice() + 1;
+		font_draw_center(chosen ? FONT_BOLD : FONT_MEDIUM, 22, SCREEN_W / 2, y, line, chosen ? C_CYAN : C_TEXT, 600);
+	}
+	int x = Hint(LIST_X, G_CROSS, tr("Choose"));
+	Hint(x, G_CIRCLE, tr("Back"));
 }
 
 static void Draw_Downloads(void)
 {
-	Draw_Top("My downloads");
+	Draw_Top(tr("My downloads"));
 	int n = Dls_Count(), qrows = Dls_Queue_Rows();
 	long long total = 0;
 	store_rec_t r;
@@ -1881,12 +1933,12 @@ static void Draw_Downloads(void)
 	char line[400], size[32], when[32], fr[32];
 	Fmt_Size(total, size, sizeof(size));
 	Fmt_Size(free_bytes, fr, sizeof(fr));
-	snprintf(line, sizeof(line), "%d on the HDD (%s)%s%s%s", store_num_downloads(), size,
-		free_bytes >= 0 ? "  ·  " : "", free_bytes >= 0 ? fr : "", free_bytes >= 0 ? " free" : "");
+	if (free_bytes >= 0) snprintf(line, sizeof(line), tr("%d on the HDD (%s)  ·  %s free"), store_num_downloads(), size, fr);
+	else snprintf(line, sizeof(line), tr("%d on the HDD (%s)"), store_num_downloads(), size);
 	font_draw(FONT_MEDIUM, 20, LIST_X, 104, line, C_DIM, 0);
 	gfx_round_rect(LIST_X - 12, LIST_Y - 8, LIST_W + 24, ROWS * ROW_H + 16, 14, C_PANEL);
 	if (!n)
-		font_draw_center(FONT_MEDIUM, 22, SCREEN_W / 2, LIST_Y + 180, "Nothing downloaded yet.", C_DIM, SCREEN_W - 200);
+		font_draw_center(FONT_MEDIUM, 22, SCREEN_W / 2, LIST_Y + 180, tr("Nothing downloaded yet."), C_DIM, SCREEN_W - 200);
 	int can_open = 0, is_queue = dls_sel < qrows, q_active = 0;
 	for (int row = dls_top; row < n && row < dls_top + ROWS; row++) {
 		int y = LIST_Y + (row - dls_top) * ROW_H, tx = LIST_X + 6 + ICON_LIST + 16, rx = LIST_X + LIST_W - 12;
@@ -1899,10 +1951,10 @@ static void Draw_Downloads(void)
 			Fmt_Size(q->it->size, size, sizeof(size));
 			rx -= font_draw_right(FONT_MEDIUM, 19, rx, y + 22, size, C_DIM) + 14;
 			if (q->state == Q_RUNNING && dl) {
-				snprintf(subbuf, sizeof(subbuf), "Downloading %d%%", dl->size ? (int)(dl->got * 100 / dl->size) : 0);
+				snprintf(subbuf, sizeof(subbuf), tr("Downloading %d%%"), dl->size ? (int)(dl->got * 100 / dl->size) : 0);
 				Badge(&rx, y + 20, subbuf, C_ACCENT);
-			} else if (q->state == Q_WAITING) Badge(&rx, y + 20, "Queued", C_DIM);
-			else Badge(&rx, y + 20, "Failed", C_ERR);
+			} else if (q->state == Q_WAITING) Badge(&rx, y + 20, tr("Queued"), C_DIM);
+			else Badge(&rx, y + 20, tr("Failed"), C_ERR);
 			sub = q->state == Q_FAILED ? q->msg : q->dest;
 			if (row == dls_sel) { can_open = 1; q_active = q->state <= Q_RUNNING; }
 		} else {
@@ -1911,7 +1963,7 @@ static void Draw_Downloads(void)
 			title = r.title[0] ? r.title : file ? file + 1 : r.path;
 			Fmt_Size(r.size, size, sizeof(size));
 			rx -= font_draw_right(FONT_MEDIUM, 19, rx, y + 22, size, C_DIM) + 14;
-			if (Dls_Newer(&r)) Badge(&rx, y + 20, "New version", C_WARN);
+			if (Dls_Newer(&r)) Badge(&rx, y + 20, tr("New version"), C_WARN);
 			Fmt_Date(r.when, when, sizeof(when));
 			snprintf(subbuf, sizeof(subbuf), "%s%s%s", r.path, when[0] ? "  ·  " : "", when);
 			sub = subbuf;
@@ -1920,7 +1972,7 @@ static void Draw_Downloads(void)
 		Placeholder(title, LIST_X + 6, y + (ROW_H - 4 - ICON_LIST) / 2, ICON_LIST);
 		font_draw(FONT_MEDIUM, 22, tx, y + 8, title, C_TEXT, rx - tx - 10);
 		if (row == dls_confirm)
-			font_draw(FONT_MEDIUM, 17, tx, y + 37, "Press Square again to delete this file from the HDD.", C_WARN, rx - tx - 10);
+			font_draw(FONT_MEDIUM, 17, tx, y + 37, tr("Press Square again to delete this file from the HDD."), C_WARN, rx - tx - 10);
 		else
 			font_draw(FONT_REGULAR, 17, tx, y + 37, sub, C_DIM, rx - tx - 10);
 	}
@@ -1931,9 +1983,9 @@ static void Draw_Downloads(void)
 		gfx_round_rect(LIST_X + LIST_W + 2, by, 4, bh, 2, 0x99ffffff);
 	}
 	int x = LIST_X;
-	if (can_open) x = Hint(x, G_CROSS, "Open");
-	if (n) x = Hint(x, G_SQUARE, !is_queue ? "Delete" : q_active ? "Cancel download" : "Clear");
-	Hint(x, G_CIRCLE, "Back");
+	if (can_open) x = Hint(x, G_CROSS, tr("Open"));
+	if (n) x = Hint(x, G_SQUARE, tr(!is_queue ? "Delete" : q_active ? "Cancel download" : "Clear"));
+	Hint(x, G_CIRCLE, tr("Back"));
 }
 
 void ui_render(void)
@@ -1949,7 +2001,7 @@ void ui_render(void)
 			for (int i = 0; i < n; i++)
 				font_draw_center(FONT_MEDIUM, 24, SCREEN_W / 2, 330 + i * 34, lines[i], start_err ? C_ERR : C_TEXT, 0);
 		}
-		if (start_err) Hint(SCREEN_W / 2 - 90, G_CROSS, "Try again");
+		if (start_err) Hint(SCREEN_W / 2 - 90, G_CROSS, tr("Try again"));
 		break;
 	case SCR_HOME: Draw_Home(); break;
 	case SCR_LIST:
@@ -1959,6 +2011,7 @@ void ui_render(void)
 	case SCR_DETAIL: if (det) Draw_Detail(); break;
 	case SCR_PROFILE: Draw_Profile(); break;
 	case SCR_DOWNLOADS: Draw_Downloads(); break;
+	case SCR_LANG: Draw_Lang(); break;
 	}
 	font_draw_right(FONT_REGULAR, 16, SCREEN_W - LIST_X, 40, APP_NAME " " APP_VERSION, C_DIM);
 }

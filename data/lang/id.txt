@@ -1,0 +1,163 @@
+# PS3 World in Indonesian: "English<TAB>translation" a line; \n is a new line.
+# Keep every %s, %d... in the same order. Corrections welcome.
+No network connection. Check Settings > Network Settings on the PS3, then try again.	Tidak ada koneksi jaringan. Periksa Pengaturan > Pengaturan Jaringan di PS3, lalu coba lagi.
+The secure connection to dl.ps3.world failed. Check the PS3's date and time (Settings > Date and Time Settings), then try again.	Koneksi aman ke dl.ps3.world gagal. Periksa tanggal dan waktu PS3 (Pengaturan > Pengaturan Tanggal dan Waktu), lalu coba lagi.
+Not found on the server (404). It may have moved: try again in a moment.	Tidak ditemukan di server (404). Mungkin sudah dipindah: coba lagi sebentar lagi.
+Not enough free space. %s	Ruang kosong tidak cukup. %s
+The catalogue wasn't found on the server (HTTP %d)	Katalog tidak ditemukan di server (HTTP %d)
+Loading the catalogue...	Memuat katalog...
+Offline: showing the catalogue from %.10s	Offline: katalog dari %.10s
+Search isn't available: %s	Pencarian tidak tersedia: %s
+Couldn't make the folder %s	Tidak bisa membuat folder %s
+Out of memory	Memori tidak cukup
+%d downloads are waiting already: add this one when some have finished.	Sudah ada %d unduhan yang menunggu: tambahkan ini setelah beberapa selesai.
+Install it from the XMB: Package Manager > Install Package Files.	Pasang dari XMB: Package Manager > Install Package Files.
+Choose it on the XMB: Settings > Theme Settings > Theme.	Pilih di XMB: Pengaturan > Pengaturan Tema > Tema.
+Choose it from the XMB: PlayStation Network > Account Management > Avatar.	Pilih dari XMB: PlayStation Network > Manajemen Akun > Avatar.
+Checksum OK (%s). Saved to %s\n%s	Checksum OK (%s). Disimpan di %s\n%s
+Download cancelled.	Unduhan dibatalkan.
+Download paused. Press X to resume.	Unduhan dijeda. Tekan X untuk melanjutkan.
+The download didn't match its checksum, so it was deleted. Try again.	Unduhan tidak cocok dengan checksum-nya, jadi dihapus. Coba lagi.
+\nPress X to resume where it stopped.	\nTekan X untuk melanjutkan dari tempat berhenti.
+Couldn't delete that file	Tidak bisa menghapus file itu
+A new version of this app. Once it's downloaded, install it from Package Manager > Install Package Files: it installs over this one.	Versi baru aplikasi ini. Setelah diunduh, pasang dari Package Manager > Install Package Files: akan terpasang menimpa yang ini.
+Search	Cari
+Searching for "%s"...	Mencari "%s"...
+Search: "%s"  (%d%s)	Pencarian: "%s"  (%d%s)
+Checking for updates...	Memeriksa pembaruan...
+%s  %d%%  ·  %d more	%s  %d%%  ·  %d lagi
+%s free on the HDD  ·  %d downloaded	%s kosong di HDD  ·  %d diunduh
+%d downloaded	%d diunduh
+PS3 World %s is out: press Square to get it	PS3 World %s sudah rilis: tekan Kotak untuk mengunduh
+Open	Buka
+My downloads	Unduhan saya
+Update	Perbarui
+Language	Bahasa
+Back	Kembali
+Section	Bagian
+Nothing here yet.	Belum ada apa-apa di sini.
+Nothing matches the search. Press Square to clear it.	Tidak ada yang cocok dengan pencarian. Tekan Kotak untuk menghapusnya.
+Loading...	Memuat...
+Downloaded	Sudah diunduh
+CFW only	Hanya CFW
+HEN / CFW	HEN / CFW
+Unknown author	Pembuat tidak diketahui
+Clear search	Hapus pencarian
+Packs	Paket
+Categories	Kategori
+A-Z	A-Z
+Loading the preview...	Memuat pratinjau...
+Author	Pembuat
+Version	Versi
+Size	Ukuran
+Pack	Paket
+Category	Kategori
+Works on	Berjalan di
+HEN or CFW	HEN atau CFW
+Any PS3	Semua PS3
+Saves to	Disimpan ke
+Yes	Ya
+Checking what's there already...	Memeriksa yang sudah ada...
+Checking the sha256...	Memeriksa sha256...
+Downloading	Mengunduh
+Resumed from %s	Dilanjutkan dari %s
+Queued: %d download ahead of it. You can go back and keep browsing.	Antre: %d unduhan di depannya. Anda bisa kembali dan terus menjelajah.
+Queued: %d downloads ahead of it. You can go back and keep browsing.	Antre: %d unduhan di depannya. Anda bisa kembali dan terus menjelajah.
+After it downloads: %s	Setelah diunduh: %s
+Cancel download	Batalkan unduhan
+Try again	Coba lagi
+Download again	Unduh lagi
+Download	Unduh
+Which user is the avatar for?	Avatar ini untuk pengguna yang mana?
+It's saved in that user's psn_avatar folder.	Disimpan di folder psn_avatar pengguna itu.
+Choose	Pilih
+The PS3's language (%s)	Bahasa PS3 (%s)
+%d on the HDD (%s)  ·  %s free	%d di HDD (%s)  ·  %s kosong
+%d on the HDD (%s)	%d di HDD (%s)
+Nothing downloaded yet.	Belum ada yang diunduh.
+Downloading %d%%	Mengunduh %d%%
+Queued	Antre
+Failed	Gagal
+New version	Versi baru
+Press Square again to delete this file from the HDD.	Tekan Kotak sekali lagi untuk menghapus file ini dari HDD.
+Delete	Hapus
+Clear	Bersihkan
+Apps · Games · Ports	Aplikasi · Game · Port
+Homebrew	Homebrew
+Homebrew tools and games, PC ports and media players for HEN & CFW.	Alat dan game homebrew, port PC, dan pemutar media untuk HEN dan CFW.
+Customise your XMB	Ubah tampilan XMB
+Themes	Tema
+Custom themes from the full theme archive, by category.	Tema kustom dari seluruh arsip tema, per kategori.
+Your profile picture	Foto profilmu
+Avatars	Avatar
+XMB avatars from every region, saved to your PS3 user.	Avatar XMB dari semua wilayah, disimpan ke pengguna PS3-mu.
+Games	Game
+Play	Main
+Homebrew Games	Game homebrew
+Grid Siege, Super Mario War, PS3Sweeper+ and more.	Grid Siege, Super Mario War, PS3Sweeper+ dan lainnya.
+Ports	Port
+PC & retro	PC dan retro
+Undertale, Nazi Zombies: Portable, Mario Kart 64 and more. No game files needed.	Undertale, Nazi Zombies: Portable, Mario Kart 64 dan lainnya. Tidak perlu file game.
+Tools	Alat
+Essentials	Wajib punya
+Homebrew Tools	Alat homebrew
+Apollo, IRISMAN, webMAN MOD, PKGi, multiMAN and more.	Apollo, IRISMAN, webMAN MOD, PKGi, multiMAN dan lainnya.
+Media	Media
+Watch & listen	Tonton dan dengar
+Media Players	Pemutar media
+Movian, Yo! Player, Jellyfin, Spotify and Resonant for Plex.	Movian, Yo! Player, Jellyfin, Spotify dan Resonant for Plex.
+Misc	Lain-lain
+Prototypes & demos	Prototipe dan demo
+Miscellaneous	Lain-lain
+Unreleased prototypes, demos and more.	Prototipe yang belum rilis, demo, dan lainnya.
+All themes	Semua tema
+Anime & Comics	Anime dan komik
+Movies & TV	Film dan TV
+Sports	Olahraga
+Abstract Art & Design	Seni abstrak dan desain
+Art & Graphics	Seni dan grafis
+Music	Musik
+Computers & Tech	Komputer dan teknologi
+Dynamic & Animated	Dinamis dan animasi
+Cars & Transportation	Mobil dan transportasi
+Nature & Animals	Alam dan hewan
+Celebrities & People	Selebritas dan tokoh
+Slideshow	Slideshow
+General	Umum
+Holiday & Seasonal	Hari raya dan musim
+Official PlayStation Themes	Tema resmi PlayStation
+All avatars	Semua avatar
+US	AS
+EU	UE
+Japan	Jepang
+Asia	Asia
+Other	Lainnya
+No user profiles were found in /dev_hdd0/home.	Tidak ada profil pengguna di /dev_hdd0/home.
+Choose which user the avatar is for.	Pilih untuk pengguna mana avatar ini.
+%s doesn't match the catalogue (it may be being updated): try again later	%s tidak cocok dengan katalog (mungkin sedang diperbarui): coba lagi nanti
+Not enough free space (%s)	Ruang kosong tidak cukup (%s)
+Couldn't write to %s	Tidak bisa menulis ke %s
+The drive is full%s	Drive penuh%s
+The server sent the wrong part of the file. Try again%s	Server mengirim bagian file yang salah. Coba lagi%s
+Not found on the server (404)%s	Tidak ditemukan di server (404)%s
+The server's copy is different (416). Try again%s	Salinan di server berbeda (416). Coba lagi%s
+Download cut short%s	Unduhan terputus%s
+Checksum mismatch: the file was deleted. Try again%s	Checksum tidak cocok: file dihapus. Coba lagi%s
+Couldn't rename the finished file in %s	Tidak bisa mengganti nama file yang selesai di %s
+Can't find %s (is the PS3 online?)	Tidak bisa menemukan %s (apakah PS3 online?)
+Can't connect to %s:%d (%d)	Tidak bisa terhubung ke %s:%d (%d)
+Secure connections are unavailable	Koneksi aman tidak tersedia
+%s's certificate was rejected (is the PS3's clock right?)	Sertifikat %s ditolak (apakah jam PS3 sudah benar?)
+Secure connection to %s failed (-0x%04x)	Koneksi aman ke %s gagal (-0x%04x)
+Request to %s failed	Permintaan ke %s gagal
+No reply from %s	Tidak ada balasan dari %s
+Reply from %s cut short	Balasan dari %s terputus
+The network isn't available	Jaringan tidak tersedia
+Bad URL	URL salah
+The reply wasn't understood	Balasan tidak dimengerti
+Insecure redirect refused	Pengalihan tidak aman ditolak
+Redirect to another host refused	Pengalihan ke server lain ditolak
+Too many redirects	Terlalu banyak pengalihan
+Download cut short	Unduhan terputus
+Cancelled	Dibatalkan
+Stopped	Dihentikan

@@ -102,7 +102,7 @@ static void SetErr(char *err, int size, const char *fmt, ...)
 {
 	va_list ap;
 	va_start(ap, fmt);
-	vsnprintf(err, size, fmt, ap);
+	vsnprintf(err, size, tr(fmt), ap);		// (in the UI's language)
 	va_end(ap);
 }
 

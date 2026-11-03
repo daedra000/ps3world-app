@@ -37,7 +37,7 @@ ifneq ($(strip $(PS3PY_DIR)),)
 PKG := python3 $(PS3PY_DIR)/pkg.py
 endif
 
-SOURCES := src/app.c src/gfx.c src/font.c src/input.c src/jobs.c src/lang.c src/ui.c src/catalog.c src/download.c src/store.c \
+SOURCES := src/app.c src/gfx.c src/font.c src/input.c src/jobs.c src/lang.c src/i18n.c src/ui.c src/catalog.c src/download.c src/store.c \
 	src/http_common.c src/thirdparty/cJSON.c \
 	src/ps3/main_ps3.c src/ps3/video_ps3.c src/ps3/input_ps3.c src/ps3/http_ps3.c src/ps3/osk_ps3.c
 OBJECTS := $(patsubst %.c,$(OBJDIR)/%.o,$(SOURCES))

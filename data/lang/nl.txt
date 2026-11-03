@@ -1,0 +1,163 @@
+# PS3 World in Dutch: "English<TAB>translation" a line; \n is a new line.
+# Keep every %s, %d... in the same order. Corrections welcome.
+No network connection. Check Settings > Network Settings on the PS3, then try again.	Geen netwerkverbinding. Controleer Instellingen > Netwerkinstellingen op de PS3 en probeer het opnieuw.
+The secure connection to dl.ps3.world failed. Check the PS3's date and time (Settings > Date and Time Settings), then try again.	De beveiligde verbinding met dl.ps3.world is mislukt. Controleer de datum en tijd van de PS3 (Instellingen > Datum- en tijdinstellingen) en probeer het opnieuw.
+Not found on the server (404). It may have moved: try again in a moment.	Niet gevonden op de server (404). Misschien is het verplaatst: probeer het zo opnieuw.
+Not enough free space. %s	Niet genoeg vrije ruimte. %s
+The catalogue wasn't found on the server (HTTP %d)	De catalogus is niet gevonden op de server (HTTP %d)
+Loading the catalogue...	Catalogus laden...
+Offline: showing the catalogue from %.10s	Offline: catalogus van %.10s
+Search isn't available: %s	Zoeken is niet beschikbaar: %s
+Couldn't make the folder %s	Kan de map %s niet maken
+Out of memory	Onvoldoende geheugen
+%d downloads are waiting already: add this one when some have finished.	Er wachten al %d downloads: voeg deze toe als er een paar klaar zijn.
+Install it from the XMB: Package Manager > Install Package Files.	Installeer het via het XMB: Pakketbeheer > Pakketbestanden installeren.
+Choose it on the XMB: Settings > Theme Settings > Theme.	Kies het in het XMB: Instellingen > Thema-instellingen > Thema.
+Choose it from the XMB: PlayStation Network > Account Management > Avatar.	Kies het via het XMB: PlayStation Network > Accountbeheer > Avatar.
+Checksum OK (%s). Saved to %s\n%s	Controlesom OK (%s). Opgeslagen in %s\n%s
+Download cancelled.	Download geannuleerd.
+Download paused. Press X to resume.	Download gepauzeerd. Druk op X om verder te gaan.
+The download didn't match its checksum, so it was deleted. Try again.	De download kwam niet overeen met de controlesom en is verwijderd. Probeer het opnieuw.
+\nPress X to resume where it stopped.	\nDruk op X om verder te gaan waar hij stopte.
+Couldn't delete that file	Kan dat bestand niet verwijderen
+A new version of this app. Once it's downloaded, install it from Package Manager > Install Package Files: it installs over this one.	Een nieuwe versie van deze app. Installeer hem na het downloaden via Pakketbeheer > Pakketbestanden installeren: hij wordt over deze heen geïnstalleerd.
+Search	Zoeken
+Searching for "%s"...	Zoeken naar "%s"...
+Search: "%s"  (%d%s)	Zoeken: "%s"  (%d%s)
+Checking for updates...	Zoeken naar updates...
+%s  %d%%  ·  %d more	%s  %d%%  ·  nog %d
+%s free on the HDD  ·  %d downloaded	%s vrij op de HDD  ·  %d gedownload
+%d downloaded	%d gedownload
+PS3 World %s is out: press Square to get it	PS3 World %s is uit: druk op Vierkant om hem te downloaden
+Open	Openen
+My downloads	Mijn downloads
+Update	Bijwerken
+Language	Taal
+Back	Terug
+Section	Sectie
+Nothing here yet.	Hier staat nog niets.
+Nothing matches the search. Press Square to clear it.	Niets komt overeen met de zoekopdracht. Druk op Vierkant om te wissen.
+Loading...	Laden...
+Downloaded	Gedownload
+CFW only	Alleen CFW
+HEN / CFW	HEN / CFW
+Unknown author	Onbekende maker
+Clear search	Zoekopdracht wissen
+Packs	Pakketten
+Categories	Categorieën
+A-Z	A-Z
+Loading the preview...	Voorbeeld laden...
+Author	Maker
+Version	Versie
+Size	Grootte
+Pack	Pakket
+Category	Categorie
+Works on	Werkt op
+HEN or CFW	HEN of CFW
+Any PS3	Elke PS3
+Saves to	Opslaan in
+Yes	Ja
+Checking what's there already...	Controleren wat er al is...
+Checking the sha256...	De sha256 controleren...
+Downloading	Downloaden
+Resumed from %s	Hervat vanaf %s
+Queued: %d download ahead of it. You can go back and keep browsing.	In de wachtrij: %d download ervoor. Je kunt teruggaan en verder bladeren.
+Queued: %d downloads ahead of it. You can go back and keep browsing.	In de wachtrij: %d downloads ervoor. Je kunt teruggaan en verder bladeren.
+After it downloads: %s	Na het downloaden: %s
+Cancel download	Download annuleren
+Try again	Opnieuw proberen
+Download again	Opnieuw downloaden
+Download	Downloaden
+Which user is the avatar for?	Voor welke gebruiker is de avatar?
+It's saved in that user's psn_avatar folder.	Hij wordt opgeslagen in de psn_avatar-map van die gebruiker.
+Choose	Kiezen
+The PS3's language (%s)	De taal van de PS3 (%s)
+%d on the HDD (%s)  ·  %s free	%d op de HDD (%s)  ·  %s vrij
+%d on the HDD (%s)	%d op de HDD (%s)
+Nothing downloaded yet.	Nog niets gedownload.
+Downloading %d%%	Downloaden %d%%
+Queued	In wachtrij
+Failed	Mislukt
+New version	Nieuwe versie
+Press Square again to delete this file from the HDD.	Druk nog eens op Vierkant om dit bestand van de HDD te verwijderen.
+Delete	Verwijderen
+Clear	Wissen
+Apps · Games · Ports	Apps · Games · Ports
+Homebrew	Homebrew
+Homebrew tools and games, PC ports and media players for HEN & CFW.	Homebrew-tools en -games, pc-ports en mediaspelers voor HEN en CFW.
+Customise your XMB	Pas je XMB aan
+Themes	Thema's
+Custom themes from the full theme archive, by category.	Eigen thema's uit het hele thema-archief, per categorie.
+Your profile picture	Je profielfoto
+Avatars	Avatars
+XMB avatars from every region, saved to your PS3 user.	XMB-avatars uit elke regio, opgeslagen bij je PS3-gebruiker.
+Games	Games
+Play	Spelen
+Homebrew Games	Homebrew-games
+Grid Siege, Super Mario War, PS3Sweeper+ and more.	Grid Siege, Super Mario War, PS3Sweeper+ en meer.
+Ports	Ports
+PC & retro	Pc & retro
+Undertale, Nazi Zombies: Portable, Mario Kart 64 and more. No game files needed.	Undertale, Nazi Zombies: Portable, Mario Kart 64 en meer. Geen gamebestanden nodig.
+Tools	Tools
+Essentials	Onmisbaar
+Homebrew Tools	Homebrew-tools
+Apollo, IRISMAN, webMAN MOD, PKGi, multiMAN and more.	Apollo, IRISMAN, webMAN MOD, PKGi, multiMAN en meer.
+Media	Media
+Watch & listen	Kijken & luisteren
+Media Players	Mediaspelers
+Movian, Yo! Player, Jellyfin, Spotify and Resonant for Plex.	Movian, Yo! Player, Jellyfin, Spotify en Resonant for Plex.
+Misc	Overig
+Prototypes & demos	Prototypes & demo's
+Miscellaneous	Overig
+Unreleased prototypes, demos and more.	Onuitgebrachte prototypes, demo's en meer.
+All themes	Alle thema's
+Anime & Comics	Anime & strips
+Movies & TV	Films & tv
+Sports	Sport
+Abstract Art & Design	Abstracte kunst & design
+Art & Graphics	Kunst & graphics
+Music	Muziek
+Computers & Tech	Computers & techniek
+Dynamic & Animated	Dynamisch & geanimeerd
+Cars & Transportation	Auto's & vervoer
+Nature & Animals	Natuur & dieren
+Celebrities & People	Beroemdheden & mensen
+Slideshow	Diavoorstelling
+General	Algemeen
+Holiday & Seasonal	Feestdagen & seizoenen
+Official PlayStation Themes	Officiële PlayStation-thema's
+All avatars	Alle avatars
+US	VS
+EU	EU
+Japan	Japan
+Asia	Azië
+Other	Overig
+No user profiles were found in /dev_hdd0/home.	Geen gebruikersprofielen gevonden in /dev_hdd0/home.
+Choose which user the avatar is for.	Kies voor welke gebruiker de avatar is.
+%s doesn't match the catalogue (it may be being updated): try again later	%s komt niet overeen met de catalogus (die wordt misschien bijgewerkt): probeer het later opnieuw
+Not enough free space (%s)	Niet genoeg vrije ruimte (%s)
+Couldn't write to %s	Kan niet schrijven naar %s
+The drive is full%s	De schijf is vol%s
+The server sent the wrong part of the file. Try again%s	De server stuurde het verkeerde deel van het bestand. Probeer het opnieuw%s
+Not found on the server (404)%s	Niet gevonden op de server (404)%s
+The server's copy is different (416). Try again%s	De kopie op de server is anders (416). Probeer het opnieuw%s
+Download cut short%s	Download afgebroken%s
+Checksum mismatch: the file was deleted. Try again%s	Controlesom klopt niet: het bestand is verwijderd. Probeer het opnieuw%s
+Couldn't rename the finished file in %s	Kan het voltooide bestand in %s niet hernoemen
+Can't find %s (is the PS3 online?)	Kan %s niet vinden (is de PS3 online?)
+Can't connect to %s:%d (%d)	Kan geen verbinding maken met %s:%d (%d)
+Secure connections are unavailable	Beveiligde verbindingen zijn niet beschikbaar
+%s's certificate was rejected (is the PS3's clock right?)	Het certificaat van %s is geweigerd (staat de klok van de PS3 goed?)
+Secure connection to %s failed (-0x%04x)	Beveiligde verbinding met %s mislukt (-0x%04x)
+Request to %s failed	Verzoek aan %s mislukt
+No reply from %s	Geen antwoord van %s
+Reply from %s cut short	Het antwoord van %s brak af
+The network isn't available	Het netwerk is niet beschikbaar
+Bad URL	Ongeldige URL
+The reply wasn't understood	Het antwoord werd niet begrepen
+Insecure redirect refused	Onveilige doorverwijzing geweigerd
+Redirect to another host refused	Doorverwijzing naar een andere server geweigerd
+Too many redirects	Te veel doorverwijzingen
+Download cut short	Download afgebroken
+Cancelled	Geannuleerd
+Stopped	Gestopt

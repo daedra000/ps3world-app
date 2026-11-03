@@ -1,0 +1,163 @@
+# PS3 World in Danish: "English<TAB>translation" a line; \n is a new line.
+# Keep every %s, %d... in the same order. Corrections welcome.
+No network connection. Check Settings > Network Settings on the PS3, then try again.	Ingen netværksforbindelse. Tjek Indstillinger > Netværksindstillinger på PS3'en, og prøv igen.
+The secure connection to dl.ps3.world failed. Check the PS3's date and time (Settings > Date and Time Settings), then try again.	Den sikre forbindelse til dl.ps3.world mislykkedes. Tjek PS3'ens dato og klokkeslæt (Indstillinger > Indstillinger for dato og klokkeslæt), og prøv igen.
+Not found on the server (404). It may have moved: try again in a moment.	Ikke fundet på serveren (404). Den er måske flyttet: prøv igen om lidt.
+Not enough free space. %s	Ikke nok ledig plads. %s
+The catalogue wasn't found on the server (HTTP %d)	Kataloget blev ikke fundet på serveren (HTTP %d)
+Loading the catalogue...	Indlæser kataloget...
+Offline: showing the catalogue from %.10s	Offline: kataloget fra %.10s
+Search isn't available: %s	Søgning er ikke tilgængelig: %s
+Couldn't make the folder %s	Kunne ikke oprette mappen %s
+Out of memory	Ikke nok hukommelse
+%d downloads are waiting already: add this one when some have finished.	Der venter allerede %d downloads: tilføj denne, når nogle er færdige.
+Install it from the XMB: Package Manager > Install Package Files.	Installer den fra XMB: Pakkehåndtering > Installer pakkefiler.
+Choose it on the XMB: Settings > Theme Settings > Theme.	Vælg det i XMB: Indstillinger > Temaindstillinger > Tema.
+Choose it from the XMB: PlayStation Network > Account Management > Avatar.	Vælg den i XMB: PlayStation Network > Kontoadministration > Avatar.
+Checksum OK (%s). Saved to %s\n%s	Kontrolsum OK (%s). Gemt i %s\n%s
+Download cancelled.	Download annulleret.
+Download paused. Press X to resume.	Download sat på pause. Tryk på X for at fortsætte.
+The download didn't match its checksum, so it was deleted. Try again.	Downloadet passede ikke med sin kontrolsum, så det blev slettet. Prøv igen.
+\nPress X to resume where it stopped.	\nTryk på X for at fortsætte, hvor den stoppede.
+Couldn't delete that file	Kunne ikke slette filen
+A new version of this app. Once it's downloaded, install it from Package Manager > Install Package Files: it installs over this one.	En ny version af denne app. Når den er hentet, så installer den fra Pakkehåndtering > Installer pakkefiler: den installeres oven på denne.
+Search	Søg
+Searching for "%s"...	Søger efter "%s"...
+Search: "%s"  (%d%s)	Søgning: "%s"  (%d%s)
+Checking for updates...	Søger efter opdateringer...
+%s  %d%%  ·  %d more	%s  %d%%  ·  %d mere
+%s free on the HDD  ·  %d downloaded	%s ledigt på HDD'en  ·  %d hentet
+%d downloaded	%d hentet
+PS3 World %s is out: press Square to get it	PS3 World %s er ude: tryk på Firkant for at hente den
+Open	Åbn
+My downloads	Mine downloads
+Update	Opdater
+Language	Sprog
+Back	Tilbage
+Section	Sektion
+Nothing here yet.	Her er intet endnu.
+Nothing matches the search. Press Square to clear it.	Intet matcher søgningen. Tryk på Firkant for at rydde den.
+Loading...	Indlæser...
+Downloaded	Hentet
+CFW only	Kun CFW
+HEN / CFW	HEN / CFW
+Unknown author	Ukendt skaber
+Clear search	Ryd søgning
+Packs	Pakker
+Categories	Kategorier
+A-Z	A-Z
+Loading the preview...	Indlæser forhåndsvisning...
+Author	Skaber
+Version	Version
+Size	Størrelse
+Pack	Pakke
+Category	Kategori
+Works on	Virker på
+HEN or CFW	HEN eller CFW
+Any PS3	Alle PS3'er
+Saves to	Gemmes i
+Yes	Ja
+Checking what's there already...	Tjekker, hvad der allerede er der...
+Checking the sha256...	Tjekker sha256...
+Downloading	Henter
+Resumed from %s	Fortsat fra %s
+Queued: %d download ahead of it. You can go back and keep browsing.	I kø: %d download foran. Du kan gå tilbage og blive ved med at kigge.
+Queued: %d downloads ahead of it. You can go back and keep browsing.	I kø: %d downloads foran. Du kan gå tilbage og blive ved med at kigge.
+After it downloads: %s	Når den er hentet: %s
+Cancel download	Annuller download
+Try again	Prøv igen
+Download again	Hent igen
+Download	Hent
+Which user is the avatar for?	Hvilken bruger er avataren til?
+It's saved in that user's psn_avatar folder.	Den gemmes i brugerens psn_avatar-mappe.
+Choose	Vælg
+The PS3's language (%s)	PS3'ens sprog (%s)
+%d on the HDD (%s)  ·  %s free	%d på HDD'en (%s)  ·  %s ledigt
+%d on the HDD (%s)	%d på HDD'en (%s)
+Nothing downloaded yet.	Intet hentet endnu.
+Downloading %d%%	Henter %d%%
+Queued	I kø
+Failed	Mislykkedes
+New version	Ny version
+Press Square again to delete this file from the HDD.	Tryk på Firkant igen for at slette filen fra HDD'en.
+Delete	Slet
+Clear	Fjern
+Apps · Games · Ports	Apps · Spil · Porte
+Homebrew	Homebrew
+Homebrew tools and games, PC ports and media players for HEN & CFW.	Homebrew-værktøjer og -spil, pc-porte og medieafspillere til HEN og CFW.
+Customise your XMB	Tilpas din XMB
+Themes	Temaer
+Custom themes from the full theme archive, by category.	Egne temaer fra hele temaarkivet, efter kategori.
+Your profile picture	Dit profilbillede
+Avatars	Avatarer
+XMB avatars from every region, saved to your PS3 user.	XMB-avatarer fra alle regioner, gemt på din PS3-bruger.
+Games	Spil
+Play	Spil
+Homebrew Games	Homebrew-spil
+Grid Siege, Super Mario War, PS3Sweeper+ and more.	Grid Siege, Super Mario War, PS3Sweeper+ og mere.
+Ports	Porte
+PC & retro	Pc og retro
+Undertale, Nazi Zombies: Portable, Mario Kart 64 and more. No game files needed.	Undertale, Nazi Zombies: Portable, Mario Kart 64 og mere. Ingen spilfiler nødvendige.
+Tools	Værktøjer
+Essentials	Det vigtigste
+Homebrew Tools	Homebrew-værktøjer
+Apollo, IRISMAN, webMAN MOD, PKGi, multiMAN and more.	Apollo, IRISMAN, webMAN MOD, PKGi, multiMAN og mere.
+Media	Medier
+Watch & listen	Se og lyt
+Media Players	Medieafspillere
+Movian, Yo! Player, Jellyfin, Spotify and Resonant for Plex.	Movian, Yo! Player, Jellyfin, Spotify og Resonant for Plex.
+Misc	Diverse
+Prototypes & demos	Prototyper og demoer
+Miscellaneous	Diverse
+Unreleased prototypes, demos and more.	Uudgivne prototyper, demoer og mere.
+All themes	Alle temaer
+Anime & Comics	Anime og tegneserier
+Movies & TV	Film og tv
+Sports	Sport
+Abstract Art & Design	Abstrakt kunst og design
+Art & Graphics	Kunst og grafik
+Music	Musik
+Computers & Tech	Computere og teknik
+Dynamic & Animated	Dynamiske og animerede
+Cars & Transportation	Biler og transport
+Nature & Animals	Natur og dyr
+Celebrities & People	Kendte og mennesker
+Slideshow	Diasshow
+General	Generelt
+Holiday & Seasonal	Højtider og årstider
+Official PlayStation Themes	Officielle PlayStation-temaer
+All avatars	Alle avatarer
+US	USA
+EU	EU
+Japan	Japan
+Asia	Asien
+Other	Andet
+No user profiles were found in /dev_hdd0/home.	Der blev ikke fundet nogen brugerprofiler i /dev_hdd0/home.
+Choose which user the avatar is for.	Vælg, hvilken bruger avataren er til.
+%s doesn't match the catalogue (it may be being updated): try again later	%s passer ikke med kataloget (det bliver måske opdateret): prøv igen senere
+Not enough free space (%s)	Ikke nok ledig plads (%s)
+Couldn't write to %s	Kunne ikke skrive til %s
+The drive is full%s	Drevet er fuldt%s
+The server sent the wrong part of the file. Try again%s	Serveren sendte den forkerte del af filen. Prøv igen%s
+Not found on the server (404)%s	Ikke fundet på serveren (404)%s
+The server's copy is different (416). Try again%s	Serverens kopi er anderledes (416). Prøv igen%s
+Download cut short%s	Download afbrudt%s
+Checksum mismatch: the file was deleted. Try again%s	Forkert kontrolsum: filen blev slettet. Prøv igen%s
+Couldn't rename the finished file in %s	Kunne ikke omdøbe den færdige fil i %s
+Can't find %s (is the PS3 online?)	Kan ikke finde %s (er PS3'en online?)
+Can't connect to %s:%d (%d)	Kan ikke forbinde til %s:%d (%d)
+Secure connections are unavailable	Sikre forbindelser er ikke tilgængelige
+%s's certificate was rejected (is the PS3's clock right?)	Certifikatet fra %s blev afvist (går PS3'ens ur rigtigt?)
+Secure connection to %s failed (-0x%04x)	Sikker forbindelse til %s mislykkedes (-0x%04x)
+Request to %s failed	Forespørgsel til %s mislykkedes
+No reply from %s	Intet svar fra %s
+Reply from %s cut short	Svaret fra %s blev afbrudt
+The network isn't available	Netværket er ikke tilgængeligt
+Bad URL	Ugyldig URL
+The reply wasn't understood	Svaret blev ikke forstået
+Insecure redirect refused	Usikker omdirigering afvist
+Redirect to another host refused	Omdirigering til en anden server afvist
+Too many redirects	For mange omdirigeringer
+Download cut short	Download afbrudt
+Cancelled	Annulleret
+Stopped	Stoppet

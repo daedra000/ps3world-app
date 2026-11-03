@@ -231,6 +231,122 @@ static uint32_t Utf8_Next(const char **ps)
 	return c;
 }
 
+/*
+==================
+Arabic: each letter takes the form its neighbours join it in (DejaVu Sans has the
+presentation forms), and a line with Arabic in it reads right to left; a run of
+other text in it (numbers, Latin) keeps its own order.
+==================
+*/
+#define MAX_CPS 384		// a line's characters (on the stack, a few times over)
+
+// U+0621..U+064A: the isolated presentation form; joins 2: both sides, 1: only to the letter before, 0: neither
+static const uint16_t ar_iso[] = {
+	0xFE80, 0xFE81, 0xFE83, 0xFE85, 0xFE87, 0xFE89, 0xFE8D, 0xFE8F, 0xFE93, 0xFE95, 0xFE99, 0xFE9D, 0xFEA1, 0xFEA5,
+	0xFEA9, 0xFEAB, 0xFEAD, 0xFEAF, 0xFEB1, 0xFEB5, 0xFEB9, 0xFEBD, 0xFEC1, 0xFEC5, 0xFEC9, 0xFECD,
+	0, 0, 0, 0, 0,				// 063B..063F
+	0x0640,						// tatweel: joins, no forms of its own
+	0xFED1, 0xFED5, 0xFED9, 0xFEDD, 0xFEE1, 0xFEE5, 0xFEE9, 0xFEED, 0xFEEF, 0xFEF1,
+};
+static const uint8_t ar_joins[] = {
+	0, 1, 1, 1, 1, 2, 1, 2, 1, 2, 2, 2, 2, 2, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2,
+	0, 0, 0, 0, 0,
+	2,
+	2, 2, 2, 2, 2, 2, 2, 1, 1, 2,
+};
+
+static int Ar_Letter(uint32_t c) { return c >= 0x621 && c <= 0x64a; }
+static int Ar_Joins(uint32_t c) { return Ar_Letter(c) ? ar_joins[c - 0x621] : 0; }
+static int Ar_Mark(uint32_t c) { return (c >= 0x64b && c <= 0x65f) || c == 0x670; }		// harakat: don't break a join
+static int Rtl(uint32_t c) { return (c >= 0x600 && c <= 0x6ff) || (c >= 0xfb50 && c <= 0xfdff) || (c >= 0xfe70 && c <= 0xfefc); }
+
+static void Shape(const uint32_t *in, int n, uint32_t *out, int *nout)
+{
+	int k = 0;
+	for (int i = 0; i < n; i++) {
+		uint32_t c = in[i];
+		if (!Ar_Letter(c) || !ar_iso[c - 0x621] || c == 0x640) { out[k++] = c; continue; }
+		int p = i - 1, q = i + 1;
+		while (p >= 0 && Ar_Mark(in[p])) p--;
+		while (q < n && Ar_Mark(in[q])) q++;
+		int before = p >= 0 && Ar_Joins(in[p]) == 2;
+		uint32_t iso = ar_iso[c - 0x621];
+		// lam then alef: one ligature
+		if (c == 0x644 && q < n && (in[q] == 0x622 || in[q] == 0x623 || in[q] == 0x625 || in[q] == 0x627)) {
+			uint32_t lig = in[q] == 0x622 ? 0xFEF5 : in[q] == 0x623 ? 0xFEF7 : in[q] == 0x625 ? 0xFEF9 : 0xFEFB;
+			out[k++] = lig + before;
+			for (int m = i + 1; m < q; m++) out[k++] = in[m];		// (marks between them)
+			i = q;
+			continue;
+		}
+		int after = Ar_Joins(c) == 2 && q < n && Ar_Joins(in[q]) >= 1;
+		if (Ar_Joins(c) == 2) out[k++] = iso + (before && after ? 3 : before ? 1 : after ? 2 : 0);
+		else out[k++] = iso + (before ? 1 : 0);
+	}
+	*nout = k;
+}
+
+static uint32_t Mirror(uint32_t c)
+{
+	switch (c) {
+	case '(': return ')'; case ')': return '(';
+	case '[': return ']'; case ']': return '[';
+	case '<': return '>'; case '>': return '<';
+	case '{': return '}'; case '}': return '{';
+	}
+	return c;
+}
+
+// a left-to-right character: letters other than Arabic, and digits
+static int Ltr(uint32_t c)
+{
+	if (c >= '0' && c <= '9') return 1;
+	if ((c | 32) >= 'a' && (c | 32) <= 'z') return 1;
+	return c >= 0xc0 && !Rtl(c) && !(c >= 0x2000 && c <= 0x206f);
+}
+
+// a line into the codepoints drawn, left to right (shaped and reordered if it has Arabic)
+static int Visual(const char *s, uint32_t *out, int max)
+{
+	uint32_t in[MAX_CPS];
+	int n = 0, rtl = 0;
+	while (*s && n < MAX_CPS) {
+		uint32_t c = Utf8_Next(&s);
+		rtl |= Rtl(c);
+		in[n++] = c;
+	}
+	if (!rtl) {
+		if (n > max) n = max;
+		memcpy(out, in, n * sizeof(uint32_t));
+		return n;
+	}
+	uint32_t sh[MAX_CPS];
+	int m;
+	Shape(in, n, sh, &m);
+	// what reads left to right: Latin and digits, and punctuation stuck to them ("/dev_hdd0", "(12)")
+	unsigned char ltr[MAX_CPS];
+	for (int i = 0; i < m; i++) ltr[i] = Ltr(sh[i]);
+	for (int changed = 1; changed; ) {
+		changed = 0;
+		for (int i = 0; i < m; i++)
+			if (!ltr[i] && !Rtl(sh[i]) && sh[i] != ' ' && ((i > 0 && ltr[i - 1]) || (i + 1 < m && ltr[i + 1]))) {
+				ltr[i] = 1;
+				changed = 1;
+			}
+	}
+	// right to left, but each run of left-to-right text (with the spaces between its words) kept in order
+	int k = 0;
+	for (int i = m - 1; i >= 0 && k < max; ) {
+		if (!ltr[i]) { out[k++] = Mirror(sh[i]); i--; continue; }
+		int e = i, b = i;
+		while (b > 0 && !Rtl(sh[b - 1])) b--;
+		while (!ltr[b]) b++;		// (spaces before the run stay right to left)
+		for (int j = b; j <= e && k < max; j++) out[k++] = sh[j];
+		i = b - 1;
+	}
+	return k;
+}
+
 // the baseline below the top of the line, for this size
 static int Ascent(int font, int px)
 {
@@ -251,8 +367,10 @@ int font_width(int font, int px, const char *s)
 {
 	int w = 0;
 	if (!s) return 0;
-	while (*s) {
-		glyph_t *g = Glyph(font, px, Utf8_Next(&s));
+	uint32_t cps[MAX_CPS];
+	int n = Visual(s, cps, MAX_CPS);
+	for (int i = 0; i < n; i++) {
+		glyph_t *g = Glyph(font, px, cps[i]);
 		if (g) w += g->advance;
 	}
 	return w;
@@ -289,19 +407,35 @@ static int Draw(int font, int px, int x, int y, const char *s, uint32_t c, int m
 	int ellw = 0, cut = 0;
 
 	if (!s) return 0;
-	if (maxw > 0 && font_width(font, px, s) > maxw) {
+	uint32_t cps[MAX_CPS];
+	int n = Visual(s, cps, MAX_CPS), first = 0, total = 0;
+	int rtl = 0;
+	for (int i = 0; i < n; i++) rtl |= Rtl(cps[i]);
+	if (maxw > 0 && (total = font_width(font, px, s)) > maxw) {
 		ellw = font_width(font, px, ell);
 		cut = 1;
 	}
-	while (*s) {
-		const char *save = s;
-		uint32_t cp = Utf8_Next(&s);
+	// right to left, the end of the text is on the left: that's what goes, the "…" first
+	if (cut && rtl) {
+		for (int w = total; first < n && w > maxw - ellw; first++) {
+			glyph_t *g = Glyph(font, px, cps[first]);
+			if (g) w -= g->advance;
+		}
+		const char *e = ell;
+		uint32_t ecp = Utf8_Next(&e);
+		glyph_t *g = Glyph(font, px, ecp);
+		int adv = g ? g->advance : 0;
+		if (g && g->bmp && (c >> 24))
+			Put(font, px, ecp, g, pen, base, c);
+		pen += adv;
+		cut = 0;
+	}
+	for (int i = first; i < n; i++) {
+		uint32_t cp = cps[i];
 		glyph_t *g = Glyph(font, px, cp);
 		if (!g) continue;
-		if (cut && pen - x + g->advance > maxw - ellw) {
-			s = save;
+		if (cut && pen - x + g->advance > maxw - ellw)
 			break;
-		}
 		int adv = g->advance;		// (Put may refill the cache under g)
 		if (g->bmp && (c >> 24))
 			Put(font, px, cp, g, pen, base, c);

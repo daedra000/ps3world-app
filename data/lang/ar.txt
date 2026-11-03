@@ -1,0 +1,163 @@
+# PS3 World in Arabic: "English<TAB>translation" a line; \n is a new line.
+# Keep every %s, %d... in the same order. Corrections welcome.
+No network connection. Check Settings > Network Settings on the PS3, then try again.	لا يوجد اتصال بالشبكة. تحقق من الإعدادات > إعدادات الشبكة على PS3، ثم حاول مرة أخرى.
+The secure connection to dl.ps3.world failed. Check the PS3's date and time (Settings > Date and Time Settings), then try again.	فشل الاتصال الآمن بـ dl.ps3.world. تحقق من تاريخ ووقت PS3 (الإعدادات > إعدادات التاريخ والوقت)، ثم حاول مرة أخرى.
+Not found on the server (404). It may have moved: try again in a moment.	غير موجود على الخادم (404). ربما تم نقله: حاول مرة أخرى بعد قليل.
+Not enough free space. %s	لا توجد مساحة خالية كافية. %s
+The catalogue wasn't found on the server (HTTP %d)	لم يتم العثور على الكتالوج على الخادم (HTTP %d)
+Loading the catalogue...	جارٍ تحميل الكتالوج...
+Offline: showing the catalogue from %.10s	دون اتصال: الكتالوج من %.10s
+Search isn't available: %s	البحث غير متاح: %s
+Couldn't make the folder %s	تعذر إنشاء المجلد %s
+Out of memory	الذاكرة غير كافية
+%d downloads are waiting already: add this one when some have finished.	هناك %d تنزيلات في الانتظار بالفعل: أضف هذا عندما ينتهي بعضها.
+Install it from the XMB: Package Manager > Install Package Files.	ثبّته من XMB: مدير الحزم > تثبيت ملفات الحزم.
+Choose it on the XMB: Settings > Theme Settings > Theme.	اختره من XMB: الإعدادات > إعدادات السمة > السمة.
+Choose it from the XMB: PlayStation Network > Account Management > Avatar.	اختره من XMB: شبكة PlayStation > إدارة الحساب > الصورة الرمزية.
+Checksum OK (%s). Saved to %s\n%s	المجموع الاختباري سليم (%s). تم الحفظ في %s\n%s
+Download cancelled.	تم إلغاء التنزيل.
+Download paused. Press X to resume.	التنزيل متوقف مؤقتًا. اضغط X للمتابعة.
+The download didn't match its checksum, so it was deleted. Try again.	لم يطابق التنزيل مجموعه الاختباري، لذلك تم حذفه. حاول مرة أخرى.
+\nPress X to resume where it stopped.	\nاضغط X للمتابعة من حيث توقف.
+Couldn't delete that file	تعذر حذف هذا الملف
+A new version of this app. Once it's downloaded, install it from Package Manager > Install Package Files: it installs over this one.	إصدار جديد من هذا التطبيق. بعد تنزيله، ثبّته من مدير الحزم > تثبيت ملفات الحزم: سيُثبَّت فوق هذا الإصدار.
+Search	بحث
+Searching for "%s"...	جارٍ البحث عن "%s"...
+Search: "%s"  (%d%s)	البحث: "%s"  (%d%s)
+Checking for updates...	جارٍ التحقق من التحديثات...
+%s  %d%%  ·  %d more	%s  %d%%  ·  %d أخرى
+%s free on the HDD  ·  %d downloaded	%s متاحة على القرص  ·  %d منزّلة
+%d downloaded	%d منزّلة
+PS3 World %s is out: press Square to get it	صدر PS3 World %s: اضغط المربع لتنزيله
+Open	فتح
+My downloads	تنزيلاتي
+Update	تحديث
+Language	اللغة
+Back	رجوع
+Section	القسم
+Nothing here yet.	لا يوجد شيء هنا بعد.
+Nothing matches the search. Press Square to clear it.	لا شيء يطابق البحث. اضغط المربع لمسحه.
+Loading...	جارٍ التحميل...
+Downloaded	تم التنزيل
+CFW only	CFW فقط
+HEN / CFW	HEN / CFW
+Unknown author	مؤلف غير معروف
+Clear search	مسح البحث
+Packs	الحزم
+Categories	الفئات
+A-Z	A-Z
+Loading the preview...	جارٍ تحميل المعاينة...
+Author	المؤلف
+Version	الإصدار
+Size	الحجم
+Pack	الحزمة
+Category	الفئة
+Works on	يعمل على
+HEN or CFW	HEN أو CFW
+Any PS3	أي PS3
+Saves to	يُحفظ في
+Yes	نعم
+Checking what's there already...	جارٍ التحقق مما هو موجود...
+Checking the sha256...	جارٍ التحقق من sha256...
+Downloading	جارٍ التنزيل
+Resumed from %s	تمت المتابعة من %s
+Queued: %d download ahead of it. You can go back and keep browsing.	في قائمة الانتظار: قبله تنزيل واحد (%d). يمكنك الرجوع ومتابعة التصفح.
+Queued: %d downloads ahead of it. You can go back and keep browsing.	في قائمة الانتظار: قبله %d تنزيلات. يمكنك الرجوع ومتابعة التصفح.
+After it downloads: %s	بعد التنزيل: %s
+Cancel download	إلغاء التنزيل
+Try again	حاول مرة أخرى
+Download again	التنزيل مرة أخرى
+Download	تنزيل
+Which user is the avatar for?	لأي مستخدم هذه الصورة الرمزية؟
+It's saved in that user's psn_avatar folder.	تُحفظ في مجلد psn_avatar الخاص بهذا المستخدم.
+Choose	اختيار
+The PS3's language (%s)	لغة PS3 (%s)
+%d on the HDD (%s)  ·  %s free	%d على القرص (%s)  ·  %s متاحة
+%d on the HDD (%s)	%d على القرص (%s)
+Nothing downloaded yet.	لم يتم تنزيل أي شيء بعد.
+Downloading %d%%	جارٍ التنزيل %d%%
+Queued	في الانتظار
+Failed	فشل
+New version	إصدار جديد
+Press Square again to delete this file from the HDD.	اضغط المربع مرة أخرى لحذف هذا الملف من القرص.
+Delete	حذف
+Clear	إزالة
+Apps · Games · Ports	تطبيقات · ألعاب · منافذ
+Homebrew	Homebrew
+Homebrew tools and games, PC ports and media players for HEN & CFW.	أدوات وألعاب Homebrew ومنافذ ألعاب الكمبيوتر ومشغلات الوسائط لـ HEN وCFW.
+Customise your XMB	خصّص واجهة XMB
+Themes	السمات
+Custom themes from the full theme archive, by category.	سمات مخصصة من أرشيف السمات الكامل، حسب الفئة.
+Your profile picture	صورة ملفك الشخصي
+Avatars	الصور الرمزية
+XMB avatars from every region, saved to your PS3 user.	صور رمزية لـ XMB من كل المناطق، تُحفظ لمستخدم PS3 الخاص بك.
+Games	ألعاب
+Play	العب
+Homebrew Games	ألعاب Homebrew
+Grid Siege, Super Mario War, PS3Sweeper+ and more.	Grid Siege وSuper Mario War وPS3Sweeper+ والمزيد.
+Ports	منافذ
+PC & retro	كمبيوتر وكلاسيكيات
+Undertale, Nazi Zombies: Portable, Mario Kart 64 and more. No game files needed.	Undertale وNazi Zombies: Portable وMario Kart 64 والمزيد. لا حاجة لملفات اللعبة.
+Tools	أدوات
+Essentials	الأساسيات
+Homebrew Tools	أدوات Homebrew
+Apollo, IRISMAN, webMAN MOD, PKGi, multiMAN and more.	Apollo وIRISMAN وwebMAN MOD وPKGi وmultiMAN والمزيد.
+Media	وسائط
+Watch & listen	شاهد واستمع
+Media Players	مشغلات الوسائط
+Movian, Yo! Player, Jellyfin, Spotify and Resonant for Plex.	Movian وYo! Player وJellyfin وSpotify وResonant for Plex.
+Misc	متنوعة
+Prototypes & demos	نماذج أولية وعروض
+Miscellaneous	متنوعة
+Unreleased prototypes, demos and more.	نماذج أولية لم تصدر وعروض تجريبية والمزيد.
+All themes	كل السمات
+Anime & Comics	أنمي وقصص مصورة
+Movies & TV	أفلام وتلفزيون
+Sports	رياضة
+Abstract Art & Design	فن تجريدي وتصميم
+Art & Graphics	فن ورسومات
+Music	موسيقى
+Computers & Tech	كمبيوتر وتقنية
+Dynamic & Animated	ديناميكية ومتحركة
+Cars & Transportation	سيارات ومواصلات
+Nature & Animals	طبيعة وحيوانات
+Celebrities & People	مشاهير وأشخاص
+Slideshow	عرض شرائح
+General	عامة
+Holiday & Seasonal	أعياد ومواسم
+Official PlayStation Themes	سمات PlayStation الرسمية
+All avatars	كل الصور الرمزية
+US	الولايات المتحدة
+EU	أوروبا
+Japan	اليابان
+Asia	آسيا
+Other	أخرى
+No user profiles were found in /dev_hdd0/home.	لم يتم العثور على ملفات تعريف مستخدمين في /dev_hdd0/home.
+Choose which user the avatar is for.	اختر المستخدم الذي تخصه الصورة الرمزية.
+%s doesn't match the catalogue (it may be being updated): try again later	%s لا يطابق الكتالوج (ربما يجري تحديثه): حاول لاحقًا
+Not enough free space (%s)	لا توجد مساحة خالية كافية (%s)
+Couldn't write to %s	تعذرت الكتابة إلى %s
+The drive is full%s	القرص ممتلئ%s
+The server sent the wrong part of the file. Try again%s	أرسل الخادم الجزء الخطأ من الملف. حاول مرة أخرى%s
+Not found on the server (404)%s	غير موجود على الخادم (404)%s
+The server's copy is different (416). Try again%s	نسخة الخادم مختلفة (416). حاول مرة أخرى%s
+Download cut short%s	انقطع التنزيل%s
+Checksum mismatch: the file was deleted. Try again%s	المجموع الاختباري غير مطابق: تم حذف الملف. حاول مرة أخرى%s
+Couldn't rename the finished file in %s	تعذرت إعادة تسمية الملف المكتمل في %s
+Can't find %s (is the PS3 online?)	تعذر العثور على %s (هل PS3 متصل بالإنترنت؟)
+Can't connect to %s:%d (%d)	تعذر الاتصال بـ %s:%d (%d)
+Secure connections are unavailable	الاتصالات الآمنة غير متاحة
+%s's certificate was rejected (is the PS3's clock right?)	تم رفض شهادة %s (هل ساعة PS3 صحيحة؟)
+Secure connection to %s failed (-0x%04x)	فشل الاتصال الآمن بـ %s (-0x%04x)
+Request to %s failed	فشل الطلب إلى %s
+No reply from %s	لا يوجد رد من %s
+Reply from %s cut short	انقطع الرد من %s
+The network isn't available	الشبكة غير متاحة
+Bad URL	عنوان URL غير صالح
+The reply wasn't understood	لم يتم فهم الرد
+Insecure redirect refused	تم رفض إعادة توجيه غير آمنة
+Redirect to another host refused	تم رفض إعادة التوجيه إلى خادم آخر
+Too many redirects	عمليات إعادة توجيه كثيرة جدًا
+Download cut short	انقطع التنزيل
+Cancelled	تم الإلغاء
+Stopped	متوقف

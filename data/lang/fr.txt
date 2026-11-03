@@ -1,0 +1,163 @@
+# PS3 World in French: "English<TAB>translation" a line; \n is a new line.
+# Keep every %s, %d... in the same order. Corrections welcome.
+No network connection. Check Settings > Network Settings on the PS3, then try again.	Pas de connexion réseau. Vérifiez Paramètres > Paramètres réseau sur la PS3, puis réessayez.
+The secure connection to dl.ps3.world failed. Check the PS3's date and time (Settings > Date and Time Settings), then try again.	La connexion sécurisée à dl.ps3.world a échoué. Vérifiez la date et l'heure de la PS3 (Paramètres > Paramètres de date et heure), puis réessayez.
+Not found on the server (404). It may have moved: try again in a moment.	Introuvable sur le serveur (404). Il a peut-être été déplacé : réessayez dans un instant.
+Not enough free space. %s	Pas assez d'espace libre. %s
+The catalogue wasn't found on the server (HTTP %d)	Le catalogue est introuvable sur le serveur (HTTP %d)
+Loading the catalogue...	Chargement du catalogue...
+Offline: showing the catalogue from %.10s	Hors ligne : catalogue du %.10s
+Search isn't available: %s	La recherche n'est pas disponible : %s
+Couldn't make the folder %s	Impossible de créer le dossier %s
+Out of memory	Mémoire insuffisante
+%d downloads are waiting already: add this one when some have finished.	%d téléchargements sont déjà en attente : ajoutez celui-ci quand certains seront terminés.
+Install it from the XMB: Package Manager > Install Package Files.	Installez-le depuis le XMB : Gestionnaire de paquets > Installer des fichiers de paquet.
+Choose it on the XMB: Settings > Theme Settings > Theme.	Choisissez-le dans le XMB : Paramètres > Paramètres du thème > Thème.
+Choose it from the XMB: PlayStation Network > Account Management > Avatar.	Choisissez-le depuis le XMB : PlayStation Network > Gestion de compte > Avatar.
+Checksum OK (%s). Saved to %s\n%s	Somme de contrôle OK (%s). Enregistré dans %s\n%s
+Download cancelled.	Téléchargement annulé.
+Download paused. Press X to resume.	Téléchargement en pause. Appuyez sur X pour reprendre.
+The download didn't match its checksum, so it was deleted. Try again.	Le téléchargement ne correspondait pas à sa somme de contrôle, il a donc été supprimé. Réessayez.
+\nPress X to resume where it stopped.	\nAppuyez sur X pour reprendre là où il s'est arrêté.
+Couldn't delete that file	Impossible de supprimer ce fichier
+A new version of this app. Once it's downloaded, install it from Package Manager > Install Package Files: it installs over this one.	Une nouvelle version de cette application. Une fois téléchargée, installez-la depuis Gestionnaire de paquets > Installer des fichiers de paquet : elle s'installe par-dessus celle-ci.
+Search	Rechercher
+Searching for "%s"...	Recherche de « %s »...
+Search: "%s"  (%d%s)	Recherche : « %s »  (%d%s)
+Checking for updates...	Recherche de mises à jour...
+%s  %d%%  ·  %d more	%s  %d%%  ·  %d de plus
+%s free on the HDD  ·  %d downloaded	%s libres sur le disque dur  ·  %d téléchargés
+%d downloaded	%d téléchargés
+PS3 World %s is out: press Square to get it	PS3 World %s est disponible : appuyez sur Carré pour l'obtenir
+Open	Ouvrir
+My downloads	Mes téléchargements
+Update	Mettre à jour
+Language	Langue
+Back	Retour
+Section	Section
+Nothing here yet.	Rien ici pour l'instant.
+Nothing matches the search. Press Square to clear it.	Rien ne correspond à la recherche. Appuyez sur Carré pour l'effacer.
+Loading...	Chargement...
+Downloaded	Téléchargé
+CFW only	CFW uniquement
+HEN / CFW	HEN / CFW
+Unknown author	Auteur inconnu
+Clear search	Effacer la recherche
+Packs	Packs
+Categories	Catégories
+A-Z	A-Z
+Loading the preview...	Chargement de l'aperçu...
+Author	Auteur
+Version	Version
+Size	Taille
+Pack	Pack
+Category	Catégorie
+Works on	Fonctionne sur
+HEN or CFW	HEN ou CFW
+Any PS3	Toute PS3
+Saves to	Enregistré dans
+Yes	Oui
+Checking what's there already...	Vérification de ce qui est déjà là...
+Checking the sha256...	Vérification du sha256...
+Downloading	Téléchargement
+Resumed from %s	Repris à %s
+Queued: %d download ahead of it. You can go back and keep browsing.	En file d'attente : %d téléchargement avant lui. Vous pouvez revenir et continuer à naviguer.
+Queued: %d downloads ahead of it. You can go back and keep browsing.	En file d'attente : %d téléchargements avant lui. Vous pouvez revenir et continuer à naviguer.
+After it downloads: %s	Une fois téléchargé : %s
+Cancel download	Annuler le téléchargement
+Try again	Réessayer
+Download again	Télécharger à nouveau
+Download	Télécharger
+Which user is the avatar for?	Pour quel utilisateur est l'avatar ?
+It's saved in that user's psn_avatar folder.	Il est enregistré dans le dossier psn_avatar de cet utilisateur.
+Choose	Choisir
+The PS3's language (%s)	La langue de la PS3 (%s)
+%d on the HDD (%s)  ·  %s free	%d sur le disque dur (%s)  ·  %s libres
+%d on the HDD (%s)	%d sur le disque dur (%s)
+Nothing downloaded yet.	Rien n'a encore été téléchargé.
+Downloading %d%%	Téléchargement %d%%
+Queued	En attente
+Failed	Échec
+New version	Nouvelle version
+Press Square again to delete this file from the HDD.	Appuyez à nouveau sur Carré pour supprimer ce fichier du disque dur.
+Delete	Supprimer
+Clear	Retirer
+Apps · Games · Ports	Apps · Jeux · Ports
+Homebrew	Homebrew
+Homebrew tools and games, PC ports and media players for HEN & CFW.	Outils et jeux homebrew, ports PC et lecteurs multimédia pour HEN et CFW.
+Customise your XMB	Personnalisez votre XMB
+Themes	Thèmes
+Custom themes from the full theme archive, by category.	Des thèmes personnalisés de toute l'archive de thèmes, par catégorie.
+Your profile picture	Votre photo de profil
+Avatars	Avatars
+XMB avatars from every region, saved to your PS3 user.	Des avatars XMB de toutes les régions, enregistrés sur votre utilisateur PS3.
+Games	Jeux
+Play	Jouer
+Homebrew Games	Jeux homebrew
+Grid Siege, Super Mario War, PS3Sweeper+ and more.	Grid Siege, Super Mario War, PS3Sweeper+ et plus.
+Ports	Ports
+PC & retro	PC et rétro
+Undertale, Nazi Zombies: Portable, Mario Kart 64 and more. No game files needed.	Undertale, Nazi Zombies: Portable, Mario Kart 64 et plus. Aucun fichier de jeu nécessaire.
+Tools	Outils
+Essentials	Indispensables
+Homebrew Tools	Outils homebrew
+Apollo, IRISMAN, webMAN MOD, PKGi, multiMAN and more.	Apollo, IRISMAN, webMAN MOD, PKGi, multiMAN et plus.
+Media	Multimédia
+Watch & listen	Regarder et écouter
+Media Players	Lecteurs multimédia
+Movian, Yo! Player, Jellyfin, Spotify and Resonant for Plex.	Movian, Yo! Player, Jellyfin, Spotify et Resonant for Plex.
+Misc	Divers
+Prototypes & demos	Prototypes et démos
+Miscellaneous	Divers
+Unreleased prototypes, demos and more.	Prototypes inédits, démos et plus.
+All themes	Tous les thèmes
+Anime & Comics	Anime et BD
+Movies & TV	Films et séries
+Sports	Sport
+Abstract Art & Design	Art abstrait et design
+Art & Graphics	Art et graphisme
+Music	Musique
+Computers & Tech	Informatique et technologie
+Dynamic & Animated	Dynamiques et animés
+Cars & Transportation	Voitures et transports
+Nature & Animals	Nature et animaux
+Celebrities & People	Célébrités et personnalités
+Slideshow	Diaporama
+General	Général
+Holiday & Seasonal	Fêtes et saisons
+Official PlayStation Themes	Thèmes PlayStation officiels
+All avatars	Tous les avatars
+US	États-Unis
+EU	UE
+Japan	Japon
+Asia	Asie
+Other	Autres
+No user profiles were found in /dev_hdd0/home.	Aucun profil utilisateur trouvé dans /dev_hdd0/home.
+Choose which user the avatar is for.	Choisissez l'utilisateur pour qui est l'avatar.
+%s doesn't match the catalogue (it may be being updated): try again later	%s ne correspond pas au catalogue (il est peut-être en cours de mise à jour) : réessayez plus tard
+Not enough free space (%s)	Pas assez d'espace libre (%s)
+Couldn't write to %s	Impossible d'écrire dans %s
+The drive is full%s	Le disque est plein%s
+The server sent the wrong part of the file. Try again%s	Le serveur a envoyé la mauvaise partie du fichier. Réessayez%s
+Not found on the server (404)%s	Introuvable sur le serveur (404)%s
+The server's copy is different (416). Try again%s	La copie du serveur est différente (416). Réessayez%s
+Download cut short%s	Téléchargement interrompu%s
+Checksum mismatch: the file was deleted. Try again%s	Somme de contrôle incorrecte : le fichier a été supprimé. Réessayez%s
+Couldn't rename the finished file in %s	Impossible de renommer le fichier terminé dans %s
+Can't find %s (is the PS3 online?)	Impossible de trouver %s (la PS3 est-elle en ligne ?)
+Can't connect to %s:%d (%d)	Impossible de se connecter à %s:%d (%d)
+Secure connections are unavailable	Les connexions sécurisées ne sont pas disponibles
+%s's certificate was rejected (is the PS3's clock right?)	Le certificat de %s a été refusé (l'horloge de la PS3 est-elle juste ?)
+Secure connection to %s failed (-0x%04x)	La connexion sécurisée à %s a échoué (-0x%04x)
+Request to %s failed	La requête vers %s a échoué
+No reply from %s	Pas de réponse de %s
+Reply from %s cut short	La réponse de %s a été interrompue
+The network isn't available	Le réseau n'est pas disponible
+Bad URL	URL incorrecte
+The reply wasn't understood	La réponse n'a pas été comprise
+Insecure redirect refused	Redirection non sécurisée refusée
+Redirect to another host refused	Redirection vers un autre serveur refusée
+Too many redirects	Trop de redirections
+Download cut short	Téléchargement interrompu
+Cancelled	Annulé
+Stopped	Arrêté

@@ -1,0 +1,163 @@
+# PS3 World in Turkish: "English<TAB>translation" a line; \n is a new line.
+# Keep every %s, %d... in the same order. Corrections welcome.
+No network connection. Check Settings > Network Settings on the PS3, then try again.	Ağ bağlantısı yok. PS3'te Ayarlar > Ağ Ayarları'nı kontrol edip tekrar deneyin.
+The secure connection to dl.ps3.world failed. Check the PS3's date and time (Settings > Date and Time Settings), then try again.	dl.ps3.world ile güvenli bağlantı kurulamadı. PS3'ün tarih ve saatini kontrol edip (Ayarlar > Tarih ve Saat Ayarları) tekrar deneyin.
+Not found on the server (404). It may have moved: try again in a moment.	Sunucuda bulunamadı (404). Taşınmış olabilir: biraz sonra tekrar deneyin.
+Not enough free space. %s	Yeterli boş alan yok. %s
+The catalogue wasn't found on the server (HTTP %d)	Katalog sunucuda bulunamadı (HTTP %d)
+Loading the catalogue...	Katalog yükleniyor...
+Offline: showing the catalogue from %.10s	Çevrimdışı: %.10s tarihli katalog
+Search isn't available: %s	Arama kullanılamıyor: %s
+Couldn't make the folder %s	%s klasörü oluşturulamadı
+Out of memory	Bellek yetersiz
+%d downloads are waiting already: add this one when some have finished.	Zaten %d indirme bekliyor: bazıları bitince bunu ekleyin.
+Install it from the XMB: Package Manager > Install Package Files.	XMB'den yükleyin: Paket Yöneticisi > Paket Dosyalarını Yükle.
+Choose it on the XMB: Settings > Theme Settings > Theme.	XMB'de seçin: Ayarlar > Tema Ayarları > Tema.
+Choose it from the XMB: PlayStation Network > Account Management > Avatar.	XMB'den seçin: PlayStation Network > Hesap Yönetimi > Avatar.
+Checksum OK (%s). Saved to %s\n%s	Sağlama toplamı tamam (%s). Kaydedildi: %s\n%s
+Download cancelled.	İndirme iptal edildi.
+Download paused. Press X to resume.	İndirme duraklatıldı. Devam etmek için X'e basın.
+The download didn't match its checksum, so it was deleted. Try again.	İndirilen dosya sağlama toplamıyla eşleşmedi, bu yüzden silindi. Tekrar deneyin.
+\nPress X to resume where it stopped.	\nKaldığı yerden devam etmek için X'e basın.
+Couldn't delete that file	Dosya silinemedi
+A new version of this app. Once it's downloaded, install it from Package Manager > Install Package Files: it installs over this one.	Bu uygulamanın yeni bir sürümü. İndirdikten sonra Paket Yöneticisi > Paket Dosyalarını Yükle'den yükleyin: bunun üzerine yüklenir.
+Search	Ara
+Searching for "%s"...	"%s" aranıyor...
+Search: "%s"  (%d%s)	Arama: "%s"  (%d%s)
+Checking for updates...	Güncellemeler kontrol ediliyor...
+%s  %d%%  ·  %d more	%s  %d%%  ·  %d tane daha
+%s free on the HDD  ·  %d downloaded	HDD'de %s boş  ·  %d indirildi
+%d downloaded	%d indirildi
+PS3 World %s is out: press Square to get it	PS3 World %s çıktı: indirmek için Kare'ye basın
+Open	Aç
+My downloads	İndirdiklerim
+Update	Güncelle
+Language	Dil
+Back	Geri
+Section	Bölüm
+Nothing here yet.	Henüz burada bir şey yok.
+Nothing matches the search. Press Square to clear it.	Aramayla eşleşen bir şey yok. Temizlemek için Kare'ye basın.
+Loading...	Yükleniyor...
+Downloaded	İndirildi
+CFW only	Yalnızca CFW
+HEN / CFW	HEN / CFW
+Unknown author	Bilinmeyen yapımcı
+Clear search	Aramayı temizle
+Packs	Paketler
+Categories	Kategoriler
+A-Z	A-Z
+Loading the preview...	Önizleme yükleniyor...
+Author	Yapımcı
+Version	Sürüm
+Size	Boyut
+Pack	Paket
+Category	Kategori
+Works on	Çalıştığı yer
+HEN or CFW	HEN veya CFW
+Any PS3	Her PS3
+Saves to	Kaydedileceği yer
+Yes	Evet
+Checking what's there already...	Zaten olanlar kontrol ediliyor...
+Checking the sha256...	sha256 kontrol ediliyor...
+Downloading	İndiriliyor
+Resumed from %s	%s noktasından devam edildi
+Queued: %d download ahead of it. You can go back and keep browsing.	Sırada: önünde %d indirme var. Geri dönüp göz atmaya devam edebilirsiniz.
+Queued: %d downloads ahead of it. You can go back and keep browsing.	Sırada: önünde %d indirme var. Geri dönüp göz atmaya devam edebilirsiniz.
+After it downloads: %s	İndirildikten sonra: %s
+Cancel download	İndirmeyi iptal et
+Try again	Tekrar dene
+Download again	Tekrar indir
+Download	İndir
+Which user is the avatar for?	Avatar hangi kullanıcı için?
+It's saved in that user's psn_avatar folder.	O kullanıcının psn_avatar klasörüne kaydedilir.
+Choose	Seç
+The PS3's language (%s)	PS3'ün dili (%s)
+%d on the HDD (%s)  ·  %s free	HDD'de %d (%s)  ·  %s boş
+%d on the HDD (%s)	HDD'de %d (%s)
+Nothing downloaded yet.	Henüz bir şey indirilmedi.
+Downloading %d%%	İndiriliyor %d%%
+Queued	Sırada
+Failed	Başarısız
+New version	Yeni sürüm
+Press Square again to delete this file from the HDD.	Bu dosyayı HDD'den silmek için tekrar Kare'ye basın.
+Delete	Sil
+Clear	Kaldır
+Apps · Games · Ports	Uygulamalar · Oyunlar · Portlar
+Homebrew	Homebrew
+Homebrew tools and games, PC ports and media players for HEN & CFW.	HEN ve CFW için homebrew araçları ve oyunları, PC portları ve medya oynatıcılar.
+Customise your XMB	XMB'ni kişiselleştir
+Themes	Temalar
+Custom themes from the full theme archive, by category.	Tüm tema arşivinden özel temalar, kategoriye göre.
+Your profile picture	Profil resmin
+Avatars	Avatarlar
+XMB avatars from every region, saved to your PS3 user.	Her bölgeden XMB avatarları, PS3 kullanıcına kaydedilir.
+Games	Oyunlar
+Play	Oyna
+Homebrew Games	Homebrew oyunlar
+Grid Siege, Super Mario War, PS3Sweeper+ and more.	Grid Siege, Super Mario War, PS3Sweeper+ ve daha fazlası.
+Ports	Portlar
+PC & retro	PC ve retro
+Undertale, Nazi Zombies: Portable, Mario Kart 64 and more. No game files needed.	Undertale, Nazi Zombies: Portable, Mario Kart 64 ve daha fazlası. Oyun dosyası gerekmez.
+Tools	Araçlar
+Essentials	Olmazsa olmazlar
+Homebrew Tools	Homebrew araçları
+Apollo, IRISMAN, webMAN MOD, PKGi, multiMAN and more.	Apollo, IRISMAN, webMAN MOD, PKGi, multiMAN ve daha fazlası.
+Media	Medya
+Watch & listen	İzle ve dinle
+Media Players	Medya oynatıcılar
+Movian, Yo! Player, Jellyfin, Spotify and Resonant for Plex.	Movian, Yo! Player, Jellyfin, Spotify ve Resonant for Plex.
+Misc	Çeşitli
+Prototypes & demos	Prototipler ve demolar
+Miscellaneous	Çeşitli
+Unreleased prototypes, demos and more.	Yayınlanmamış prototipler, demolar ve daha fazlası.
+All themes	Tüm temalar
+Anime & Comics	Anime ve çizgi roman
+Movies & TV	Film ve dizi
+Sports	Spor
+Abstract Art & Design	Soyut sanat ve tasarım
+Art & Graphics	Sanat ve grafik
+Music	Müzik
+Computers & Tech	Bilgisayar ve teknoloji
+Dynamic & Animated	Dinamik ve animasyonlu
+Cars & Transportation	Arabalar ve ulaşım
+Nature & Animals	Doğa ve hayvanlar
+Celebrities & People	Ünlüler ve insanlar
+Slideshow	Slayt gösterisi
+General	Genel
+Holiday & Seasonal	Bayramlar ve mevsimler
+Official PlayStation Themes	Resmi PlayStation temaları
+All avatars	Tüm avatarlar
+US	ABD
+EU	AB
+Japan	Japonya
+Asia	Asya
+Other	Diğer
+No user profiles were found in /dev_hdd0/home.	/dev_hdd0/home içinde kullanıcı profili bulunamadı.
+Choose which user the avatar is for.	Avatarın hangi kullanıcı için olduğunu seçin.
+%s doesn't match the catalogue (it may be being updated): try again later	%s katalogla eşleşmiyor (güncelleniyor olabilir): daha sonra tekrar deneyin
+Not enough free space (%s)	Yeterli boş alan yok (%s)
+Couldn't write to %s	%s konumuna yazılamadı
+The drive is full%s	Disk dolu%s
+The server sent the wrong part of the file. Try again%s	Sunucu dosyanın yanlış kısmını gönderdi. Tekrar deneyin%s
+Not found on the server (404)%s	Sunucuda bulunamadı (404)%s
+The server's copy is different (416). Try again%s	Sunucudaki kopya farklı (416). Tekrar deneyin%s
+Download cut short%s	İndirme yarıda kesildi%s
+Checksum mismatch: the file was deleted. Try again%s	Sağlama toplamı uyuşmuyor: dosya silindi. Tekrar deneyin%s
+Couldn't rename the finished file in %s	%s içindeki tamamlanan dosyanın adı değiştirilemedi
+Can't find %s (is the PS3 online?)	%s bulunamadı (PS3 çevrimiçi mi?)
+Can't connect to %s:%d (%d)	%s:%d adresine bağlanılamadı (%d)
+Secure connections are unavailable	Güvenli bağlantılar kullanılamıyor
+%s's certificate was rejected (is the PS3's clock right?)	%s sertifikası reddedildi (PS3'ün saati doğru mu?)
+Secure connection to %s failed (-0x%04x)	%s ile güvenli bağlantı kurulamadı (-0x%04x)
+Request to %s failed	%s isteği başarısız oldu
+No reply from %s	%s yanıt vermedi
+Reply from %s cut short	%s yanıtı yarıda kesildi
+The network isn't available	Ağ kullanılamıyor
+Bad URL	Geçersiz URL
+The reply wasn't understood	Yanıt anlaşılamadı
+Insecure redirect refused	Güvenli olmayan yönlendirme reddedildi
+Redirect to another host refused	Başka bir sunucuya yönlendirme reddedildi
+Too many redirects	Çok fazla yönlendirme
+Download cut short	İndirme yarıda kesildi
+Cancelled	İptal edildi
+Stopped	Durduruldu

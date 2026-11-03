@@ -139,6 +139,13 @@ Files and system
 const char *plat_data_dir(void) { return APP_DIR "/data"; }
 const char *plat_save_dir(void) { return APP_DIR; }
 
+int plat_system_lang(void)
+{
+	s32 v = SYSUTIL_LANG_ENGLISH_US;
+	if (sysUtilGetSystemParamInt(SYSUTIL_SYSTEMPARAM_ID_LANG, &v) != 0) v = SYSUTIL_LANG_ENGLISH_US;
+	return v;
+}
+
 unsigned char *plat_read_file(const char *path, size_t *len)
 {
 	FILE *f = fopen(path, "rb");

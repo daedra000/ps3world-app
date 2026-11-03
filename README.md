@@ -23,6 +23,7 @@
 - **Free space** on the HDD, on the home screen.
 - **Updates:** when a newer PS3 World is out, the home screen says so, and Square downloads it.
 - **Works offline** with the last catalogue it loaded.
+- **12 languages:** English, Spanish, Portuguese, French, German, Italian, Dutch, Polish, Turkish, Danish, Indonesian and Arabic (joined letters, right to left). It follows the PS3's language; Select on the home screen picks another. The words are in `data/lang/<code>.txt`, one "English<TAB>translation" a line: corrections welcome.
 
 ## Controls
 
@@ -33,6 +34,7 @@
 | Circle | back |
 | Square | clear a search; cancel a download; delete in My downloads; get an update on the home screen |
 | Triangle | search a list; My downloads on the home screen |
+| Select | the language, on the home screen |
 | L1 / R1 | the previous / next section |
 | L2 / R2 | the previous / next letter |
 

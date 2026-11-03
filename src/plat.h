@@ -50,6 +50,7 @@ static inline void spin_unlock(volatile int *f)
 // ---- files ----
 const char *plat_data_dir(void);		// bundled fonts etc. (read-only)
 const char *plat_save_dir(void);		// settings, log (writable)
+int plat_system_lang(void);				// the console's language, as sysutil numbers it (1: English)
 // reads a whole file; NULL if it isn't there. *len gets the size. Caller frees.
 unsigned char *plat_read_file(const char *path, size_t *len);
 int plat_write_file(const char *path, const void *data, size_t len);

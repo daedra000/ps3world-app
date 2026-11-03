@@ -15,6 +15,7 @@ Install targets (v1):
 #include "plat.h"
 #include "download.h"
 #include "store.h"
+#include "lang.h"
 
 #define MAX_RECORDS	4096
 #define HOME_DIR	"/dev_hdd0/home"
@@ -248,7 +249,7 @@ char *store_get_file(const cat_file_t *f, size_t *len, volatile int *cancel, int
 	if (memcmp(got, f->sha256, 32)) {
 		// the index and the page are from different uploads (or the upload is half done)
 		*err_kind = ERR_CHECKSUM;
-		snprintf(err, errsize, "%s doesn't match the catalogue (it may be being updated): try again later", f->url);
+		snprintf(err, errsize, tr("%s doesn't match the catalogue (it may be being updated): try again later"), f->url);
 		free(s);
 		return NULL;
 	}
