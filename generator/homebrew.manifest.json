@@ -181,6 +181,26 @@
       "icon": "images/homebrew/webman-mod.webp"
     },
     {
+      "file": "homebrewtools/qDNSm-Installer.pkg",
+      "title": "qDNSm",
+      "author": "Tha14",
+      "version": "",
+      "description": "An XMB plugin that switches DNS without going into Network Settings. Press R1 + R2 + R3 on the XMB, pick a server and it reconnects. Comes with the online revival servers listed and shows which games each supports.",
+      "group": "Tools",
+      "requires": "hen",
+      "icon": "images/tools/qdnsm.webp"
+    },
+    {
+      "file": "homebrewtools/ezDNS.pkg",
+      "title": "ezDNS",
+      "author": "tbwcjw",
+      "version": "",
+      "description": "A simple app from the Game column: save up to 20 DNS profiles, then activate one and the console restarts with it.",
+      "group": "Tools",
+      "requires": "hen",
+      "icon": "images/tools/ezdns.webp"
+    },
+    {
       "file": "mediaplayers/JellyFin-PS3.pkg",
       "title": "JellyFin PS3 (Lossless Audio)",
       "author": "MontyMcK",
