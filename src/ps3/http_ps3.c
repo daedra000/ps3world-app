@@ -1,15 +1,14 @@
 /*
 http_ps3.c: HTTP/1.1 over the PS3's sockets, with TLS 1.2 from mbedTLS.
 
-From NZ:P PS3's ps3_https.c (daedra000/nzp-ps3), changed for a music player:
+From NZ:P PS3's ps3_https.c (daedra000/nzp-ps3), by way of Resonant:
   - every request has its own connection, TLS context and random generator,
-    so the browser, the album art and the music download run side by side;
-  - extra request headers (Plex's X-Plex-* and Accept: application/json);
-  - the body of any status reaches the sink (Plex explains a 400 in it).
+    so the catalogue, the art and a download run side by side;
+  - a redirect is only followed on the same host (dl.ps3.world never sends one).
 
 The system's own HTTPS (cellHttps) only speaks the TLS of ~2015, which
-plex.tv and the *.plex.direct certificates refuse. mbedTLS checks servers
-against the Mozilla roots (ca_bundle.h, made by CI).
+current certificates refuse. mbedTLS checks servers against the Mozilla
+roots (ca_bundle.h, made by CI).
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -50,7 +49,7 @@ against the Mozilla roots (ca_bundle.h, made by CI).
 #include "ca_bundle.h"
 #define HAVE_CA_BUNDLE 1
 #elif !defined(ALLOW_NO_HTTPS)
-// a build without root certificates can't talk to plex.tv at all: stop here
+// a build without root certificates can't talk to dl.ps3.world at all: stop here
 // rather than ship one (CI writes ca_bundle.h; -DALLOW_NO_HTTPS for a test build)
 #error "src/ps3/ca_bundle.h is missing: see the mbedTLS step in .github/workflows/ps3.yml"
 #endif
@@ -163,8 +162,15 @@ static int BioRecv(void *ctx, unsigned char *buf, size_t len)
 {
 	conn_t *c = ctx;
 	int n = recv(c->fd, buf, len, 0);
-	if (n < 0)
-		return (errno == EAGAIN || errno == EWOULDBLOCK) ? MBEDTLS_ERR_SSL_TIMEOUT : MBEDTLS_ERR_NET_RECV_FAILED;
+	if (n < 0) {
+		if (errno == EAGAIN || errno == EWOULDBLOCK)
+			return MBEDTLS_ERR_SSL_TIMEOUT;
+		// [unverified] the errno lv2 gives when SO_RCVTIMEO runs out: if a stall lands
+		// here instead of as EAGAIN, every one-second stall ends the request
+		static int logged;
+		if (!logged) { logged = 1; plat_log("https: recv failed, errno %d (EAGAIN is %d)", errno, EAGAIN); }
+		return MBEDTLS_ERR_NET_RECV_FAILED;
+	}
 	return n;
 }
 
@@ -187,7 +193,7 @@ static void Conn_Close(conn_t *c)
 	}
 }
 
-// numbers-and-dots addresses skip DNS (most Plex connections are)
+// numbers-and-dots addresses skip DNS
 static int Resolve(const char *host, struct in_addr *out)
 {
 	struct hostent *he;
@@ -282,7 +288,7 @@ static int Conn_Open(conn_t *c, const char *host, int port, int tls, int timeout
 	c->tls_made = 1;
 	mbedtls_entropy_add_source(&c->entropy, PS3Entropy, NULL, 32, MBEDTLS_ENTROPY_SOURCE_STRONG);
 	if ((ret = mbedtls_ctr_drbg_seed(&c->drbg, mbedtls_entropy_func, &c->entropy,
-			(const unsigned char *)"cellplex", 8)) != 0 ||
+			(const unsigned char *)"ps3world", 8)) != 0 ||
 		(ret = mbedtls_ssl_config_defaults(&c->conf, MBEDTLS_SSL_IS_CLIENT, MBEDTLS_SSL_TRANSPORT_STREAM,
 			MBEDTLS_SSL_PRESET_DEFAULT)) != 0) {
 		SetErr(err, errsize, "TLS setup -0x%04x", -ret);
@@ -530,15 +536,13 @@ again:
 			SetErr(res->err, sizeof(res->err), "%s", tr("Insecure redirect refused"));
 			goto out;
 		}
-		// the token only ever goes to the host it was meant for
-		if (req->headers && strstr(req->headers, "X-Plex-Token")) {
-			url_t *nu = malloc(sizeof(*nu));
-			int same = nu && Url_Parse(location, nu) && !strcasecmp(nu->host, u->host) && nu->port == u->port && nu->tls == u->tls;
-			free(nu);
-			if (!same) {
-				SetErr(res->err, sizeof(res->err), "%s", tr("Insecure redirect refused"));
-				goto out;
-			}
+		// the same host only: anything served from elsewhere isn't what the catalogue checked
+		url_t *nu = malloc(sizeof(*nu));
+		int same = nu && Url_Parse(location, nu) && !strcasecmp(nu->host, u->host) && nu->port == u->port && nu->tls == u->tls;
+		free(nu);
+		if (!same) {
+			SetErr(res->err, sizeof(res->err), "%s", tr("Redirect to another host refused"));
+			goto out;
 		}
 		if (++redirects > MAX_REDIRECTS) {
 			SetErr(res->err, sizeof(res->err), "%s", tr("Too many redirects"));

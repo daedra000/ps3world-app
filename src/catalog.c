@@ -222,7 +222,10 @@ static int Check(const cJSON *o, cat_item_t *it)
 
 	for (t = 0; t < NUM_TYPES; t++)
 		if (!strcmp(type, type_names[t])) break;
-	if (t == NUM_TYPES || !Id_Ok(Str(o, "id")) || !*Str(o, "title") || !cJSON_IsNumber(size) || size->valuedouble < 0)
+	// a size is a whole number of bytes, 8 GiB at most (it goes into the free-space sums)
+	if (t == NUM_TYPES || !Id_Ok(Str(o, "id")) || !*Str(o, "title") || !cJSON_IsNumber(size) ||
+		!(size->valuedouble >= 0 && size->valuedouble <= 8589934592.0) ||
+		(double)(long long)size->valuedouble != size->valuedouble)
 		return 0;
 	if (!Safe_Path(Str(o, "url")) || (*Str(o, "icon") && !Safe_Path(Str(o, "icon"))) ||
 		(*Str(o, "preview") && !Safe_Path(Str(o, "preview"))))

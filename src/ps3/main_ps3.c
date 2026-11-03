@@ -158,8 +158,11 @@ unsigned char *plat_read_file(const char *path, size_t *len)
 
 int plat_write_file(const char *path, const void *data, size_t len)
 {
-	char tmp[512];
-	snprintf(tmp, sizeof(tmp), "%s.tmp", path);
+	// a name of its own: two threads can write the same file (an icon and its preview)
+	static volatile int seq;
+	char tmp[1024];
+	int tn = snprintf(tmp, sizeof(tmp), "%s.%d.tmp", path, __sync_add_and_fetch(&seq, 1));
+	if (tn < 0 || tn >= (int)sizeof(tmp)) return 0;
 	FILE *f = fopen(tmp, "wb");
 	if (!f) return 0;
 	int ok = fwrite(data, 1, len, f) == len;
@@ -293,6 +296,47 @@ static void Net_Init(void)
 	ps3_net_ok = 1;
 }
 
+/*
+==================
+Self-test: two things about lv2's filesystem nobody has checked, written to the log
+(in the app's own folder, and cleaned up after)
+==================
+*/
+static void Write_Test(const char *path, const char *s)
+{
+	FILE *f = fopen(path, "wb");
+	if (f) { fputs(s, f); fclose(f); }
+}
+
+static void Fs_Self_Test(void)
+{
+	const char *dir = APP_DIR "/selftest", *sub = APP_DIR "/selftest/a";
+	const char *dotdot = APP_DIR "/selftest/a/../b", *b = APP_DIR "/selftest/b";
+	const char *x = APP_DIR "/selftest/x", *y = APP_DIR "/selftest/y";
+	plat_mkdirs(sub);
+
+	// does a ".." in a path go up a folder?
+	FILE *f = fopen(dotdot, "wb");
+	if (f) fclose(f);
+	plat_log("selftest: \"..\" in a path is %s", !f ? "refused" : plat_file_size(b) >= 0 ? "followed (goes up a folder)" :
+		"taken literally (doesn't go up)");
+
+	// does rename replace a file that's there?
+	Write_Test(x, "x");
+	Write_Test(y, "yy");
+	int r = rename(x, y);
+	long long ys = plat_file_size(y);
+	plat_log("selftest: rename onto a file that's there %s (returned %d)", ys == 1 ? "replaces it" :
+		ys == 2 ? "leaves it (refused)" : "lost it", r);
+
+	remove(dotdot);
+	remove(b);
+	remove(x);
+	remove(y);
+	sysLv2FsRmdir(sub);
+	sysLv2FsRmdir(dir);
+}
+
 int main(int argc, char **argv)
 {
 	(void)argc;
@@ -302,6 +346,7 @@ int main(int argc, char **argv)
 		time_t now = time(NULL);
 		plat_log("PS3 clock: %s", ctime(&now));	// TLS checks certificate dates against it
 	}
+	Fs_Self_Test();
 	if (sysUtilRegisterCallback(SYSUTIL_EVENT_SLOT0, Sysutil_Callback, NULL) != 0)
 		plat_log("WARNING: sysUtilRegisterCallback failed");
 	ps3_input_init();		// (first: holding L1 at start-up keeps the RSX out of it)

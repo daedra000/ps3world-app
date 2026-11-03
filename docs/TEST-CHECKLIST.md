@@ -20,6 +20,8 @@ Tick each box. Where a step fails, note what the screen said and copy `/dev_hdd0
 - [ ] Avatars > Asia: the BlazBlue and Dynasty Warriors packs show their icons (their ids were too long before 0.5.3, and the icons never loaded).
 - [ ] Open the app and quit straight away (PS button > Quit Game). Reopen it: the log says "drawn by the RSX", not "the CPU draws". If the CPU ever draws after a freeze, hold R1 while the app starts to try the graphics chip again.
 
+- [ ] Send me the two `selftest:` lines from `ps3world_log.txt` (whether ".." goes up a folder, and whether rename replaces a file), and any `https: recv failed, errno` line.
+
 ## 2. Browse
 
 - [ ] Cross opens a category's list, Circle goes back to the categories, and Circle again goes home.

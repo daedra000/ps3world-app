@@ -158,6 +158,7 @@ jobs:
         run: |
           cd "$RUNNER_TEMP/psl1ght-py/ppu/librsx"
           sed -i 's/-O2 -mregnames/-O2 -fno-ipa-ra -mregnames/' Makefile
+          grep -q fno-ipa-ra Makefile || { echo "::error::librsx's Makefile changed: the -fno-ipa-ra patch didn't apply"; exit 1; }
           make -s install
 
       # HTTPS (dl.ps3.world): the PS3's own cellHttps is too old (see tools/build-mbedtls.sh)

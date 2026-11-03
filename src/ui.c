@@ -135,24 +135,31 @@ static int Wrap(int font, int px, const char *s, int maxw, char (*lines)[256], i
 	int n = 0;
 	while (*s && n < maxlines) {
 		char line[256];
-		int len = 0, last_space = -1;
-		while (s[len] && s[len] != '\n' && len < 255) {
-			memcpy(line, s, len + 1);
-			line[len + 1] = 0;
+		int len = 0, last_space = -1, cl = 1;
+		while (s[len] && s[len] != '\n') {
+			// a whole UTF-8 character at a time: a line never ends inside one
+			for (cl = 1; (s[len + cl] & 0xc0) == 0x80; cl++);
+			if (len + cl > 255) break;
+			memcpy(line, s, len + cl);
+			line[len + cl] = 0;
 			if (font_width(font, px, line) > maxw) break;
 			if (s[len] == ' ') last_space = len;
-			len++;
+			len += cl;
 		}
 		int cut = len;
 		if (s[len] && s[len] != '\n' && last_space > 0) cut = last_space;
-		if (cut == 0) cut = len ? len : 1;
+		if (cut == 0) cut = len ? len : s[0] ? cl : 1;
 		snprintf(lines[n++], 256, "%.*s", cut, s);
 		s += cut;
 		while (*s == ' ' || *s == '\n') s++;
 	}
 	if (*s && n) {		// more than fits: the last line ends in ...
 		size_t l = strlen(lines[n - 1]);
-		if (l > 3) strcpy(lines[n - 1] + l - 3, "...");
+		if (l > 3) {
+			l -= 3;
+			while (l && (lines[n - 1][l] & 0xc0) == 0x80) l--;		// (not inside a character)
+			strcpy(lines[n - 1] + l, "...");
+		}
 	}
 	return n;
 }
@@ -624,6 +631,12 @@ static void Fetch_Tick(void)
 	dirty = 1;
 }
 
+// "Search isn't available" goes with the search it was about (an offline banner stays)
+static void Search_Banner_Clear(void)
+{
+	if (!strncmp(banner, "Search isn't", 12)) banner[0] = 0;
+}
+
 // the search, once the list's search.txt is here
 static void Search_Run(view_t *v, const cat_list_t *l)
 {
@@ -665,8 +678,9 @@ typedef struct {
 	image_t *img;
 	job_t *job;
 	int failed;
-	uint64_t used;
+	uint64_t used, failed_at;
 } icon_slot_t;
+#define ART_RETRY_US	30000000		// art that failed is asked for again after this
 static icon_slot_t icons[ICON_SLOTS];
 static int icons_inflight;
 
@@ -681,19 +695,19 @@ static void Icon_Run(job_t *j)
 	icon_req_t *r = j->arg;
 	size_t len = 0;
 	unsigned char *data = plat_read_file(r->path, &len);
-	if (!data) {
-		http_res_t res;
-		char *body = http_fetch(NULL, r->url, NULL, NULL, 20, &j->cancel, &len, &res);
-		if (body && res.status == 200) {
-			plat_write_file(r->path, body, len);
-			data = (unsigned char *)body;
-		} else
-			free(body);
-	}
 	if (data) {
 		j->result = image_decode(data, (int)len, r->w, r->h);
 		free(data);
+		if (j->result) return;
+		remove(r->path);		// damaged in the cache: fetch it again
 	}
+	http_res_t res;
+	char *body = http_fetch(NULL, r->url, NULL, NULL, 20, &j->cancel, &len, &res);
+	if (body && res.status == 200) {
+		j->result = image_decode(body, (int)len, r->w, r->h);
+		if (j->result) plat_write_file(r->path, body, len);		// only what decodes is kept
+	}
+	free(body);
 }
 
 static void Icon_Cleanup(job_t *j)
@@ -710,6 +724,7 @@ static void Icons_Tick(void)
 		s->img = s->job->result;
 		s->job->result = NULL;
 		s->failed = !s->img;
+		s->failed_at = t_now;
 		job_release(s->job);
 		s->job = NULL;
 		icons_inflight--;
@@ -728,8 +743,12 @@ static image_t *Art_Get(const cat_item_t *it, int preview, int w, int h, int *fa
 		icon_slot_t *s = &icons[i];
 		if (s->w == w && s->h == h && s->preview == preview && !strcmp(s->id, it->id)) {
 			s->used = t_now;
-			if (failed) *failed = s->failed;
-			return s->img;
+			if (!s->failed || s->job || t_now - s->failed_at < ART_RETRY_US) {
+				if (failed) *failed = s->failed;
+				return s->img;
+			}
+			lru = i;		// failed a while ago: try again in the same slot
+			break;
 		}
 		if (!s->job && (lru < 0 || s->used < icons[lru].used)) lru = i;
 	}
@@ -954,6 +973,7 @@ static int Picker_Rows_Shown(void) { return cur == TYPE_HOMEBREW ? 99 : (CARD_H 
 
 static void Open_Section(int t)
 {
+	Search_Banner_Clear();
 	Folder_Close();
 	cur = t;
 	screen = SCR_LIST;
@@ -1033,6 +1053,7 @@ static void Input_List(uint32_t p)
 		if (plat_osk_open(title, v->query)) searching = 1;
 	}
 	if ((p & (BTN_SQUARE | BTN_CIRCLE)) && (v->query[0] || v->search_wait)) {
+		Search_Banner_Clear();
 		v->query[0] = 0;
 		v->search_wait = 0;
 		free(v->results);
@@ -1520,8 +1541,10 @@ static void Draw_Profile(void)
 {
 	font_draw_center(FONT_BOLD, 30, SCREEN_W / 2, 140, "Which user is the avatar for?", C_TEXT, 0);
 	font_draw_center(FONT_REGULAR, 19, SCREEN_W / 2, 186, "It's saved in that user's psn_avatar folder.", C_DIM, 0);
-	for (int i = 0; i < num_profiles; i++) {
-		int y = 250 + i * 56;
+	// 7 rows fit above the hints: the list scrolls to keep the chosen one on screen
+	int top = profile_sel > 6 ? profile_sel - 6 : 0;
+	for (int i = top; i < num_profiles && i < top + 7; i++) {
+		int y = 250 + (i - top) * 56;
 		if (i == profile_sel) gfx_round_rect(SCREEN_W / 2 - 300, y - 8, 600, 48, 12, C_ROW_ON);
 		char line[160];
 		snprintf(line, sizeof(line), "%s   (%s)", profile_names[i], profiles[i]);
