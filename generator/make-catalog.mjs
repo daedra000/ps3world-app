@@ -39,7 +39,7 @@ const CONFIG = {
   avatarsJson: 'G:/PS3 Avatars/_site_avatars/data/avatars.json',
   manifest: path.join(HERE, 'homebrew.manifest.json'),
   homebrewRoot: 'D:/PS3 WORLD R2',				// manifest "file" paths are relative to this (and to the bucket)
-  appFolder: 'ps3world',						// under homebrewRoot (and the bucket): PS3World-<version>.pkg, the newest offered as the app's update
+  appFolder: 'homebrewtools',					// under homebrewRoot (and the bucket): PS3WorldApp-v<version>.pkg, the newest offered as the app's update
   siteRoot: 'G:/PS3 World Self Host Ver - Copy',	// manifest "icon" paths are relative to this
   // a dl.ps3.world path's first folder -> where those files are on this PC
   roots: {
@@ -332,7 +332,7 @@ function packFolders(avatars, relDir) {
   });
 }
 
-// ---- the app's own update: the newest PS3World-<version>.pkg in appFolder, or null ----
+// ---- the app's own update: the newest PS3WorldApp-v<version>.pkg in appFolder, or null ----
 async function appUpdate() {
   const dir = path.join(CONFIG.homebrewRoot, CONFIG.appFolder);
   let names;
@@ -341,10 +341,10 @@ async function appUpdate() {
   const newer = (a, b) => { for (let i = 0; i < 3; i++) if ((a[i] || 0) !== (b[i] || 0)) return (a[i] || 0) > (b[i] || 0); return false; };
   let best = null;
   for (const n of names) {
-    const m = /^PS3World-(\d+\.\d+\.\d+)\.pkg$/.exec(n);
+    const m = /^PS3World(?:App)?-v?(\d+\.\d+\.\d+)\.pkg$/i.exec(n);		// PS3WorldApp-v1.0.0.pkg (or PS3World-1.0.0.pkg)
     if (m && (!best || newer(ver(m[1]), ver(best.version)))) best = { version: m[1], file: n };
   }
-  if (!best) { warn(`no PS3World-<version>.pkg in ${dir}: the catalogue offers no app update`); return null; }
+  if (!best) { warn(`no PS3WorldApp-v<version>.pkg in ${dir}: the catalogue offers no app update`); return null; }
   const info = await fileInfo(path.join(dir, best.file));
   return { version: best.version, url: encodePath(`${CONFIG.appFolder}/${best.file}`), size: info.size, sha256: info.sha256, _file: path.join(dir, best.file) };
 }
