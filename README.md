@@ -27,6 +27,7 @@
 - **Free space** on the HDD, on the home screen.
 - **Updates:** when a newer PS3 World is out, the home screen says so, and Square downloads it.
 - **Works offline** with the last catalogue it loaded.
+- **1080p:** with the PS3 set to 1080p, everything is drawn at the full resolution (the graphics chip draws; the CPU fallback is 720p). On a 4:3 TV the picture is letterboxed at the right shape.
 - **12 languages:** English, Spanish, Portuguese, French, German, Italian, Dutch, Polish, Turkish, Danish, Indonesian and Arabic (joined letters, right to left). It follows the PS3's language; Select on the home screen picks another. The words are in `data/lang/<code>.txt`, one "English<TAB>translation" a line: corrections welcome.
 
 ## Controls
@@ -39,7 +40,7 @@
 | Square | clear a search; download a whole avatar pack; cancel a download; delete in My downloads; get an update on the home screen |
 | Triangle | search a list; the preview full screen on an item; My downloads on the home screen |
 | Select | the language on the home screen; favourite an item |
-| L1 / R1 | in a list, the previous / next category (Games, Ports, Edits...); on the categories screen, the previous / next section |
+| L1 / R1 | in a list, the previous / next category (Games, Ports, Edits...); on the categories screen, the previous / next section; in My downloads, My downloads / Favourites. The bar at the top shows which. |
 | L2 / R2 | the previous / next letter |
 
 Hold R1 while the app starts to try the graphics chip again after a freeze, or L1 to use the CPU renderer that once.
@@ -48,7 +49,7 @@ Hold R1 while the app starts to try the graphics chip again after a freeze, or L
 
 The app reads a catalogue that `generator/make-catalog.mjs` builds from the sites' data and `generator/homebrew.manifest.json` ([generator/README.md](generator/README.md)). After adding to a site or the manifest, rebuild it and upload it; consoles pick it up the next time the app starts.
 
-To release a new version, put its PKG on R2 as `homebrewtools/PS3WorldApp-v<version>.pkg` and rebuild the catalogue: apps from 0.6.0 on offer it.
+To release a new version: put its PKG in `D:PS3 WORLD R2homebrewtools` as `PS3WorldApp-v<version>.pkg`, upload it (the deployer's Downloads card), run `G:DeployerRebuild app catalogue.cmd`, then upload the catalogue (its ps3world-catalog card). Apps from 0.6.0 on offer it on the home screen. Tag the commit `v<version>` for the GitHub release.
 
 ## Layout
 
@@ -56,6 +57,7 @@ To release a new version, put its PKG on R2 as `homebrewtools/PS3WorldApp-v<vers
 |---|---|
 | `src/` | the app (C, PSL1GHT); `src/ps3/` is the console backend |
 | `src/catalog.c` | catalog.json, parsed and checked |
+| `src/lang.c`, `src/i18n.c`, `data/lang/` | the languages: tr(), the PS3's language or the one picked, and each language's words |
 | `generator/` | Node script that builds catalog.json and the icons from the site build |
 | `tools/https_test.c` | the app's HTTPS client run on Linux against dl.ps3.world (CI) |
 | `tools/make-art.mjs` | ICON0, PIC1 and the in-app background, from the site |
