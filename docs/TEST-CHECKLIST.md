@@ -16,7 +16,7 @@ Tick each box. Where a step fails, note what the screen said and copy `/dev_hdd0
 - [ ] Cross on **Homebrew** shows its categories as four art cards: Games 5, Ports 17, Tools 13, Media 5. Circle goes back home.
 - [ ] Cross on **Themes** shows a grid: All themes 13,303, then 17 categories (Games, Anime & Comics, Movies & TV...). Down scrolls the grid. **Avatars**: All avatars 507 packs, then US, EU, Japan, Asia, and Other last.
 - [ ] The Homebrew card's title doesn't cover Kratos's face.
-- [ ] In a list, R1/L1 go to the next/previous category of that section (Homebrew > Games, R1: Ports, then Edits, Tools, Media, back to Games); the hint says "Category". On the categories screen, R1/L1 go to the next/previous section (R1 crashed in the first build).
+- [ ] In a list, R1/L1 go to the next/previous category of that section (Homebrew > Games, R1: Ports, then Edits, Tools, Media, back to Games); the bar at the top shows the categories, the current one filled. On the categories screen the bar shows Homebrew, Themes, Avatars, and R1/L1 go to the next/previous section; in My downloads it shows My downloads, Favourites (R1 crashed in the first build).
 - [ ] Homebrew > **Edits** lists the 4 PS2 Classics with their covers (about 3.5-4.7 GB each). One downloads to /dev_hdd0/packages and installs from Package Manager. [unverified until this step passes]
 - [ ] Avatars > Asia: the BlazBlue and Dynasty Warriors packs show their icons (their ids were too long before 0.5.3, and the icons never loaded).
 - [ ] Open the app and quit straight away (PS button > Quit Game). Reopen it: the log says "drawn by the RSX", not "the CPU draws". If the CPU ever draws after a freeze, hold R1 while the app starts to try the graphics chip again.

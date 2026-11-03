@@ -195,6 +195,35 @@ static int Hint2(int x, int g1, int g2, const char *label)
 	return Hint(x + GLYPH + 4, g2, label);
 }
 
+// L1, a row of pills (the one in use filled), R1: what L1/R1 move through. When they don't all
+// fit before maxx, the ones around the one in use. Returns the x after R1.
+#define TAB_H	34
+static int Tabs(int x, int y, int maxx, const char *const *labels, int n, int sel)
+{
+	int w[32];
+	if (n > 32) n = 32;
+	if (n <= 0) return x;
+	if (sel < 0) sel = 0;
+	if (sel >= n) sel = n - 1;
+	for (int i = 0; i < n; i++) w[i] = font_width(FONT_MEDIUM, 20, labels[i]) + 30;
+	int room = maxx - x - 2 * (GLYPH + 12), a = sel, b = sel, used = w[sel];
+	for (int grew = 1; grew; ) {
+		grew = 0;
+		if (b + 1 < n && used + 6 + w[b + 1] <= room) { used += 6 + w[++b]; grew = 1; }
+		if (a > 0 && used + 6 + w[a - 1] <= room) { used += 6 + w[--a]; grew = 1; }
+	}
+	Glyph(G_L1, x, y + (TAB_H - GLYPH) / 2);
+	x += GLYPH + 12;
+	for (int i = a; i <= b; i++) {
+		if (i == sel) gfx_round_rect(x, y, w[i], TAB_H, TAB_H / 2, C_ROW_ON);
+		font_draw(FONT_MEDIUM, 20, x + 15, y + (TAB_H - 20) / 2, labels[i], i == sel ? C_TEXT : C_DIM, w[i] - 30);
+		x += w[i] + 6;
+	}
+	Glyph(G_R1, x + 6, y + (TAB_H - GLYPH) / 2);
+	return x + 6 + GLYPH;
+}
+
+
 /*
 ==================
 Cards, as ps3.world's .explore-card: the art faded in from the right, a cyan
@@ -1801,35 +1830,47 @@ void ui_force_redraw(void)
 	dirty = 1;
 }
 
+// the sections, as tabs (what L1/R1 change on the categories screen)
+static int Section_Tabs(int x, int y, int maxx)
+{
+	const char *labels[NUM_TYPES];
+	for (int t = 0; t < NUM_TYPES; t++) labels[t] = tr(section_names[t]);
+	return Tabs(x, y, maxx, labels, NUM_TYPES, cur);
+}
+
 static void Draw_Header(void)
 {
 	if (logo) gfx_image(logo, LIST_X, 40, 220, 31, 0, 255);
-	int x = LIST_X;
-	Glyph(G_L1, x, 92);
-	x += GLYPH + 16;
-	for (int t = 0; t < NUM_TYPES; t++) {
-		char label[64], n[16];
-		Fmt_Count(ix->count[t], n, sizeof(n));
-		snprintf(label, sizeof(label), "%s  %s", tr(section_names[t]), n);
-		int w = font_width(FONT_MEDIUM, 22, label) + 32;
-		if (t == cur) gfx_round_rect(x, 88, w, 36, 18, C_ROW_ON);
-		font_draw(FONT_MEDIUM, 22, x + 16, 94, label, t == cur ? C_TEXT : C_DIM, 0);
-		x += w + 8;
-	}
-	Glyph(G_R1, x + 8, 92);
 	const view_t *v = Cur_View();
-	const cat_list_t *l = Cur_List();
-	char line[200];
+	char line[200], n[16];
+	uint32_t c = C_DIM;
+	int px = 18;
+	// on the right: the search, a message, or the section and how much is in it (in a pack, its name)
 	if (v && (v->query[0] || v->search_wait)) {
 		if (v->search_wait) snprintf(line, sizeof(line), tr("Searching for \"%s\"..."), v->query);
 		else snprintf(line, sizeof(line), tr("Search: \"%s\"  (%d%s)"), v->query, v->num_results, v->num_results == MAX_RESULTS ? "+" : "");
-		font_draw_right(FONT_MEDIUM, 20, SCREEN_W - LIST_X, 96, line, C_WARN);
-	} else if (banner[0])
-		font_draw_right(FONT_REGULAR, 18, SCREEN_W - LIST_X, 98, banner, C_WARN);
-	else if (l && l->name[0])
-		font_draw_right(FONT_MEDIUM, 20, SCREEN_W - LIST_X, 96, tr(l->name), C_TEXT);
-	else if (fetch_job)
-		font_draw_right(FONT_REGULAR, 18, SCREEN_W - LIST_X, 98, tr("Checking for updates..."), C_DIM);
+		c = C_WARN;
+	} else if (banner[0]) {
+		snprintf(line, sizeof(line), "%s", banner);
+		c = C_WARN;
+	} else if (folder.pages) {
+		snprintf(line, sizeof(line), "%s", folder.name);
+		c = C_TEXT;
+	} else {
+		Fmt_Count(ix->count[cur], n, sizeof(n));
+		snprintf(line, sizeof(line), "%s  %s", tr(section_names[cur]), n);
+	}
+	int rw = font_width(FONT_MEDIUM, px, line);
+	if (rw > 420) rw = 420;
+	font_draw(FONT_MEDIUM, px, SCREEN_W - LIST_X - rw, 96, line, c, rw);
+	// L1/R1: the section's categories (the sections, if it has only the one list)
+	int nl = ix->num_lists[cur], maxx = SCREEN_W - LIST_X - rw - 24;
+	if (nl > 1) {
+		const char *labels[32];
+		for (int i = 0; i < nl && i < 32; i++) labels[i] = tr(ix->lists[cur][i].name);
+		Tabs(LIST_X, 87, maxx, labels, nl, cur_list[cur]);
+	} else
+		Section_Tabs(LIST_X, 87, maxx);
 }
 
 static void Badge(int *rx, int y, const char *text, uint32_t c)
@@ -1842,6 +1883,7 @@ static void Badge(int *rx, int y, const char *text, uint32_t c)
 }
 
 // the logo, where we are (as the site's crumbs), and the catalogue's state, over the cards
+#define TOP_TABS_MAX	(SCREEN_W - LIST_X - 170)		// (the version is drawn top right)
 static void Draw_Top(const char *crumb)
 {
 	if (logo) gfx_image(logo, LIST_X, 40, 220, 31, 0, 255);
@@ -1935,7 +1977,8 @@ static void Draw_Home(void)
 
 static void Draw_Picker(void)
 {
-	Draw_Top(tr(section_names[cur]));
+	Draw_Top(NULL);
+	Section_Tabs(LIST_X + 236, 38, TOP_TABS_MAX);
 	int n = ix->num_lists[cur], cols = Picker_Cols();
 	char count[48];
 	if (cur == TYPE_HOMEBREW) {
@@ -1966,8 +2009,7 @@ static void Draw_Picker(void)
 		}
 	}
 	int x = Hint(LIST_X, G_CROSS, tr("Open"));
-	x = Hint(x, G_CIRCLE, tr("Back"));
-	Hint2(x, G_L1, G_R1, tr("Section"));
+	Hint(x, G_CIRCLE, tr("Back"));
 	Draw_Strip();
 }
 
@@ -1979,7 +2021,7 @@ static void Draw_List(void)
 	gfx_round_rect(LIST_X - 12, LIST_Y - 8, LIST_W + 24, ROWS * ROW_H + 16, 14, C_PANEL);
 	if (!l || !v) {		// a section with no lists (none in the catalogue, or none passed)
 		font_draw_center(FONT_MEDIUM, 22, SCREEN_W / 2, LIST_Y + 180, tr("Nothing here yet."), C_DIM, SCREEN_W - 200);
-		Hint2(Hint(LIST_X, G_CIRCLE, tr("Back")), G_L1, G_R1, tr("Section"));
+		Hint(LIST_X, G_CIRCLE, tr("Back"));
 		return;
 	}
 	int count = View_Count(v, l);
@@ -2049,7 +2091,6 @@ static void Draw_List(void)
 	else if (ix->num_lists[cur] > 1) x = Hint(x, G_CIRCLE, tr("Categories"));
 	else x = Hint(x, G_CIRCLE, tr("Back"));
 	if (!v->results && count > 50) x = Hint2(x, G_L2, G_R2, tr("A-Z"));
-	x = Hint2(x, G_L1, G_R1, tr(ix->num_lists[cur] > 1 ? "Category" : "Section"));
 	if (!Draw_Strip() && count) {
 		char pos[64], letter = '#';
 		int at = View_Pos(v, v->sel);
@@ -2231,7 +2272,9 @@ static void Draw_Lang(void)
 
 static void Draw_Favourites(void)
 {
-	Draw_Top(tr("Favourites"));
+	const char *tabs[2] = {tr("My downloads"), tr("Favourites")};
+	Draw_Top(NULL);
+	Tabs(LIST_X + 236, 38, TOP_TABS_MAX, tabs, 2, 1);
 	int n = favs ? favs->count : 0;
 	char line[300], size[32];
 	snprintf(line, sizeof(line), tr(n == 1 ? "%d favourite" : "%d favourites"), n);
@@ -2257,14 +2300,15 @@ static void Draw_Favourites(void)
 	int x = LIST_X;
 	if (n) x = Hint(x, G_CROSS, tr("Open"));
 	if (n) x = Hint(x, G_SQUARE, tr("Unfavourite"));
-	x = Hint2(x, G_L1, G_R1, tr("My downloads"));
 	Hint(x, G_CIRCLE, tr("Back"));
 }
 
 static void Draw_Downloads(void)
 {
 	if (dls_tab == 1) { Draw_Favourites(); return; }
-	Draw_Top(tr("My downloads"));
+	const char *tabs[2] = {tr("My downloads"), tr("Favourites")};
+	Draw_Top(NULL);
+	Tabs(LIST_X + 236, 38, TOP_TABS_MAX, tabs, 2, 0);
 	int n = Dls_Count(), qrows = Dls_Queue_Rows();
 	long long total = 0;
 	store_rec_t r;
@@ -2324,7 +2368,6 @@ static void Draw_Downloads(void)
 	int x = LIST_X;
 	if (can_open) x = Hint(x, G_CROSS, tr("Open"));
 	if (n) x = Hint(x, G_SQUARE, tr(!is_queue ? "Delete" : q_active ? "Cancel download" : "Clear"));
-	x = Hint2(x, G_L1, G_R1, tr("Favourites"));
 	Hint(x, G_CIRCLE, tr("Back"));
 }
 
