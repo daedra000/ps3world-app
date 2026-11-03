@@ -596,6 +596,21 @@ void image_free(image_t *img)
 	free(img);
 }
 
+// for a w x h box (canvas units): at the screen's own resolution when the GPU draws
+// (1080p: 1.5 times), but never past the picture's own: an upscale is the GPU's to filter
+image_t *image_decode_screen(const void *data, int len, int w, int h)
+{
+	float s = gfx_scale();
+	int iw, ih, n;
+	if (s != 1.0f && w > 0 && h > 0 && stbi_info_from_memory(data, len, &iw, &ih, &n) && iw > 0 && ih > 0) {
+		double sc = fmax((double)w * s / iw, (double)h * s / ih);		// the cover scale, at the screen's size
+		double k = sc > 1 ? s / sc : s;
+		w = (int)(w * k + 0.5);
+		h = (int)(h * k + 0.5);
+	}
+	return image_decode(data, len, w > 0 ? w : 1, h > 0 ? h : 1);
+}
+
 image_t *image_decode(const void *data, int len, int w, int h)
 {
 	int iw, ih, n;

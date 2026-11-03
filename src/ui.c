@@ -88,7 +88,7 @@ static image_t *Load_Image(const char *name, int w, int h)
 	snprintf(path, sizeof(path), "%s/%s", plat_data_dir(), name);
 	unsigned char *data = plat_read_file(path, &len);
 	if (!data) { plat_log("ui: %s missing", path); return NULL; }
-	image_t *img = image_decode(data, (int)len, w, h);
+	image_t *img = image_decode_screen(data, (int)len, w, h);
 	free(data);
 	return img;
 }
@@ -704,7 +704,7 @@ static void Icon_Run(job_t *j)
 	size_t len = 0;
 	unsigned char *data = plat_read_file(r->path, &len);
 	if (data) {
-		j->result = image_decode(data, (int)len, r->w, r->h);
+		j->result = image_decode_screen(data, (int)len, r->w, r->h);
 		free(data);
 		if (j->result) return;
 		remove(r->path);		// damaged in the cache: fetch it again
@@ -712,7 +712,7 @@ static void Icon_Run(job_t *j)
 	http_res_t res;
 	char *body = http_fetch(NULL, r->url, NULL, NULL, 20, &j->cancel, &len, &res);
 	if (body && res.status == 200) {
-		j->result = image_decode(body, (int)len, r->w, r->h);
+		j->result = image_decode_screen(body, (int)len, r->w, r->h);
 		if (j->result) plat_write_file(r->path, body, len);		// only what decodes is kept
 	}
 	free(body);
@@ -1718,8 +1718,7 @@ void ui_init(void)
 	logo = Load_Image("logo.png", 220, 31);
 	for (int i = 0; i < NUM_GLYPHS; i++) {
 		snprintf(name, sizeof(name), "glyphs/%s.png", glyph_files[i]);
-		int px = (int)(GLYPH * gfx_scale() + 0.5f);
-		glyphs[i] = Load_Image(name, px, px);
+		glyphs[i] = Load_Image(name, GLYPH, GLYPH);		// (at the screen's size: Load_Image sees to it)
 	}
 	// the cards' art, at the sizes Draw_Home and Draw_Picker draw them (tools/make-art.mjs makes them so)
 	card_bg = Load_Image("cards/bg.png", 256, 256);

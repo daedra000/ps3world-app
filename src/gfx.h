@@ -73,6 +73,8 @@ void image_touch(image_t *img);		// its pixels changed
 void image_free(image_t *img);
 // decodes JPEG/PNG and fits it into w x h (cover: crops to fill); NULL if it can't
 image_t *image_decode(const void *data, int len, int w, int h);
+// the same for drawing at w x h: at the screen's resolution with the GPU at 1080p (up to the picture's own)
+image_t *image_decode_screen(const void *data, int len, int w, int h);
 uint32_t image_average(const image_t *img);	// for tinting backgrounds
 
 static inline uint32_t argb(int a, int r, int g, int b)

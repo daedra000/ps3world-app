@@ -5,10 +5,11 @@ make-art.mjs: the XMB pictures and the in-app background, from the site.
 
   art/ICON0.PNG     320x176, the site's meta image (files/meta.jpg)
   art/PIC1.PNG      1920x1080, the site's index-page waves
-  data/backdrop.png 1280x720, the same waves for the app's screens
+  data/backdrop.png 1920x1080, the same waves for the app's screens
   data/logo.png     the site's wordmark (files/PS3-WORLD-logo.png)
   data/cards/*.png  the home and Homebrew cards: the site's .explore-card art (images/home)
-                    at each card's size, faded in from the right as the site's mask does,
+                    at each card's size at 1080p (HI times what src/ui.c lays out), faded in
+                    from the right as the site's mask does,
                     and bg.png, the cards' gradient (src/ui.c draws them)
 
 Uses sharp from generator/node_modules (cd generator && npm install first).
@@ -69,6 +70,8 @@ const cardBg = `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"
 </svg>`;
 
 // [file, the site's art, width, height, art height (default: the card's)]: the sizes src/ui.c draws them at
+// (in 720p canvas units: they're made HI times that, for the screen at 1080p)
+const HI = 1.5;
 const CARDS = [
   ['home-homebrew', 'homebrew', 640, 528, 380],	// smaller, so his face is below and right of the text
   ['home-themes', 'themes', 504, 256],
@@ -100,9 +103,10 @@ fs.mkdirSync(path.join(ROOT, 'art'), { recursive: true });
 fs.mkdirSync(path.join(ROOT, 'data/cards'), { recursive: true });
 await sharp(Buffer.from(cardBg)).png().toFile(path.join(ROOT, 'data/cards/bg.png'));
 for (const [name, src, w, h, ah] of CARDS)
-  await (await cardArt(path.join(site, 'images/home', src + '.webp'), w, h, ah)).toFile(path.join(ROOT, 'data/cards', name + '.png'));
+  await (await cardArt(path.join(site, 'images/home', src + '.webp'), Math.round(w * HI), Math.round(h * HI), ah && Math.round(ah * HI)))
+    .toFile(path.join(ROOT, 'data/cards', name + '.png'));
 await sharp(path.join(site, 'files/meta.jpg')).resize(320, 176, { fit: 'cover' }).png().toFile(path.join(ROOT, 'art/ICON0.PNG'));
 await sharp(Buffer.from(wavesSvg(1920, 1080))).png().toFile(path.join(ROOT, 'art/PIC1.PNG'));
-await sharp(Buffer.from(wavesSvg(1280, 720))).png().toFile(path.join(ROOT, 'data/backdrop.png'));
+await sharp(Buffer.from(wavesSvg(1920, 1080))).png().toFile(path.join(ROOT, 'data/backdrop.png'));
 fs.copyFileSync(path.join(site, 'files/PS3-WORLD-logo.png'), path.join(ROOT, 'data/logo.png'));
 console.log('art/ICON0.PNG, art/PIC1.PNG, data/backdrop.png, data/logo.png, data/cards/*.png');
