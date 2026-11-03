@@ -44,7 +44,7 @@ Tick each box. Where a step fails, note what the screen said and copy `/dev_hdd0
 - [ ] L1/R1 switch between Homebrew, Themes and Avatars.
 - [ ] In All themes, R2 jumps to the next letter and L2 to the previous one. The letter and position show bottom right.
 - [ ] Triangle opens the keyboard. Search "wolf" in All themes: only matching themes are listed, with "Search: "wolf"" at the top. Square (or Circle) clears it.
-- [ ] Cross opens an item's detail screen (description, size, "Needs HEN or CFW" / "Any PS3", and "Saves to ..."). Circle goes back to the same row.
+- [ ] Cross opens an item's detail screen (description, size, "Saves to ..."; "Works on: CFW only" only for the few that need CFW). Lists show no HEN / CFW badge, only "CFW only" where it applies. Circle goes back to the same row.
 
 ## 3. Homebrew download (PKG)
 

@@ -2209,8 +2209,7 @@ static void Draw_List(void)
 		else {
 			if (store_downloaded(it)) Badge(&rx, y + 20, tr("Downloaded"), C_OK);
 			if (Fav_Find(it->id) >= 0) Badge(&rx, y + 20, "\xe2\x98\x85", C_WARN);		// a star
-			if (it->requires == REQ_CFW) Badge(&rx, y + 20, tr("CFW only"), C_WARN);
-			else if (it->requires == REQ_HEN) Badge(&rx, y + 20, tr("HEN / CFW"), C_DIM);
+			if (it->requires == REQ_CFW) Badge(&rx, y + 20, tr("CFW only"), C_WARN);		// (HEN or CFW goes without saying: the app needs one)
 			snprintf(sub, sizeof(sub), "%s%s%s%s%s", it->author[0] ? it->author : tr("Unknown author"),
 				it->version[0] ? "  ·  v" : "", it->version, it->group[0] && it->type != TYPE_HOMEBREW ? "  ·  " : "",
 				it->type != TYPE_HOMEBREW ? tr(it->group) : "");
@@ -2306,7 +2305,7 @@ static void Draw_Detail(void)
 	}
 	y = Info_Row(x, y, w, tr("Size"), size, C_TEXT);
 	if (it->group[0]) y = Info_Row(x, y, w, tr(it->type == TYPE_AVATAR ? "Pack" : "Category"), tr(it->group), C_TEXT);
-	y = Info_Row(x, y, w, tr("Works on"), tr(it->requires == REQ_CFW ? "CFW only" : it->requires == REQ_HEN ? "HEN or CFW" : "Any PS3"), C_TEXT);
+	if (it->requires == REQ_CFW) y = Info_Row(x, y, w, tr("Works on"), tr("CFW only"), C_WARN);		// (only when HEN won't do)
 	int code = store_dest(it, dest, sizeof(dest));
 	y = Info_Row(x, y, w, tr("Saves to"), code == DEST_OK ? dest : tr(store_dest_message(code)), code == DEST_OK ? C_TEXT : C_WARN);
 	const char *have = store_downloaded(it);
