@@ -2,8 +2,6 @@
 
 **PS3 World** for the PlayStation 3 (HEN and CFW): browse the [PS3 World](https://ps3.world) archives on the console and download homebrew, themes and avatars straight from `dl.ps3.world`, without a PC.
 
-The app reads one index, `https://dl.ps3.world/catalog/v1/catalog.json`, which is made by the generator in [`generator/`](generator/README.md).
-
 ## Screenshots
 
 | | |
