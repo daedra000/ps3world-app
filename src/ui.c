@@ -212,6 +212,7 @@ static const card_text_t home_cards[NUM_TYPES] = {
 static const card_text_t cat_cards[] = {
 	{"Games", "cat-games", "Play", "Homebrew Games", "Grid Siege, Super Mario War, PS3Sweeper+ and more."},
 	{"Ports", "cat-ports", "PC & retro", "Ports", "Undertale, Nazi Zombies: Portable, Mario Kart 64 and more. No game files needed."},
+	{"Edits", "cat-edits", "PS2 Classics", "Edits", "Modded PS2 classics: Budokai Tenkaichi 3, WWE 2K24, GTA Forelli Redemption and more."},
 	{"Tools", "cat-tools", "Essentials", "Homebrew Tools", "Apollo, IRISMAN, webMAN MOD, PKGi, multiMAN and more."},
 	{"Media", "cat-media", "Watch & listen", "Media Players", "Movian, Yo! Player, Jellyfin, Spotify and Resonant for Plex."},
 	{"Misc", "cat-misc", "Prototypes & demos", "Miscellaneous", "Unreleased prototypes, demos and more."},

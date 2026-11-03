@@ -59,7 +59,7 @@ const CATALOG_DIR = 'catalog/v1';			// on dl.ps3.world and under outDir
 const PAGE_SIZE = 100;
 const TYPES = ['homebrew', 'theme', 'avatar'];
 // homebrew is split into the site's categories (the manifest's "group"), in this order
-const HOMEBREW_LISTS = ['Games', 'Ports', 'Tools', 'Media', 'Misc'];
+const HOMEBREW_LISTS = ['Games', 'Ports', 'Edits', 'Tools', 'Media', 'Misc'];
 const ICON_SIZE = 128;
 const ICON_BG = { r: 0x1a, g: 0x1c, b: 0x20 };
 const HASH_JOBS = 4;

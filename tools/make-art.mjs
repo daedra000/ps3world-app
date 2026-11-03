@@ -75,6 +75,7 @@ const CARDS = [
   ['home-avatars', 'resources', 504, 256],		// the site has no avatars art: its Resources card links to them
   ['cat-games', 'homebrew-games', 572, 256],
   ['cat-ports', 'ports', 572, 256],
+  ['cat-edits', 'edits', 572, 256],
   ['cat-tools', 'homebrew-tools', 572, 256],
   ['cat-media', 'homebrew-media', 572, 256],
   ['cat-misc', 'homebrew-misc', 572, 256],

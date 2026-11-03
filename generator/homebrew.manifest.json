@@ -399,6 +399,46 @@
       "group": "Ports",
       "requires": "hen",
       "icon": "images/ports/thrill-kill.webp"
+    },
+    {
+      "file": "edits/DragonBall Z - CANON v4 UPDATE [PS2 Classics] [SLUS99190].pkg",
+      "title": "Dragon Ball Z Budokai Tenkaichi 3 Super Deluxe",
+      "author": "",
+      "version": "CANON v4",
+      "description": "A patch for Dragon Ball Z Budokai Tenkaichi 3 in which custom mods are added: new characters, transformations and fusions, new scenarios, music, menus and maps. A PS2 Classic.",
+      "group": "Edits",
+      "requires": "hen",
+      "icon": "images/homebrew-edits/dbz-budokai-tenkaichi-3.webp"
+    },
+    {
+      "file": "edits/Espacy - Tenkaicabra 3.pkg",
+      "title": "Espacy Tenkaicabra 3",
+      "author": "",
+      "version": "3",
+      "description": "A custom, modded version of the classic fighting game Dragon Ball Z: Budokai Tenkaichi 3, with a strange character selection (Steve, a bag of Doritos, Mario, etc). Made in Brazil.",
+      "group": "Edits",
+      "requires": "hen",
+      "icon": "images/homebrew-edits/Espacy-Tenkaicabra-3.jpg"
+    },
+    {
+      "file": "edits/PS0001-SLUS20062_00-Grand Theft Auto - Forelli Redemption.pkg",
+      "title": "Grand Theft Auto: Forelli Redemption",
+      "author": "OnMyPS3",
+      "version": "",
+      "description": "Set at the same time as GTA3's story: Giovanni Forelli, nephew of the Forelli patriarch, survived the destruction of Little Italy in 1998, and a short chain of events gives the weakened Forellis a chance to restore their power. A PS2 Classic.",
+      "group": "Edits",
+      "requires": "hen",
+      "icon": "images/homebrew-edits/forellis.webp"
+    },
+    {
+      "file": "edits/WWE 2K24 PS2 [SLUS21427].pkg",
+      "title": "WWE 2K24",
+      "author": "Modding Generation",
+      "version": "",
+      "description": "A PS2 edit with 65+ new 2K24 wrestler mods, multiple attires, 15+ new tag teams, new 2K24 arenas with LED screens, theme songs, Titantrons, championship belts and hacked moves.",
+      "group": "Edits",
+      "requires": "hen",
+      "icon": "images/homebrew-edits/wwe-2k24.webp"
     }
   ]
 }

@@ -161,3 +161,6 @@ Too many redirects	Terlalu banyak pengalihan
 Download cut short	Unduhan terputus
 Cancelled	Dibatalkan
 Stopped	Dihentikan
+Edits	Edits
+PS2 Classics	Klasik PS2
+Modded PS2 classics: Budokai Tenkaichi 3, WWE 2K24, GTA Forelli Redemption and more.	Klasik PS2 yang dimodifikasi: Budokai Tenkaichi 3, WWE 2K24, GTA Forelli Redemption dan lainnya.

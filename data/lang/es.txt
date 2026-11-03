@@ -161,3 +161,6 @@ Too many redirects	Demasiadas redirecciones
 Download cut short	La descarga se cortó
 Cancelled	Cancelado
 Stopped	Detenido
+Edits	Edits
+PS2 Classics	Clásicos de PS2
+Modded PS2 classics: Budokai Tenkaichi 3, WWE 2K24, GTA Forelli Redemption and more.	Clásicos de PS2 modificados: Budokai Tenkaichi 3, WWE 2K24, GTA Forelli Redemption y más.
