@@ -1781,6 +1781,11 @@ void ui_init(void)
 	Fetch_Start();		// the server's copy, in the background
 }
 
+// the New ticker (drawn with the home screen, below)
+static void Ticker_Build(void);
+static int Ticker_Scrolls(void);
+static uint64_t ticker_at;			// when it was last drawn (it's redrawn as it moves)
+
 void ui_update(void)
 {
 	t_now = plat_time_us();
@@ -1790,6 +1795,10 @@ void ui_update(void)
 	Icons_Tick();
 	Download_Tick();
 	Pack_Tick();
+	if (screen == SCR_HOME) {
+		Ticker_Build();
+		if (Ticker_Scrolls() && t_now - ticker_at >= (gfx_gpu() ? 33000u : 66000u)) dirty = 1;
+	}
 	if ((screen == SCR_HOME || screen == SCR_DOWNLOADS) && (!free_checked || t_now - free_checked > 10000000)) {
 		long long f = plat_free_bytes("/dev_hdd0");
 		free_checked = t_now;
@@ -1955,6 +1964,104 @@ static void Count_Text(int t, int n, char *out, int size)
 	snprintf(out, size, tr(f), num);
 }
 
+/*
+==================
+The New ticker: the titles in each section's Recently added list, scrolling along the top
+of the home screen (from the lists' search.txt: a title a line, asked for as needed)
+==================
+*/
+#define TICKER_SPEED	70			// canvas pixels a second
+#define TICKER_GAP		80			// between the end and the start again
+#define TICKER_PER		12			// titles from each section at most
+#define TICKER_SEGS		(NUM_TYPES * (TICKER_PER + 1))
+#define TICKER_DOT		34			// the space a dot between titles takes
+
+// in pieces (a section's name, then its titles): the font draws a line of a few hundred characters at most
+typedef struct {
+	char text[128];
+	int w, head;				// head: a section's name (cyan, after a wider gap)
+} tick_t;
+static tick_t ticks[TICKER_SEGS];
+static int num_ticks, ticker_w;		// ticker_w 0: nothing new
+
+static void Ticker_Build(void)
+{
+	tick_t t2[TICKER_SEGS];
+	int n = 0;
+	for (int t = 0; ix && t < NUM_TYPES; t++)
+		for (int l = 0; l < ix->num_lists[t]; l++) {
+			const cat_list_t *list = &ix->lists[t][l];
+			if (strcmp(list->name, "Recently added") || !list->count) continue;
+			file_slot_t *fs = File_Get(&list->search, 1);
+			if (!fs || (!fs->lines && !fs->failed)) return;		// (on its way: built when it's here)
+			if (!fs->lines) continue;
+			snprintf(t2[n].text, sizeof(t2[n].text), "%s:", tr(section_names[t]));
+			t2[n++].head = 1;
+			for (int i = 0; i < fs->lines->count && i < TICKER_PER; i++) {
+				const char *line = fs->lines->line[i], *tab = memchr(line, '\t', fs->lines->len[i]);
+				int len = tab ? (int)(tab - line) : fs->lines->len[i];
+				snprintf(t2[n].text, sizeof(t2[n].text), "%.*s", len, line);
+				t2[n++].head = 0;
+			}
+		}
+	// the same as shown already: nothing to do (the widths are measured only when it changes)
+	int same = n == num_ticks;
+	for (int i = 0; same && i < n; i++) same = t2[i].head == ticks[i].head && !strcmp(t2[i].text, ticks[i].text);
+	if (same) return;
+	ticker_w = 0;
+	for (int i = 0; i < n; i++) {
+		ticks[i] = t2[i];
+		ticks[i].w = font_width(ticks[i].head ? FONT_BOLD : FONT_MEDIUM, 19, ticks[i].text);
+		ticker_w += ticks[i].w + (i == 0 ? 0 : ticks[i].head ? TICKER_DOT * 2 : TICKER_DOT);
+	}
+	num_ticks = n;
+	dirty = 1;
+}
+
+// the strip it scrolls in: right of the logo, short of the version
+#define TICKER_X	(LIST_X + 236)
+#define TICKER_W	(SCREEN_W - LIST_X - 170 - TICKER_X)
+
+static int Ticker_Scrolls(void)
+{
+	return ticker_w && ticker_w > TICKER_W - 80;
+}
+
+// the pieces from x (only what falls between x0 and x1 is drawn)
+static void Ticker_Run(int x, int y, int x0, int x1)
+{
+	for (int i = 0; i < num_ticks && x < x1; i++) {
+		if (i) {
+			int gap = ticks[i].head ? TICKER_DOT * 2 : TICKER_DOT;
+			if (!ticks[i].head && x + gap > x0) font_draw_center(FONT_MEDIUM, 19, x + gap / 2, y, "\xc2\xb7", C_DIM, 0);
+			x += gap;
+		}
+		if (x + ticks[i].w > x0)
+			font_draw(ticks[i].head ? FONT_BOLD : FONT_MEDIUM, 19, x, y, ticks[i].text, ticks[i].head ? C_CYAN : C_TEXT2, 0);
+		x += ticks[i].w;
+	}
+}
+
+static void Draw_Ticker(void)
+{
+	if (!ticker_w) return;
+	const char *label = tr("New");
+	int lw = font_width(FONT_BOLD, 16, label) + 22, y = 40;
+	gfx_round_rect(TICKER_X, y, lw, 28, 14, C_CYAN);
+	font_draw(FONT_BOLD, 16, TICKER_X + 11, y + 6, label, 0xff05070d, 0);
+	int x0 = TICKER_X + lw + 14, x1 = TICKER_X + TICKER_W;
+	ticker_at = t_now;
+	gfx_clip(x0, y, x1 - x0, 28);
+	if (!Ticker_Scrolls()) Ticker_Run(x0, y + 5, x0, x1);
+	else {
+		int loop = ticker_w + TICKER_GAP;
+		int off = (int)((t_now / 1000) * TICKER_SPEED / 1000 % (uint64_t)loop);
+		Ticker_Run(x0 - off, y + 5, x0, x1);
+		Ticker_Run(x0 - off + loop, y + 5, x0, x1);
+	}
+	gfx_unclip();
+}
+
 // the home screen's Favourites card: how many, and the first of them
 static void Draw_Fav_Card(int x, int y, int w, int h, int on)
 {
@@ -1978,6 +2085,7 @@ static void Draw_Fav_Card(int x, int y, int w, int h, int on)
 static void Draw_Home(void)
 {
 	Draw_Top(NULL);
+	Draw_Ticker();
 	int rw = 504, lw = LIST_W - rw - CARD_GAP, rh = (HOME_H - CARD_GAP) / 2;
 	for (int t = 0; t < NUM_TYPES; t++) {
 		const card_text_t *c = &home_cards[t];
@@ -2043,7 +2151,9 @@ static void Draw_Picker(void)
 	}
 	int x = Hint(LIST_X, G_CROSS, tr("Open"));
 	Hint(x, G_CIRCLE, tr("Back"));
-	Draw_Strip();
+	if (!Draw_Strip() && cur == TYPE_THEME)
+		font_draw_right(FONT_REGULAR, 18, SCREEN_W - LIST_X, SCREEN_H - 55,
+			tr("Not every theme has a preview: some were archived without one."), C_DIM);
 }
 
 static void Draw_List(void)
@@ -2124,6 +2234,9 @@ static void Draw_List(void)
 	else if (ix->num_lists[cur] > 1) x = Hint(x, G_CIRCLE, tr("Categories"));
 	else x = Hint(x, G_CIRCLE, tr("Back"));
 	if (!v->results && count > 50) x = Hint2(x, G_L2, G_R2, tr("A-Z"));
+	if (cur == TYPE_THEME)
+		font_draw_right(FONT_REGULAR, 16, SCREEN_W - LIST_X, LIST_Y + ROWS * ROW_H + 12,
+			tr("Not every theme has a preview: some were archived without one."), C_DIM);
 	if (!Draw_Strip() && count) {
 		char pos[64], letter = '#';
 		int at = View_Pos(v, v->sel);
@@ -2167,8 +2280,12 @@ static void Draw_Detail(void)
 	if (!img || sq) gfx_round_rect(DET_PX, DET_PY, DET_PW, DET_PH, 12, 0xff11151f);
 	if (img)
 		gfx_image(img, px, DET_PY, pw, DET_PH, sq ? 0 : 12, 255);
-	else if (failed)
-		Icon_Draw(it, DET_PX + (DET_PW - ICON_BIG) / 2, DET_PY + (DET_PH - ICON_BIG) / 2, ICON_BIG);
+	else if (failed) {
+		Icon_Draw(it, DET_PX + (DET_PW - ICON_BIG) / 2, DET_PY + (DET_PH - ICON_BIG) / 2 - (it->type == TYPE_THEME ? 20 : 0), ICON_BIG);
+		if (it->type == TYPE_THEME)
+			font_draw_center(FONT_REGULAR, 18, DET_PX + DET_PW / 2, DET_PY + DET_PH - 52,
+				tr("This theme was archived without a preview."), C_DIM, DET_PW - 40);
+	}
 	else
 		font_draw_center(FONT_REGULAR, 18, DET_PX + DET_PW / 2, DET_PY + DET_PH / 2 - 12, tr("Loading the preview..."), C_DIM, 0);
 

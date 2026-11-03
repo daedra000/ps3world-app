@@ -184,3 +184,6 @@ Favourites	Favoritter
 %d favourites	%d favoritter
 No favourites yet. Press Select on an item to add it.	Ingen favoritter endnu. Tryk på Select på et element for at tilføje det.
 Recently added	Nyligt tilføjet
+New	Nyt
+Not every theme has a preview: some were archived without one.	Ikke alle temaer har en forhåndsvisning: nogle blev arkiveret uden.
+This theme was archived without a preview.	Dette tema blev arkiveret uden forhåndsvisning.

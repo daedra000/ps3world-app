@@ -184,3 +184,6 @@ Favourites	Favorieten
 %d favourites	%d favorieten
 No favourites yet. Press Select on an item to add it.	Nog geen favorieten. Druk op Select bij een item om het toe te voegen.
 Recently added	Onlangs toegevoegd
+New	Nieuw
+Not every theme has a preview: some were archived without one.	Niet elk thema heeft een voorbeeld: sommige zijn zonder gearchiveerd.
+This theme was archived without a preview.	Dit thema is zonder voorbeeld gearchiveerd.

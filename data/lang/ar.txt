@@ -184,3 +184,6 @@ Favourites	المفضلة
 %d favourites	%d في المفضلة
 No favourites yet. Press Select on an item to add it.	لا توجد مفضلة بعد. اضغط Select على عنصر لإضافته.
 Recently added	أضيفت مؤخرًا
+New	جديد
+Not every theme has a preview: some were archived without one.	ليست كل السمات لها معاينة: بعضها أُرشف دون معاينة.
+This theme was archived without a preview.	أُرشفت هذه السمة دون معاينة.

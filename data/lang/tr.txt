@@ -184,3 +184,6 @@ Favourites	Favoriler
 %d favourites	%d favori
 No favourites yet. Press Select on an item to add it.	Henüz favori yok. Eklemek için bir öğede Select'e basın.
 Recently added	Yeni eklenenler
+New	Yeni
+Not every theme has a preview: some were archived without one.	Her temanın önizlemesi yok: bazıları önizlemesiz arşivlendi.
+This theme was archived without a preview.	Bu tema önizlemesiz arşivlendi.

@@ -184,3 +184,6 @@ Favourites	Ulubione
 %d favourites	Ulubione: %d
 No favourites yet. Press Select on an item to add it.	Brak ulubionych. Naciśnij Select na elemencie, aby go dodać.
 Recently added	Ostatnio dodane
+New	Nowe
+Not every theme has a preview: some were archived without one.	Nie każdy motyw ma podgląd: niektóre zarchiwizowano bez niego.
+This theme was archived without a preview.	Ten motyw zarchiwizowano bez podglądu.

@@ -60,6 +60,12 @@ Tick each box. Where a step fails, note what the screen said and copy `/dev_hdd0
 - [ ] Reconnect and press Cross: "Resumed from N MB" shows, and it finishes with "Checksum OK".
 - [ ] Optional: start it again and quit to the XMB (PS button > Quit Game) part way. Reopen the app and download again: it resumes rather than starting over.
 
+## 4d. The New ticker, theme previews (1.2.0)
+
+- [ ] Home: a cyan **New** label beside the logo, then the Recently added titles by section ("Homebrew: qDNSm · ezDNS ..."), scrolling smoothly right to left and round again. With nothing new, no ticker.
+- [ ] Themes (the categories, and any list): bottom right, "Not every theme has a preview: some were archived without one." A theme with no preview says "This theme was archived without a preview." in its preview box.
+- [ ] In another language, the ticker's label and section names and both notes are translated.
+
 ## 4c. Packs, previews, big downloads, favourites, Recently added (1.1.0)
 
 - [ ] Homebrew shows its categories three across, each with its line of text: Games, Ports, Edits, Tools, Media, Recently added.

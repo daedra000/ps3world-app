@@ -184,3 +184,6 @@ Favourites	Favoriten
 %d favourites	%d Favoriten
 No favourites yet. Press Select on an item to add it.	Noch keine Favoriten. Drücke Select bei einem Eintrag, um ihn hinzuzufügen.
 Recently added	Neu hinzugefügt
+New	Neu
+Not every theme has a preview: some were archived without one.	Nicht jedes Design hat eine Vorschau: Einige wurden ohne archiviert.
+This theme was archived without a preview.	Dieses Design wurde ohne Vorschau archiviert.

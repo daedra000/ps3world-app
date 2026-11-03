@@ -184,3 +184,6 @@ Favourites	Favorit
 %d favourites	%d favorit
 No favourites yet. Press Select on an item to add it.	Belum ada favorit. Tekan Select pada item untuk menambahkannya.
 Recently added	Baru ditambahkan
+New	Baru
+Not every theme has a preview: some were archived without one.	Tidak semua tema punya pratinjau: sebagian diarsipkan tanpa pratinjau.
+This theme was archived without a preview.	Tema ini diarsipkan tanpa pratinjau.
