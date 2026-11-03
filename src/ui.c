@@ -2212,13 +2212,14 @@ static void Draw_Detail(void)
 			font_draw(FONT_REGULAR, 19, x, by + i * 27, lines[i], C_DIM, 0);
 	}
 
+	// the download first, then the rest
 	int hx = LIST_X;
-	if (it->preview[0]) hx = Hint(hx, G_TRIANGLE, tr("Full screen"));
 	if (Queue_Active(q)) hx = Hint(hx, G_SQUARE, tr("Cancel download"));
 	else {
 		int failed = result_msg[0] ? !result_ok : q >= 0 && !queue[q].ok;		// (result_ok 2: a question, not a failure)
 		hx = Hint(hx, G_CROSS, tr(failed ? "Try again" : have ? "Download again" : "Download"));
 	}
+	if (it->preview[0]) hx = Hint(hx, G_TRIANGLE, tr("Full screen"));
 	if (strcmp(it->id, "ps3world-app")) hx = Hint(hx, G_SELECT, tr(Fav_Find(it->id) >= 0 ? "Unfavourite" : "Favourite"));
 	Hint(hx, G_CIRCLE, tr("Back"));
 	if (q != dl_q) Draw_Strip();		// another one downloading
