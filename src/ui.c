@@ -2424,7 +2424,7 @@ static void Draw_Credits(void)
 	font_draw_center(FONT_BOLD, 32, cx, 166, "daedra000  \xc2\xb7  Claude (Anthropic)", C_TEXT, LIST_W - 40);
 
 	font_draw_center(FONT_MEDIUM, 20, cx, 246, tr("Thanks to"), C_CYAN, 0);
-	int n = Wrap(FONT_REGULAR, 19, "Resonant for Plex  \xc2\xb7  Poppins & DejaVu fonts  \xc2\xb7  Kenney's input prompts  \xc2\xb7  "
+	int n = Wrap(FONT_REGULAR, 19, "Poppins & DejaVu fonts  \xc2\xb7  Kenney's input prompts  \xc2\xb7  "
 		"Mbed TLS  \xc2\xb7  cJSON  \xc2\xb7  stb  \xc2\xb7  PSL1GHT", LIST_W - 120, lines, 2);
 	for (int i = 0; i < n; i++)
 		font_draw_center(FONT_REGULAR, 19, cx, 276 + i * 28, lines[i], C_TEXT2, 0);
