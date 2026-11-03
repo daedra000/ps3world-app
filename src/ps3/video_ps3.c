@@ -60,6 +60,7 @@ static void *io_buffer;
 static u32 *fb[FB_COUNT];
 static u32 fb_offset[FB_COUNT];
 static int disp_w, disp_h, disp_pitch;
+static int bar_h;		// a 4:3 TV: the 16:9 canvas letterboxed, this many black rows above and below
 static int cur;
 static volatile u32 flips_done;
 static u32 flips_queued;
@@ -198,7 +199,8 @@ static u32 label_val = 1;
 #define LABEL_INDEX	253
 
 // where the quads go: a surface and the canvas size its corners stand for
-typedef struct { u32 off; int pitch, w, h, fmt; u32 depth_off; int depth_pitch; float cw, ch; } target_t;
+// (oy: canvas units the canvas is moved down by, for the letterbox's top bar)
+typedef struct { u32 off; int pitch, w, h, fmt; u32 depth_off; int depth_pitch; float cw, ch, oy; } target_t;
 
 // how textures are read: found by the self-test (smooth filtering and plain rows, if they work)
 static int tex_nearest, tex_swz, tex_min_w, tex_min_pitch = 64;
@@ -265,8 +267,8 @@ static void Scissor(const target_t *tg, int x, int y, int w, int h)
 {
 	// canvas units to the surface's pixels (rounded outwards)
 	float sx = tg->w / tg->cw, sy = tg->h / tg->ch;
-	int x0 = (int)(x * sx), y0 = (int)(y * sy);
-	int x1 = (int)((x + w) * sx + 0.999f), y1 = (int)((y + h) * sy + 0.999f);
+	int x0 = (int)(x * sx), y0 = (int)((y + tg->oy) * sy);
+	int x1 = (int)((x + w) * sx + 0.999f), y1 = (int)((y + h + tg->oy) * sy + 0.999f);
 	if (x0 < 0) x0 = 0;
 	if (y0 < 0) y0 = 0;
 	if (x1 > tg->w) x1 = tg->w;
@@ -285,7 +287,7 @@ static void Write_Vertices(const target_t *tg, const gquad_t *q, int nq)
 	vert_t *v = vb;
 	for (int i = 0; i < nq; i++, q++) {
 		float X0 = q->x0 * kx - 1, X1 = q->x1 * kx - 1;
-		float Y0 = 1 - q->y0 * ky, Y1 = 1 - q->y1 * ky;
+		float Y0 = 1 - (q->y0 + tg->oy) * ky, Y1 = 1 - (q->y1 + tg->oy) * ky;
 		// corners: top left, top right, bottom left, bottom right; two triangles
 		const float px[4] = {X0, X1, X0, X1}, py[4] = {Y0, Y0, Y1, Y1};
 		const float pu[4] = {q->u0, q->u1, q->u0, q->u1}, pv[4] = {q->v0, q->v0, q->v1, q->v1};
@@ -391,7 +393,11 @@ static void Draw_Batches(const target_t *tg, const gbatch_t *b, int nb, int nq)
 
 static target_t Screen_Target(void)
 {
-	target_t tg = {fb_offset[cur], disp_pitch, disp_w, disp_h, GCM_SURFACE_X8R8G8B8, depth_off, disp_w * 4, SCREEN_W, SCREEN_H};
+	target_t tg = {fb_offset[cur], disp_pitch, disp_w, disp_h, GCM_SURFACE_X8R8G8B8, depth_off, disp_w * 4, SCREEN_W, SCREEN_H, 0};
+	if (bar_h) {		// the surface stands for a taller canvas, the 1280x720 in its middle
+		tg.ch = (float)SCREEN_H * disp_h / (disp_h - 2 * bar_h);
+		tg.oy = bar_h * tg.ch / disp_h;
+	}
 	return tg;
 }
 
@@ -705,6 +711,8 @@ static int Setup_Display(s32 vid_res, u8 vid_aspect)
 	disp_w = res.width;
 	disp_h = res.height;
 	disp_pitch = disp_w * 4;
+	// a 4:3 picture: the 16:9 canvas across its full width is 3/4 of its height
+	bar_h = vid_aspect == VIDEO_ASPECT_4_3 ? disp_h / 8 : 0;
 
 	memset(&vconfig, 0, sizeof(vconfig));
 	vconfig.resolution = vid_res;
@@ -793,7 +801,7 @@ int ps3_video_init(void)
 		Sync_Write(GPU_TRYING, "trying the RSX\n", 1);
 		if (Gpu_Init()) {
 			gpu_mode = 1;
-			gfx_gpu_enable(disp_h / (float)SCREEN_H);
+			gfx_gpu_enable((disp_h - 2 * bar_h) / (float)SCREEN_H);
 			if (!gfx_gpu()) { Glog("no RSX memory for the atlas"); gpu_mode = 0; }
 		}
 		if (!gpu_mode) {
@@ -823,7 +831,7 @@ int ps3_video_init(void)
 		}
 	}
 	ready = 1;
-	plat_log("video: %dx%d, drawn by the %s", disp_w, disp_h, gpu_mode ? "RSX" : "CPU");
+	plat_log("video: %dx%d%s, drawn by the %s", disp_w, disp_h, bar_h ? " (4:3, letterboxed)" : "", gpu_mode ? "RSX" : "CPU");
 	return 1;
 }
 
@@ -859,9 +867,14 @@ void ps3_video_present(const uint32_t *src)
 	if (!xmap) {
 		memcpy(dst, src, SCREEN_W * SCREEN_H * 4);
 	} else {
+		int ch = disp_h - 2 * bar_h;		// the rows the canvas fills (all, unless letterboxed)
 		for (int y = 0; y < disp_h; y++) {
-			const uint32_t *row = src + (y * SCREEN_H / disp_h) * SCREEN_W;
 			u32 *d = dst + y * (disp_pitch / 4);
+			if (y < bar_h || y >= bar_h + ch) {
+				memset(d, 0, disp_w * 4);
+				continue;
+			}
+			const uint32_t *row = src + ((y - bar_h) * SCREEN_H / ch) * SCREEN_W;
 			for (int x = 0; x < disp_w; x++)
 				d[x] = row[xmap[x]];
 		}

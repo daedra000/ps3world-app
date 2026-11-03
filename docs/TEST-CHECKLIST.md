@@ -22,6 +22,8 @@ Tick each box. Where a step fails, note what the screen said and copy `/dev_hdd0
 
 - [ ] Send me the two `selftest:` lines from `ps3world_log.txt` (whether ".." goes up a folder, and whether rename replaces a file), and any `https: recv failed, errno` line.
 
+- [ ] On a 4:3 TV (Settings > Display Settings > Video Output Settings, TV type 4:3): the picture is letterboxed, the right shape with black bars above and below, not squashed, with either renderer (hold L1 at start for the CPU one). The log says "(4:3, letterboxed)". On a 16:9 TV there are no bars.
+
 ## 2. Browse
 
 - [ ] Cross opens a category's list, Circle goes back to the categories, and Circle again goes home.
