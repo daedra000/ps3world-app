@@ -73,12 +73,12 @@ const CARDS = [
   ['home-homebrew', 'homebrew', 640, 528, 380],	// smaller, so his face is below and right of the text
   ['home-themes', 'themes', 504, 256],
   ['home-avatars', 'resources', 504, 256],		// the site has no avatars art: its Resources card links to them
-  ['cat-games', 'homebrew-games', 572, 256],
-  ['cat-ports', 'ports', 572, 256],
-  ['cat-edits', 'edits', 572, 256],
-  ['cat-tools', 'homebrew-tools', 572, 256],
-  ['cat-media', 'homebrew-media', 572, 256],
-  ['cat-misc', 'homebrew-misc', 572, 256],
+  ['cat-games', 'homebrew-games', 376, 256],
+  ['cat-ports', 'ports', 376, 256],
+  ['cat-edits', 'edits', 376, 256],
+  ['cat-tools', 'homebrew-tools', 376, 256],
+  ['cat-media', 'homebrew-media', 376, 256],
+  ['cat-misc', 'homebrew-misc', 376, 256],
 ];
 
 // the art at the card's height, against its right edge, under the site's

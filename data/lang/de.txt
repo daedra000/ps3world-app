@@ -164,3 +164,23 @@ Stopped	Gestoppt
 Edits	Edits
 PS2 Classics	PS2-Klassiker
 Modded PS2 classics: Budokai Tenkaichi 3, WWE 2K24, GTA Forelli Redemption and more.	Gemoddete PS2-Klassiker: Budokai Tenkaichi 3, WWE 2K24, GTA Forelli Redemption und mehr.
+under a minute	unter einer Minute
+about %d minutes	etwa %d Minuten
+about %d hours %d minutes	etwa %d Stunden %d Minuten
+Not enough free space: this needs %s, and %s is free.	Nicht genug Platz: Es werden %s gebraucht, %s sind frei.
+This is %s (%s). Press X again to download it.	Das sind %s (%s). Drücke X erneut zum Herunterladen.
+This is %s. Press X again to download it.	Das sind %s. Drücke X erneut zum Herunterladen.
+Getting the pack's avatars...	Die Avatare des Pakets werden geholt...
+%d avatars queued: the queue is full, so add the rest later.	%d Avatare in der Warteschlange: Sie ist voll, füge den Rest später hinzu.
+%d avatars queued: they download one after another.	%d Avatare in der Warteschlange: Sie werden nacheinander geladen.
+Every avatar in this pack is downloaded or queued already.	Alle Avatare dieses Pakets sind schon heruntergeladen oder in der Warteschlange.
+Download pack	Paket laden
+Full screen	Vollbild
+Unfavourite	Kein Favorit mehr
+Favourite	Favorit
+The preview couldn't be loaded.	Die Vorschau konnte nicht geladen werden.
+Favourites	Favoriten
+%d favourite	%d Favorit
+%d favourites	%d Favoriten
+No favourites yet. Press Select on an item to add it.	Noch keine Favoriten. Drücke Select bei einem Eintrag, um ihn hinzuzufügen.
+Recently added	Neu hinzugefügt

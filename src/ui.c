@@ -37,6 +37,7 @@ Resonant (swapped on consoles that confirm with Circle).
 #include "ui.h"
 #include "lang.h"
 #include "i18n.h"
+#include "thirdparty/cJSON.h"
 
 #define C_BG		0xff05070d
 #define C_TEXT		0xffffffff
@@ -821,7 +822,7 @@ Downloads: a queue, one at a time. Each entry keeps how it went (a finished
 one is dropped when the queue needs its place) for its detail screen.
 ==================
 */
-#define QUEUE_MAX	32
+#define QUEUE_MAX	128		// (a big avatar pack fits)
 enum { Q_WAITING, Q_RUNNING, Q_DONE, Q_FAILED };
 
 typedef struct {
@@ -843,6 +844,39 @@ static double dl_speed;			// bytes a second, smoothed
 static char result_msg[400];		// why the detail screen's item can't be queued (no profile...)
 static int result_ok;
 static int det_back = SCR_LIST;		// where Circle goes from the detail screen
+static int preview_full;			// the detail screen's preview, filling the screen (Triangle)
+static int big_asked;				// Cross pressed once on a big download: the second press starts it
+static uint64_t dl_started;			// when the running download started (for the speed it got)
+static double speed_seen;			// bytes a second, from finished downloads (USRDIR/speed.txt)
+#define BIG_BYTES	(1024LL * 1024 * 1024)
+
+// "about 40 minutes" at the speed downloads have been getting; "" if none's finished yet
+static void Fmt_Time(long long bytes, char *out, int size)
+{
+	out[0] = 0;
+	if (speed_seen <= 0) return;
+	long long min = (long long)(bytes / speed_seen / 60 + 0.5);
+	if (min < 1) snprintf(out, size, "%s", tr("under a minute"));
+	else if (min < 90) snprintf(out, size, tr("about %d minutes"), (int)min);
+	else snprintf(out, size, tr("about %d hours %d minutes"), (int)(min / 60), (int)(min % 60));
+}
+
+static void Speed_Load(void)
+{
+	char path[512];
+	snprintf(path, sizeof(path), "%s/speed.txt", plat_save_dir());
+	char *t = (char *)plat_read_file(path, NULL);
+	if (t) { speed_seen = atof(t); free(t); }
+	if (!(speed_seen > 0 && speed_seen < 1e9)) speed_seen = 0;
+}
+
+static void Speed_Save(void)
+{
+	char path[512], buf[32];
+	snprintf(path, sizeof(path), "%s/speed.txt", plat_save_dir());
+	int n = snprintf(buf, sizeof(buf), "%.0f\n", speed_seen);
+	plat_write_file(path, buf, n);
+}
 static long long free_bytes = -1;	// on /dev_hdd0, read every few seconds (home and My downloads)
 static uint64_t free_checked;
 
@@ -911,6 +945,7 @@ static void Queue_Next(void)
 		dl_last_got = 0;
 		dl_speed = 0;
 		dl_t_last = t_now;
+		dl_started = t_now;
 		job_post(j, LANE_DL);
 		plat_log("download: %s -> %s", d->url, d->dest);
 	}
@@ -974,6 +1009,35 @@ static void Download_Start(void)
 		dirty = 1;
 		return;
 	}
+	// room for it, and for what's queued before it
+	char dir[512], need_s[32], free_s[32], when[64];
+	snprintf(dir, sizeof(dir), "%s", dest);
+	char *slash = strrchr(dir, '/');
+	if (slash) *slash = 0;
+	long long need = det->size, fb = plat_free_bytes(dir[0] ? dir : "/dev_hdd0");
+	for (int i = 0; i < queue_n; i++)
+		if (Queue_Active(i)) need += queue[i].it->size - (i == dl_q && dl ? dl->got : 0);
+	if (fb >= 0 && need > fb) {
+		Fmt_Size(need, need_s, sizeof(need_s));
+		Fmt_Size(fb, free_s, sizeof(free_s));
+		snprintf(result_msg, sizeof(result_msg), tr("Not enough free space: this needs %s, and %s is free."), need_s, free_s);
+		result_ok = 0;
+		dirty = 1;
+		return;
+	}
+	// a big one: say how big, and how long, and start it on the second press
+	if (det->size >= BIG_BYTES && !big_asked) {
+		Fmt_Size(det->size, need_s, sizeof(need_s));
+		Fmt_Time(det->size, when, sizeof(when));
+		if (when[0]) snprintf(result_msg, sizeof(result_msg), tr("This is %s (%s). Press X again to download it."), need_s, when);
+		else snprintf(result_msg, sizeof(result_msg), tr("This is %s. Press X again to download it."), need_s);
+		result_ok = 2;
+		big_asked = 1;
+		dirty = 1;
+		return;
+	}
+	big_asked = 0;
+	result_msg[0] = 0;
 	Queue_Add(det, dest);
 	dirty = 1;
 }
@@ -987,8 +1051,158 @@ static void Detail_Open(const cat_item_t *it, int back)
 	result_msg[0] = 0;		// (the last item's says nothing about this one)
 	result_ok = 0;
 	det_back = back;
+	preview_full = 0;
+	big_asked = 0;
 	screen = SCR_DETAIL;
 	dirty = 1;
+}
+
+// a message in the header that goes with the next move (a pack queued, a file that wouldn't delete)
+static void Note(const char *msg)
+{
+	snprintf(banner, sizeof(banner), "%s", msg);
+	search_banner = 1;
+	dirty = 1;
+}
+
+/*
+==================
+Favourites: items starred on the detail screen (Select), kept in USRDIR/favourites.json
+as a catalogue page, so they open and download without their own pages
+==================
+*/
+static catalog_t *favs;
+
+static void Favs_Load(void)
+{
+	char path[512], err[160];
+	size_t len;
+	snprintf(path, sizeof(path), "%s/favourites.json", plat_save_dir());
+	char *t = (char *)plat_read_file(path, &len);
+	if (!t) return;
+	catalog_t *c = catalog_parse_page(t, len, err, sizeof(err));
+	free(t);
+	if (c) { catalog_free(favs); favs = c; }
+	else plat_log("favourites: %s", err);
+}
+
+static int Fav_Find(const char *id)
+{
+	for (int i = 0; favs && i < favs->count; i++)
+		if (!strcmp(favs->items[i].id, id)) return i;
+	return -1;
+}
+
+static cJSON *Fav_Json(const cat_item_t *it)
+{
+	cJSON *o = cJSON_CreateObject();
+	char sha[65];
+	for (int i = 0; i < 32; i++) snprintf(sha + i * 2, 3, "%02x", it->sha256[i]);
+	cJSON_AddStringToObject(o, "id", it->id);
+	cJSON_AddStringToObject(o, "type", catalog_type_name(it->type));
+	cJSON_AddStringToObject(o, "title", it->title);
+	cJSON_AddStringToObject(o, "author", it->author);
+	cJSON_AddStringToObject(o, "version", it->version);
+	cJSON_AddStringToObject(o, "description", it->description);
+	cJSON_AddStringToObject(o, "group", it->group);
+	cJSON_AddStringToObject(o, "url", it->url);
+	cJSON_AddStringToObject(o, "icon", it->icon);
+	cJSON_AddStringToObject(o, "preview", it->preview);
+	cJSON_AddNumberToObject(o, "size", (double)it->size);
+	cJSON_AddStringToObject(o, "sha256", sha);
+	cJSON_AddStringToObject(o, "requires", it->requires == REQ_CFW ? "cfw" : it->requires == REQ_HEN ? "hen" : "any");
+	return o;
+}
+
+// adds it (first), or takes it off if it's there; saved, then read back as the page it's kept as
+static void Fav_Toggle(const cat_item_t *it)
+{
+	int had = Fav_Find(it->id);
+	cJSON *root = cJSON_CreateObject(), *items = cJSON_CreateArray();
+	if (!root || !items) { cJSON_Delete(root); cJSON_Delete(items); return; }
+	cJSON_AddNumberToObject(root, "schema", CATALOG_SCHEMA);
+	cJSON_AddItemToObject(root, "items", items);
+	if (had < 0) cJSON_AddItemToArray(items, Fav_Json(it));
+	for (int i = 0; favs && i < favs->count; i++)
+		if (i != had) cJSON_AddItemToArray(items, Fav_Json(&favs->items[i]));
+	char *t = cJSON_PrintUnformatted(root);
+	cJSON_Delete(root);
+	if (!t) return;
+	char path[512], err[160];
+	snprintf(path, sizeof(path), "%s/favourites.json", plat_save_dir());
+	if (!plat_write_file(path, t, strlen(t))) plat_log("favourites: couldn't write %s", path);
+	catalog_t *c = catalog_parse_page(t, strlen(t), err, sizeof(err));
+	free(t);
+	catalog_free(favs);
+	favs = c;
+	dirty = 1;
+}
+
+/*
+==================
+A whole avatar pack: its pages fetched, then each avatar not already here queued
+==================
+*/
+static cat_list_t pack;				// the pack being queued (pages NULL: none)
+static int pack_profile, pack_back;	// the profile screen is up for it; the screen it came from
+
+static void Pack_End(void)
+{
+	catalog_free_list(&pack);
+	pack_profile = 0;
+}
+
+static void Pack_Start(const cat_list_t *l)
+{
+	Pack_End();
+	cat_file_t *pages = malloc((l->num_pages ? l->num_pages : 1) * sizeof(cat_file_t));
+	if (!pages) return;
+	memcpy(pages, l->pages, l->num_pages * sizeof(cat_file_t));
+	pack = *l;
+	pack.pages = pages;
+	Note(tr("Getting the pack's avatars..."));
+}
+
+static void Pack_Tick(void)
+{
+	if (!pack.pages || pack_profile) return;
+	for (int p = 0; p < pack.num_pages; p++) {
+		file_slot_t *fs = File_Get(&pack.pages[p], 0);
+		if (fs && fs->failed) { Note(Error_Text(fs->err_kind, fs->err)); Pack_End(); return; }
+		if (!fs || !fs->page) return;
+	}
+	char dest[512], msg[200];
+	int added = 0;
+	for (int p = 0; p < pack.num_pages; p++) {
+		file_slot_t *fs = File_Get(&pack.pages[p], 0);
+		if (!fs || !fs->page) return;
+		for (int k = 0; k < fs->page->count; k++) {
+			const cat_item_t *it = &fs->page->items[k];
+			if (store_downloaded(it) || Queue_Active(Queue_Find(it->id))) continue;
+			int code = store_dest(it, dest, sizeof(dest));
+			if (code == DEST_PICK_PROFILE) {		// which user first: then on from here
+				Profiles_Load();
+				pack_back = screen;
+				pack_profile = 1;
+				screen = SCR_PROFILE;
+				dirty = 1;
+				return;
+			}
+			if (code != DEST_OK) { Note(tr(store_dest_message(code))); Pack_End(); return; }
+			Queue_Add(it, dest);
+			if (!Queue_Active(Queue_Find(it->id))) {		// the queue's full
+				snprintf(msg, sizeof(msg), tr("%d avatars queued: the queue is full, so add the rest later."), added);
+				Note(msg);
+				Pack_End();
+				return;
+			}
+			added++;
+		}
+	}
+	if (added) snprintf(msg, sizeof(msg), tr("%d avatars queued: they download one after another."), added);
+	else snprintf(msg, sizeof(msg), "%s", tr("Every avatar in this pack is downloaded or queued already."));
+	Note(msg);
+	Pack_End();
 }
 
 static const char *Install_Hint(int type)
@@ -1021,6 +1235,12 @@ static void Download_Tick(void)
 		char size[32];
 		Fmt_Size(dl->size, size, sizeof(size));
 		store_mark_downloaded(q->it, dl->dest);
+		// the speed it got (a long enough one), for the next big download's estimate
+		double secs = (t_now - dl_started) / 1e6, got = (double)(dl->size - dl->resumed_from);
+		if (secs > 10 && got > 5 * 1024 * 1024) {
+			speed_seen = speed_seen > 0 ? speed_seen * 0.5 + got / secs * 0.5 : got / secs;
+			Speed_Save();
+		}
 		snprintf(q->msg, sizeof(q->msg), tr("Checksum OK (%s). Saved to %s\n%s"), size, dl->dest, Install_Hint(q->it->type));
 		q->ok = 1;
 		q->state = Q_DONE;
@@ -1075,6 +1295,7 @@ My downloads: the queue (what hasn't finished), then what's on the HDD, newest f
 ==================
 */
 static int dls_sel, dls_top, dls_confirm = -1;		// dls_confirm: the row Square was pressed on once
+static int dls_tab;			// 0 the downloads, 1 the favourites (L1/R1)
 
 static int Dls_Queue_Rows(void)
 {
@@ -1122,9 +1343,34 @@ static void Input_Downloads(uint32_t p)
 	int n = Dls_Count(), qrows = Dls_Queue_Rows();
 	if (p & BTN_CIRCLE) {
 		dls_confirm = -1;
-		if (!strncmp(banner, "Couldn't delete", 15)) banner[0] = 0;
+		Search_Banner_Clear();
 		screen = SCR_HOME;
 		dirty = 1;
+		return;
+	}
+	if (p & (BTN_L1 | BTN_R1)) {
+		dls_tab ^= 1;
+		dls_sel = dls_top = 0;
+		dls_confirm = -1;
+		dirty = 1;
+		return;
+	}
+	if (dls_tab == 1) {		// favourites: Cross opens one, Square takes it off
+		n = favs ? favs->count : 0;
+		if (p & BTN_DOWN) dls_sel++;
+		if (p & BTN_UP) dls_sel--;
+		if (p & BTN_RIGHT) dls_sel += ROWS;
+		if (p & BTN_LEFT) dls_sel -= ROWS;
+		if (dls_sel >= n) dls_sel = n - 1;
+		if (dls_sel < 0) dls_sel = 0;
+		if ((p & BTN_CROSS) && n) Detail_Open(&favs->items[dls_sel], SCR_DOWNLOADS);
+		else if ((p & BTN_SQUARE) && n) Fav_Toggle(&favs->items[dls_sel]);
+		n = favs ? favs->count : 0;
+		if (dls_sel >= n) dls_sel = n - 1;
+		if (dls_sel < 0) dls_sel = 0;
+		if (dls_top > dls_sel) dls_top = dls_sel;
+		if (dls_top < dls_sel - ROWS + 1) dls_top = dls_sel - ROWS + 1;
+		if (p) dirty = 1;
 		return;
 	}
 	if (p & ~BTN_SQUARE) dls_confirm = -1;		// (anything else and the delete's off)
@@ -1149,8 +1395,7 @@ static void Input_Downloads(uint32_t p)
 		// twice to delete: the first press asks
 		if (dls_confirm == dls_sel) {
 			if (!store_delete_download(dls_sel - qrows))
-				snprintf(banner, sizeof(banner), "%s", tr("Couldn't delete that file"));
-				search_banner = 0;
+				Note(tr("Couldn't delete that file"));
 			dls_confirm = -1;
 			free_checked = 0;
 		} else
@@ -1228,8 +1473,8 @@ static void Letter_Jump(view_t *v, const cat_list_t *l, int dir)
 	v->top = v->sel;
 }
 
-// Homebrew's few categories are big cards, two a row; Themes' and Avatars' are tiles, TILE_COLS a row
-static int Picker_Cols(void) { return cur == TYPE_HOMEBREW ? 2 : TILE_COLS; }
+// Homebrew's few categories are big cards, three a row; Themes' and Avatars' are tiles, TILE_COLS a row
+static int Picker_Cols(void) { return cur == TYPE_HOMEBREW ? 3 : TILE_COLS; }
 static int Picker_Rows_Shown(void) { return cur == TYPE_HOMEBREW ? 99 : (CARD_H + CARD_GAP) / (TILE_H + CARD_GAP); }
 
 static void Open_Section(int t)
@@ -1363,6 +1608,20 @@ static void Input_List(uint32_t p)
 		dirty = 1;
 		return;
 	}
+	if ((p & BTN_SQUARE) && cur == TYPE_AVATAR) {		// a whole pack into the queue
+		if (folder.pages) Pack_Start(&folder);
+		else {
+			file_slot_t *slot;
+			const cat_item_t *it = Item_At(l, View_Pos(v, v->sel), &slot);
+			cat_list_t f;
+			if (it && it->list[0] && catalog_parse_list(it->list, &f)) {
+				Pack_Start(&f);
+				catalog_free_list(&f);
+			}
+		}
+		dirty = 1;
+		return;
+	}
 	if ((p & BTN_CIRCLE) && folder.pages) {		// out of the pack, back to the packs
 		Folder_Close();
 		dirty = 1;
@@ -1416,7 +1675,14 @@ static void Leave_Detail(void)
 static void Input_Detail(uint32_t p)
 {
 	int q = det ? Queue_Find(det->id) : -1;
+	if (preview_full) {
+		if (p & (BTN_CIRCLE | BTN_TRIANGLE | BTN_CROSS)) preview_full = 0;
+		if (p) dirty = 1;
+		return;
+	}
+	if ((p & BTN_TRIANGLE) && det && det->preview[0]) { preview_full = 1; dirty = 1; return; }
 	if (p & BTN_CIRCLE) { Leave_Detail(); return; }		// (a download carries on)
+	if ((p & BTN_SELECT) && det && strcmp(det->id, "ps3world-app")) Fav_Toggle(det);
 	if ((p & BTN_SQUARE) && Queue_Active(q)) Queue_Cancel(q);
 	else if ((p & BTN_CROSS) && det && !Queue_Active(q)) Download_Start();
 	if (p) dirty = 1;
@@ -1426,11 +1692,14 @@ static void Input_Profile(uint32_t p)
 {
 	if (p & BTN_DOWN && profile_sel < num_profiles - 1) profile_sel++;
 	if (p & BTN_UP && profile_sel > 0) profile_sel--;
-	if (p & BTN_CIRCLE) screen = SCR_DETAIL;
+	if (p & BTN_CIRCLE) {
+		if (pack_profile) { Pack_End(); screen = pack_back; }
+		else screen = SCR_DETAIL;
+	}
 	if (p & BTN_CROSS && num_profiles) {
 		store_set_avatar_profile(profiles[profile_sel]);
-		screen = SCR_DETAIL;
-		Download_Start();
+		if (pack_profile) { pack_profile = 0; screen = pack_back; }		// (Pack_Tick goes on)
+		else { screen = SCR_DETAIL; Download_Start(); }
 	}
 	if (p) dirty = 1;
 }
@@ -1443,6 +1712,7 @@ Frame
 void ui_init(void)
 {
 	i18n_init();
+	Speed_Load();
 	char name[64];
 	backdrop = Load_Image("backdrop.png", SCREEN_W, SCREEN_H);
 	logo = Load_Image("logo.png", 220, 31);
@@ -1459,9 +1729,10 @@ void ui_init(void)
 	}
 	for (int i = 0; i < NUM_CAT_CARDS; i++) {
 		snprintf(name, sizeof(name), "cards/%s.png", cat_cards[i].art);
-		cat_art[i] = Load_Image(name, (LIST_W - CARD_GAP) / 2, (CARD_H - CARD_GAP) / 2);
+		cat_art[i] = Load_Image(name, (LIST_W - 2 * CARD_GAP) / 3, (CARD_H - CARD_GAP) / 2);
 	}
 	store_init();
+	Favs_Load();
 	cat_index_t *c = store_load_index();
 	if (c) {
 		plat_log("catalog: index from the HDD cache (generated %s)", c->generated);
@@ -1478,6 +1749,7 @@ void ui_update(void)
 	Files_Tick();
 	Icons_Tick();
 	Download_Tick();
+	Pack_Tick();
 	if ((screen == SCR_HOME || screen == SCR_DOWNLOADS) && (!free_checked || t_now - free_checked > 10000000)) {
 		long long f = plat_free_bytes("/dev_hdd0");
 		free_checked = t_now;
@@ -1752,6 +2024,7 @@ static void Draw_List(void)
 			snprintf(sub, sizeof(sub), "%s%s%s", it->description, it->group[0] ? "  ·  " : "", it->group);
 		else {
 			if (store_downloaded(it)) Badge(&rx, y + 20, tr("Downloaded"), C_OK);
+			if (Fav_Find(it->id) >= 0) Badge(&rx, y + 20, "\xe2\x98\x85", C_WARN);		// a star
 			if (it->requires == REQ_CFW) Badge(&rx, y + 20, tr("CFW only"), C_WARN);
 			else if (it->requires == REQ_HEN) Badge(&rx, y + 20, tr("HEN / CFW"), C_DIM);
 			snprintf(sub, sizeof(sub), "%s%s%s%s%s", it->author[0] ? it->author : tr("Unknown author"),
@@ -1771,6 +2044,7 @@ static void Draw_List(void)
 	int x = LIST_X;
 	x = Hint(x, G_CROSS, tr("Open"));
 	x = Hint(x, G_TRIANGLE, tr("Search"));
+	if (cur == TYPE_AVATAR && !v->query[0]) x = Hint(x, G_SQUARE, tr("Download pack"));
 	if (v->query[0]) x = Hint(x, G_SQUARE, tr("Clear search"));
 	else if (folder.pages) x = Hint(x, G_CIRCLE, tr("Packs"));
 	else if (ix->num_lists[cur] > 1) x = Hint(x, G_CIRCLE, tr("Categories"));
@@ -1811,7 +2085,7 @@ it is (author, size, where it saves...) and the description.
 static void Draw_Detail(void)
 {
 	const cat_item_t *it = det;
-	char line[400], size[32], dest[512];
+	char line[400], size[128], dest[512];
 	gfx_round_rect(LIST_X - 12, 60, SCREEN_W - 2 * LIST_X + 24, SCREEN_H - 150, 16, C_PANEL);
 
 	// the preview: a theme's or homebrew's filling the box, an avatar's square in the middle of it
@@ -1835,6 +2109,11 @@ static void Draw_Detail(void)
 	if (it->author[0]) y = Info_Row(x, y, w, tr("Author"), it->author, C_TEXT);
 	if (it->version[0]) y = Info_Row(x, y, w, tr("Version"), it->version, C_TEXT);
 	Fmt_Size(it->size, size, sizeof(size));
+	if (it->size >= 50 * 1024 * 1024) {		// a big one: how long it takes at the speed downloads get here
+		char when[64];
+		Fmt_Time(it->size, when, sizeof(when));
+		if (when[0]) snprintf(size + strlen(size), sizeof(size) - strlen(size), " (%s)", when);
+	}
 	y = Info_Row(x, y, w, tr("Size"), size, C_TEXT);
 	if (it->group[0]) y = Info_Row(x, y, w, tr(it->type == TYPE_AVATAR ? "Pack" : "Category"), tr(it->group), C_TEXT);
 	y = Info_Row(x, y, w, tr("Works on"), tr(it->requires == REQ_CFW ? "CFW only" : it->requires == REQ_HEN ? "HEN or CFW" : "Any PS3"), C_TEXT);
@@ -1885,7 +2164,7 @@ static void Draw_Detail(void)
 		int ok = result_msg[0] ? result_ok : queue[q].ok;
 		n = Wrap(FONT_MEDIUM, 20, msg, w, lines, 4);
 		for (int i = 0; i < n; i++)
-			font_draw(FONT_MEDIUM, 20, x, by + i * 28, lines[i], ok ? C_OK : C_ERR, 0);
+			font_draw(FONT_MEDIUM, 20, x, by + i * 28, lines[i], ok == 1 ? C_OK : ok == 2 ? C_WARN : C_ERR, 0);
 	} else {
 		snprintf(line, sizeof(line), tr("After it downloads: %s"), Install_Hint(it->type));
 		n = Wrap(FONT_REGULAR, 19, line, w, lines, 3);
@@ -1894,13 +2173,28 @@ static void Draw_Detail(void)
 	}
 
 	int hx = LIST_X;
+	if (it->preview[0]) hx = Hint(hx, G_TRIANGLE, tr("Full screen"));
 	if (Queue_Active(q)) hx = Hint(hx, G_SQUARE, tr("Cancel download"));
 	else {
-		int failed = result_msg[0] ? !result_ok : q >= 0 && !queue[q].ok;
+		int failed = result_msg[0] ? !result_ok : q >= 0 && !queue[q].ok;		// (result_ok 2: a question, not a failure)
 		hx = Hint(hx, G_CROSS, tr(failed ? "Try again" : have ? "Download again" : "Download"));
 	}
+	if (strcmp(it->id, "ps3world-app")) hx = Hint(hx, G_SELECT, tr(Fav_Find(it->id) >= 0 ? "Unfavourite" : "Favourite"));
 	Hint(hx, G_CIRCLE, tr("Back"));
 	if (q != dl_q) Draw_Strip();		// another one downloading
+}
+
+// the preview as big as the screen takes it (an avatar's square, in the middle)
+static void Draw_Preview_Full(void)
+{
+	const cat_item_t *it = det;
+	int sq = it->type == TYPE_AVATAR, w = sq ? 600 : SCREEN_W, h = sq ? 600 : SCREEN_H, failed = 1;
+	gfx_rect(0, 0, SCREEN_W, SCREEN_H, 0xff000000);
+	image_t *img = Art_Get(it, 1, w, h, &failed);
+	if (img) gfx_image(img, (SCREEN_W - w) / 2, (SCREEN_H - h) / 2, w, h, 0, 255);
+	else font_draw_center(FONT_REGULAR, 22, SCREEN_W / 2, SCREEN_H / 2 - 12,
+		failed ? tr("The preview couldn't be loaded.") : tr("Loading the preview..."), C_DIM, 0);
+	Hint(LIST_X, G_CIRCLE, tr("Back"));
 }
 
 static void Draw_Profile(void)
@@ -1936,8 +2230,41 @@ static void Draw_Lang(void)
 	Hint(x, G_CIRCLE, tr("Back"));
 }
 
+static void Draw_Favourites(void)
+{
+	Draw_Top(tr("Favourites"));
+	int n = favs ? favs->count : 0;
+	char line[300], size[32];
+	snprintf(line, sizeof(line), tr(n == 1 ? "%d favourite" : "%d favourites"), n);
+	font_draw(FONT_MEDIUM, 20, LIST_X, 104, line, C_DIM, 0);
+	gfx_round_rect(LIST_X - 12, LIST_Y - 8, LIST_W + 24, ROWS * ROW_H + 16, 14, C_PANEL);
+	if (!n)
+		font_draw_center(FONT_MEDIUM, 22, SCREEN_W / 2, LIST_Y + 180, tr("No favourites yet. Press Select on an item to add it."), C_DIM, SCREEN_W - 200);
+	for (int row = dls_top; row < n && row < dls_top + ROWS; row++) {
+		const cat_item_t *it = &favs->items[row];
+		int y = LIST_Y + (row - dls_top) * ROW_H, rx = LIST_X + LIST_W - 12;
+		int thumbs = it->type == TYPE_THEME, pw = thumbs ? THUMB_W : ICON_LIST, ph = thumbs ? THUMB_H : ICON_LIST;
+		int tx = LIST_X + 6 + pw + 16, iy = y + (ROW_H - 4 - ph) / 2;
+		if (row == dls_sel) gfx_round_rect(LIST_X - 4, y, LIST_W + 8, ROW_H - 4, 10, C_ROW_ON);
+		if (thumbs) Thumb_Draw(it, it->title, LIST_X + 6, iy);
+		else Icon_Draw(it, LIST_X + 6, iy, ICON_LIST);
+		Fmt_Size(it->size, size, sizeof(size));
+		rx -= font_draw_right(FONT_MEDIUM, 19, rx, y + 22, size, C_DIM) + 14;
+		if (store_downloaded(it)) Badge(&rx, y + 20, tr("Downloaded"), C_OK);
+		snprintf(line, sizeof(line), "%s  ·  %s", tr(section_names[it->type]), it->type == TYPE_HOMEBREW ? (it->author[0] ? it->author : tr("Unknown author")) : tr(it->group));
+		font_draw(FONT_MEDIUM, 22, tx, y + 8, it->title, C_TEXT, rx - tx - 10);
+		font_draw(FONT_REGULAR, 17, tx, y + 37, line, C_DIM, rx - tx - 10);
+	}
+	int x = LIST_X;
+	if (n) x = Hint(x, G_CROSS, tr("Open"));
+	if (n) x = Hint(x, G_SQUARE, tr("Unfavourite"));
+	x = Hint2(x, G_L1, G_R1, tr("My downloads"));
+	Hint(x, G_CIRCLE, tr("Back"));
+}
+
 static void Draw_Downloads(void)
 {
+	if (dls_tab == 1) { Draw_Favourites(); return; }
 	Draw_Top(tr("My downloads"));
 	int n = Dls_Count(), qrows = Dls_Queue_Rows();
 	long long total = 0;
@@ -1998,6 +2325,7 @@ static void Draw_Downloads(void)
 	int x = LIST_X;
 	if (can_open) x = Hint(x, G_CROSS, tr("Open"));
 	if (n) x = Hint(x, G_SQUARE, tr(!is_queue ? "Delete" : q_active ? "Cancel download" : "Clear"));
+	x = Hint2(x, G_L1, G_R1, tr("Favourites"));
 	Hint(x, G_CIRCLE, tr("Back"));
 }
 
@@ -2021,7 +2349,7 @@ void ui_render(void)
 		if (Picking()) Draw_Picker();
 		else Draw_List();
 		break;
-	case SCR_DETAIL: if (det) Draw_Detail(); break;
+	case SCR_DETAIL: if (det) { if (preview_full) Draw_Preview_Full(); else Draw_Detail(); } break;
 	case SCR_PROFILE: Draw_Profile(); break;
 	case SCR_DOWNLOADS: Draw_Downloads(); break;
 	case SCR_LANG: Draw_Lang(); break;

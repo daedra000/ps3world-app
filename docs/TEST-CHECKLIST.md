@@ -60,6 +60,15 @@ Tick each box. Where a step fails, note what the screen said and copy `/dev_hdd0
 - [ ] Reconnect and press Cross: "Resumed from N MB" shows, and it finishes with "Checksum OK".
 - [ ] Optional: start it again and quit to the XMB (PS button > Quit Game) part way. Reopen the app and download again: it resumes rather than starting over.
 
+## 4c. Packs, previews, big downloads, favourites, Recently added (1.1.0)
+
+- [ ] Homebrew shows its categories three across, each with its line of text: Games, Ports, Edits, Tools, Media, Recently added.
+- [ ] Homebrew > Recently added lists the 4 Edits.
+- [ ] Avatars > a list: Square on a pack says "N avatars queued", and they download one after another (My downloads shows them). Inside a pack, Square does the same for that pack. With several users, it asks which user first.
+- [ ] A theme's detail: Triangle shows the preview full screen; Circle goes back.
+- [ ] An Edit (about 4 GB): Size says how long it takes once a download has finished before (it learns the speed). Cross once says "This is 4.40 GB ... Press X again"; the second Cross queues it. With less free space than that, it says so and doesn't start.
+- [ ] Select on an item stars it (★ in the list). Home > Triangle > R1: Favourites lists it; Cross opens it, Square takes it off. Still there after quitting and reopening.
+
 ## 4b. Queue, My downloads, free space (0.6.0)
 
 - [ ] Home shows "N GB free on the HDD · N downloaded" bottom right, and the free space roughly matches Settings > System Settings > System Information.

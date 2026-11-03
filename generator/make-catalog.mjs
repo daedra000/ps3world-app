@@ -109,10 +109,10 @@ function letterOf(title) {
 }
 const letterRank = t => { const l = letterOf(t); return l === '#' ? 0 : l.charCodeAt(0) - 64; };
 
-// one list: A-Z, written as pages of PAGE_SIZE and a search.txt; returns its index entry
-function writeList(name, list, relDir) {
-  list.sort((a, b) => letterRank(a.title) - letterRank(b.title) ||
-    a.title.localeCompare(b.title, 'en', { sensitivity: 'base', numeric: true }) || a.id.localeCompare(b.id));
+// one list: A-Z (or in the order given), written as pages of PAGE_SIZE and a search.txt; returns its index entry
+function writeList(name, list, relDir, order) {
+  list.sort(order || ((a, b) => letterRank(a.title) - letterRank(b.title) ||
+    a.title.localeCompare(b.title, 'en', { sensitivity: 'base', numeric: true }) || a.id.localeCompare(b.id)));
   const dir = path.join(CONFIG.outDir, relDir);
   fs.mkdirSync(dir, { recursive: true });
   const entry = { name, count: list.length, pages: [], search: null, letters: {} };
@@ -307,6 +307,13 @@ function avatarSources() {
   return out;
 }
 
+// ---- when each item first appeared: "Recently added" is the last RECENT_DAYS ----
+// (the first run marks everything there as "before": the list starts with what's added after it)
+const RECENT_DAYS = 30;
+let seen = {};
+const seenOf = i => i._seen || seen[i.id] || 'before';
+const newestFirst = (a, b) => seenOf(b).localeCompare(seenOf(a)) || a.title.localeCompare(b.title, 'en', { sensitivity: 'base', numeric: true });
+
 // avatars as folders: an item per pack, whose "list" (the index's list entry, as a string)
 // is the pack's avatars in pages of their own under relDir/packs/<pack>
 function packFolders(avatars, relDir) {
@@ -328,6 +335,7 @@ function packFolders(avatars, relDir) {
       icon: (av.find(a => a.icon) || {}).icon || '',
       requires: 'hen',
       list: JSON.stringify(entry),
+      _seen: av.map(seenOf).sort().pop(),		// (its newest avatar's, for "Recently added")
     };
   });
 }
@@ -373,6 +381,15 @@ async function build() {
   const app = ONLY.includes('homebrew') ? await appUpdate() : null;
   fs.writeFileSync(cachePath, JSON.stringify(hashCache));
 
+  const seenPath = path.join(CONFIG.outDir, '.cache', 'first-seen.json');
+  let first = !fs.existsSync(seenPath);
+  try { seen = first ? {} : JSON.parse(fs.readFileSync(seenPath, 'utf8')); } catch { seen = {}; first = true; }
+  const today = new Date().toISOString().slice(0, 10);
+  for (const i of items) if (!seen[i.id]) seen[i.id] = first ? 'before' : today;
+  fs.writeFileSync(seenPath, JSON.stringify(seen));
+  const cutoff = new Date(Date.now() - RECENT_DAYS * 864e5).toISOString().slice(0, 10);
+  const isRecent = i => seen[i.id] !== 'before' && seen[i.id] >= cutoff;
+
   // the index: each section's lists (homebrew: one per category; themes, avatars: all, then one
   // per category or region, the biggest first, Other last), each in pages
   const index = {
@@ -393,10 +410,15 @@ async function build() {
         const list = all.filter(i => i.group === name);
         if (list.length) section.lists.push(writeList(name, list, `${CATALOG_DIR}/homebrew/${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`));
       }
+      const recent = all.filter(isRecent);
+      if (recent.length) section.lists.push(writeList('Recently added', recent, `${CATALOG_DIR}/homebrew/recent`, newestFirst));
     } else {
       // (avatars: a list's rows are its packs)
       const rows = (list, relDir) => (type === 'avatar' ? packFolders(list, relDir) : list);
       section.lists.push(writeList(`All ${type}s`, rows(all, `${CATALOG_DIR}/${type}/all`), `${CATALOG_DIR}/${type}/all`));
+      const recent = all.filter(isRecent);
+      if (recent.length)
+        section.lists.push(writeList('Recently added', rows(recent, `${CATALOG_DIR}/${type}/recent`), `${CATALOG_DIR}/${type}/recent`, newestFirst));
       const by = {};
       for (const i of all) (by[i._list] ||= []).push(i);
       // the biggest first (avatars: by packs, the count the app shows); "Other" (no region) last

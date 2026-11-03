@@ -13,12 +13,16 @@
 
 ## Features
 
-- **Homebrew, themes and avatars** in the site's categories: Homebrew by Games, Ports, Tools and Media; themes by their 17 categories; avatars by region, in packs.
+- **Homebrew, themes and avatars** in the site's categories: Homebrew by Games, Ports, Edits (modded PS2 Classics), Tools and Media; themes by their 17 categories; avatars by region, in packs.
 - **Search** any list (Triangle), and jump by letter with L2/R2.
 - **Previews** of what you're downloading: a theme's screenshot, an avatar, a homebrew's art.
 - **Saves where the PS3 looks:** PKGs to `/dev_hdd0/packages` (Package Manager > Install Package Files), themes to `/dev_hdd0/theme`, avatars to the chosen user's `psn_avatar` folder.
 - **Checked downloads:** every file's size and sha256 are checked before it's kept, and a stopped download resumes where it left off.
-- **A download queue:** start several and keep browsing; the one running shows bottom right.
+- **A download queue:** start several and keep browsing; the one running shows bottom right. Square on an avatar pack queues every avatar in it.
+- **Before a big download** (1 GB or more) it says how big and roughly how long at the speed downloads have been getting, and checks there's room on the HDD.
+- **Full-screen previews** (Triangle on an item).
+- **Favourites:** Select on an item stars it; they're in My downloads (L1/R1).
+- **Recently added:** each section lists what's new in the last 30 days.
 - **My downloads** (Triangle on the home screen): the queue, then everything on the HDD with its date. Delete a file (Square twice), or get a homebrew's new version.
 - **Free space** on the HDD, on the home screen.
 - **Updates:** when a newer PS3 World is out, the home screen says so, and Square downloads it.
@@ -32,9 +36,9 @@
 | D-pad | move (Left/Right: a page at a time in lists) |
 | Cross | open, download |
 | Circle | back |
-| Square | clear a search; cancel a download; delete in My downloads; get an update on the home screen |
-| Triangle | search a list; My downloads on the home screen |
-| Select | the language, on the home screen |
+| Square | clear a search; download a whole avatar pack; cancel a download; delete in My downloads; get an update on the home screen |
+| Triangle | search a list; the preview full screen on an item; My downloads on the home screen |
+| Select | the language on the home screen; favourite an item |
 | L1 / R1 | in a list, the previous / next category (Games, Ports, Edits...); on the categories screen, the previous / next section |
 | L2 / R2 | the previous / next letter |
 
