@@ -188,3 +188,7 @@ New	جديد
 Not every theme has a preview: some were archived without one.	ليست كل السمات لها معاينة: بعضها أُرشف دون معاينة.
 This theme was archived without a preview.	أُرشفت هذه السمة دون معاينة.
 What's new	الجديد
+Credits & contact	الشكر والتواصل
+Made by	من صنع
+Thanks to	شكرًا لـ
+Want your homebrew, theme or avatar on PS3 World? Send it in with the contact form:	هل تريد إضافة تطبيقك أو سمتك أو صورتك الرمزية إلى PS3 World؟ أرسلها عبر نموذج التواصل:

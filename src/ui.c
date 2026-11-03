@@ -70,7 +70,7 @@ Resonant (swapped on consoles that confirm with Circle).
 #define HOME_H		(CARD_H - FAV_H - CARD_GAP)	// the sections' cards
 #define HOME_FAVS	NUM_TYPES	// home_sel: the Favourites card
 
-enum { SCR_START, SCR_HOME, SCR_LIST, SCR_DETAIL, SCR_PROFILE, SCR_DOWNLOADS, SCR_LANG };
+enum { SCR_START, SCR_HOME, SCR_LIST, SCR_DETAIL, SCR_PROFILE, SCR_DOWNLOADS, SCR_LANG, SCR_CREDITS };
 
 static int screen = SCR_START;
 static int dirty = 1;
@@ -172,8 +172,8 @@ static int Wrap(int font, int px, const char *s, int maxw, char (*lines)[256], i
 }
 
 // controller glyphs (Kenney's Input Prompts, CC0)
-enum { G_CROSS, G_CIRCLE, G_SQUARE, G_TRIANGLE, G_L1, G_R1, G_L2, G_R2, G_DPAD_UD, G_SELECT, NUM_GLYPHS };
-static const char *glyph_files[NUM_GLYPHS] = {"cross", "circle", "square", "triangle", "l1", "r1", "l2", "r2", "dpad_ud", "select"};
+enum { G_CROSS, G_CIRCLE, G_SQUARE, G_TRIANGLE, G_L1, G_R1, G_L2, G_R2, G_DPAD_UD, G_SELECT, G_START, NUM_GLYPHS };
+static const char *glyph_files[NUM_GLYPHS] = {"cross", "circle", "square", "triangle", "l1", "r1", "l2", "r2", "dpad_ud", "select", "start"};
 static image_t *glyphs[NUM_GLYPHS];
 
 static void Glyph(int g, int x, int y)
@@ -1566,6 +1566,7 @@ static void Input_Home(uint32_t p)
 		lang_sel = i18n_choice() + 1;
 		screen = SCR_LANG;
 	}
+	if (p & BTN_START) screen = SCR_CREDITS;
 	if (p) dirty = 1;
 }
 
@@ -1574,6 +1575,12 @@ static void Input_Home(uint32_t p)
 Language: the PS3's (the first row), or one of ours
 ==================
 */
+static void Input_Credits(uint32_t p)
+{
+	if (p & (BTN_CIRCLE | BTN_START | BTN_CROSS)) screen = SCR_HOME;
+	if (p) dirty = 1;
+}
+
 static void Input_Lang(uint32_t p)
 {
 	if (p & BTN_DOWN && lang_sel < LANG_COUNT) lang_sel++;
@@ -1837,6 +1844,7 @@ void ui_update(void)
 	case SCR_PROFILE: Input_Profile(p); break;
 	case SCR_DOWNLOADS: Input_Downloads(p); break;
 	case SCR_LANG: Input_Lang(p); break;
+	case SCR_CREDITS: Input_Credits(p); break;
 	}
 }
 
@@ -2109,7 +2117,8 @@ static void Draw_Home(void)
 	int x = Hint(LIST_X, G_CROSS, tr("Open"));
 	x = Hint(x, G_TRIANGLE, tr("My downloads"));
 	if (Update_Available()) x = Hint(x, G_SQUARE, tr("Update"));
-	Hint(x, G_SELECT, tr("Language"));
+	x = Hint(x, G_SELECT, tr("Language"));
+	Hint(x, G_START, tr("Credits & contact"));
 	if (!Draw_Strip()) {
 		char line[128];
 		Space_Line(line, sizeof(line));
@@ -2405,6 +2414,30 @@ static void Draw_Profile(void)
 	Hint(x, G_CIRCLE, tr("Back"));
 }
 
+static void Draw_Credits(void)
+{
+	char lines[4][256];
+	int cx = SCREEN_W / 2;
+	Draw_Top(tr("Credits & contact"));
+	gfx_round_rect(LIST_X - 12, 96, LIST_W + 24, 420, 16, C_PANEL);
+	font_draw_center(FONT_MEDIUM, 20, cx, 136, tr("Made by"), C_CYAN, 0);
+	font_draw_center(FONT_BOLD, 32, cx, 166, "daedra000  \xc2\xb7  Claude (Anthropic)", C_TEXT, LIST_W - 40);
+
+	font_draw_center(FONT_MEDIUM, 20, cx, 246, tr("Thanks to"), C_CYAN, 0);
+	int n = Wrap(FONT_REGULAR, 19, "Resonant for Plex  \xc2\xb7  Poppins & DejaVu fonts  \xc2\xb7  Kenney's input prompts  \xc2\xb7  "
+		"Mbed TLS  \xc2\xb7  cJSON  \xc2\xb7  stb  \xc2\xb7  PSL1GHT", LIST_W - 120, lines, 2);
+	for (int i = 0; i < n; i++)
+		font_draw_center(FONT_REGULAR, 19, cx, 276 + i * 28, lines[i], C_TEXT2, 0);
+
+	gfx_rect(cx - 300, 366, 600, 1, C_BORDER);
+	n = Wrap(FONT_MEDIUM, 22, tr("Want your homebrew, theme or avatar on PS3 World? Send it in with the contact form:"), LIST_W - 160, lines, 3);
+	for (int i = 0; i < n; i++)
+		font_draw_center(FONT_MEDIUM, 22, cx, 400 + i * 32, lines[i], C_TEXT, 0);
+	font_draw_center(FONT_BOLD, 34, cx, 412 + n * 32, "ps3.world/contact", C_CYAN, 0);
+
+	Hint(LIST_X, G_CIRCLE, tr("Back"));
+}
+
 static void Draw_Lang(void)
 {
 	Draw_Top(tr("Language"));
@@ -2546,6 +2579,7 @@ void ui_render(void)
 	case SCR_PROFILE: Draw_Profile(); break;
 	case SCR_DOWNLOADS: Draw_Downloads(); break;
 	case SCR_LANG: Draw_Lang(); break;
+	case SCR_CREDITS: Draw_Credits(); break;
 	}
 	font_draw_right(FONT_REGULAR, 16, SCREEN_W - LIST_X, 40, APP_NAME " " APP_VERSION, C_DIM);
 }

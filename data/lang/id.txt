@@ -188,3 +188,7 @@ New	Baru
 Not every theme has a preview: some were archived without one.	Tidak semua tema punya pratinjau: sebagian diarsipkan tanpa pratinjau.
 This theme was archived without a preview.	Tema ini diarsipkan tanpa pratinjau.
 What's new	Yang baru
+Credits & contact	Kredit & kontak
+Made by	Dibuat oleh
+Thanks to	Terima kasih kepada
+Want your homebrew, theme or avatar on PS3 World? Send it in with the contact form:	Ingin homebrew, tema, atau avatarmu ada di PS3 World? Kirim lewat formulir kontak:

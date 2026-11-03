@@ -188,3 +188,7 @@ New	Novo
 Not every theme has a preview: some were archived without one.	Nem todo tema tem prévia: alguns foram arquivados sem uma.
 This theme was archived without a preview.	Este tema foi arquivado sem prévia.
 What's new	Novidades
+Credits & contact	Créditos e contato
+Made by	Feito por
+Thanks to	Agradecimentos
+Want your homebrew, theme or avatar on PS3 World? Send it in with the contact form:	Quer seu homebrew, tema ou avatar no PS3 World? Envie pelo formulário de contato:

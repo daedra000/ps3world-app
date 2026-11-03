@@ -27,6 +27,7 @@
 - **Free space** on the HDD, on the home screen.
 - **Updates:** when a newer PS3 World is out, the home screen says so, and Square downloads it.
 - **Works offline** with the last catalogue it loaded.
+- **Credits & contact** (Start on the home screen): who made it, what it's built with, and where to send your own homebrew, themes or avatars (ps3.world/contact).
 - **1080p:** with the PS3 set to 1080p, everything is drawn at the full resolution (the graphics chip draws; the CPU fallback is 720p). On a 4:3 TV the picture is letterboxed at the right shape.
 - **12 languages:** English, Spanish, Portuguese, French, German, Italian, Dutch, Polish, Turkish, Danish, Indonesian and Arabic (joined letters, right to left). It follows the PS3's language; Select on the home screen picks another. The words are in `data/lang/<code>.txt`, one "English<TAB>translation" a line: corrections welcome.
 
@@ -40,6 +41,7 @@
 | Square | clear a search; download a whole avatar pack; cancel a download; delete in My downloads; get an update on the home screen |
 | Triangle | search a list; the preview full screen on an item; My downloads on the home screen |
 | Select | the language on the home screen; favourite an item |
+| Start | Credits & contact, on the home screen |
 | L1 / R1 | in a list, the previous / next category (Games, Ports, Edits...); on the categories screen, the previous / next section; in My downloads, My downloads / Favourites. The bar at the top shows which. |
 | L2 / R2 | the previous / next letter |
 

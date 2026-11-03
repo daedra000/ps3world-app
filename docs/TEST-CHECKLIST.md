@@ -65,6 +65,9 @@ Tick each box. Where a step fails, note what the screen said and copy `/dev_hdd0
 - [ ] Home: a cyan **New** label beside the logo, then the Recently added titles by section ("Homebrew: qDNSm · ezDNS ..."), scrolling smoothly right to left and round again. With nothing new, no ticker.
 - [ ] Themes (the categories, and any list): bottom right, "Not every theme has a preview: some were archived without one." A theme with no preview says "This theme was archived without a preview." in its preview box.
 - [ ] In another language, the ticker's label and section names and both notes are translated.
+- [ ] Homebrew > the Recently added card has Nathan Drake, his face clear of the title.
+- [ ] Home > Start: Credits & contact. "Made by daedra000 · Claude (Anthropic)", the thanks, and "Send it in with the contact form: ps3.world/contact". Circle goes back.
+- [ ] No grey HEN / CFW badges in lists; "CFW only" still shows where it applies.
 
 ## 4c. Packs, previews, big downloads, favourites, Recently added (1.1.0)
 

@@ -188,3 +188,7 @@ New	Nowe
 Not every theme has a preview: some were archived without one.	Nie każdy motyw ma podgląd: niektóre zarchiwizowano bez niego.
 This theme was archived without a preview.	Ten motyw zarchiwizowano bez podglądu.
 What's new	Nowości
+Credits & contact	Twórcy i kontakt
+Made by	Autorzy
+Thanks to	Podziękowania
+Want your homebrew, theme or avatar on PS3 World? Send it in with the contact form:	Chcesz swój homebrew, motyw lub awatar na PS3 World? Wyślij go przez formularz kontaktowy:

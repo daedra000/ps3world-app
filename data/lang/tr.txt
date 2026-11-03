@@ -188,3 +188,7 @@ New	Yeni
 Not every theme has a preview: some were archived without one.	Her temanın önizlemesi yok: bazıları önizlemesiz arşivlendi.
 This theme was archived without a preview.	Bu tema önizlemesiz arşivlendi.
 What's new	Yenilikler
+Credits & contact	Emeği geçenler ve iletişim
+Made by	Yapanlar
+Thanks to	Teşekkürler
+Want your homebrew, theme or avatar on PS3 World? Send it in with the contact form:	Homebrew, tema ya da avatarınızın PS3 World'de olmasını mı istiyorsunuz? İletişim formundan gönderin:

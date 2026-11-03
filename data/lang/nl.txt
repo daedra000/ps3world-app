@@ -188,3 +188,7 @@ New	Nieuw
 Not every theme has a preview: some were archived without one.	Niet elk thema heeft een voorbeeld: sommige zijn zonder gearchiveerd.
 This theme was archived without a preview.	Dit thema is zonder voorbeeld gearchiveerd.
 What's new	Nieuw
+Credits & contact	Credits & contact
+Made by	Gemaakt door
+Thanks to	Met dank aan
+Want your homebrew, theme or avatar on PS3 World? Send it in with the contact form:	Wil je je homebrew, thema of avatar op PS3 World? Stuur het in via het contactformulier:

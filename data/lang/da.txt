@@ -188,3 +188,7 @@ New	Nyt
 Not every theme has a preview: some were archived without one.	Ikke alle temaer har en forhåndsvisning: nogle blev arkiveret uden.
 This theme was archived without a preview.	Dette tema blev arkiveret uden forhåndsvisning.
 What's new	Nyheder
+Credits & contact	Krediteringer og kontakt
+Made by	Lavet af
+Thanks to	Tak til
+Want your homebrew, theme or avatar on PS3 World? Send it in with the contact form:	Vil du have din homebrew, dit tema eller din avatar på PS3 World? Send det via kontaktformularen:
