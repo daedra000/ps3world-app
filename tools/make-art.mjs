@@ -73,9 +73,9 @@ const cardBg = `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"
 // (in 720p canvas units: they're made HI times that, for the screen at 1080p)
 const HI = 1.5;
 const CARDS = [
-  ['home-homebrew', 'homebrew', 640, 528, 380],	// smaller, so his face is below and right of the text
-  ['home-themes', 'themes', 504, 256],
-  ['home-avatars', 'resources', 504, 256],		// the site has no avatars art: its Resources card links to them
+  ['home-homebrew', 'homebrew', 640, 408, 294],	// smaller, so his face is below and right of the text
+  ['home-themes', 'themes', 504, 196],
+  ['home-avatars', 'resources', 504, 196],		// the site has no avatars art: its Resources card links to them
   ['cat-games', 'homebrew-games', 376, 256],
   ['cat-ports', 'ports', 376, 256],
   ['cat-edits', 'edits', 376, 256],

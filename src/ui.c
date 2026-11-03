@@ -66,6 +66,9 @@ Resonant (swapped on consoles that confirm with Circle).
 #define CARD_GAP	16
 #define TILE_H		112			// the picker's small cards (themes, avatars)
 #define TILE_COLS	3
+#define FAV_H		104			// the home screen's Favourites card, under the sections'
+#define HOME_H		(CARD_H - FAV_H - CARD_GAP)	// the sections' cards
+#define HOME_FAVS	NUM_TYPES	// home_sel: the Favourites card
 
 enum { SCR_START, SCR_HOME, SCR_LIST, SCR_DETAIL, SCR_PROFILE, SCR_DOWNLOADS, SCR_LANG };
 
@@ -498,6 +501,7 @@ static int cur;						// the section shown
 static int cur_list[NUM_TYPES];		// its list, or -1 for its category picker
 static int picker_sel, picker_top;	// (picker_top: the first row of tiles shown)
 static int home_sel;
+static int fav_from = TYPE_HOMEBREW;	// the card Up goes back to from Favourites
 static cat_list_t folder;			// an avatar pack opened from a list, shown as a list (pages NULL: none)
 static view_t folder_view;
 
@@ -1538,11 +1542,19 @@ static void List_Step(int dir)
 static void Input_Home(uint32_t p)
 {
 	// Homebrew on the left, Themes over Avatars on the right
-	if ((p & BTN_RIGHT) && home_sel == TYPE_HOMEBREW) home_sel = TYPE_THEME;
+	// Favourites along the bottom
+	if (home_sel == HOME_FAVS) { if (p & BTN_UP) home_sel = fav_from; }
+	else if ((p & BTN_RIGHT) && home_sel == TYPE_HOMEBREW) home_sel = TYPE_THEME;
 	else if (p & BTN_LEFT) home_sel = TYPE_HOMEBREW;
 	else if ((p & BTN_DOWN) && home_sel == TYPE_THEME) home_sel = TYPE_AVATAR;
 	else if ((p & BTN_UP) && home_sel == TYPE_AVATAR) home_sel = TYPE_THEME;
-	if (p & BTN_CROSS) Open_Section(home_sel);
+	else if (p & BTN_DOWN) { fav_from = home_sel; home_sel = HOME_FAVS; }
+	if ((p & BTN_CROSS) && home_sel == HOME_FAVS) {
+		dls_tab = 1;
+		dls_sel = dls_top = 0;
+		dls_confirm = -1;
+		screen = SCR_DOWNLOADS;
+	} else if (p & BTN_CROSS) Open_Section(home_sel);
 	if (p & BTN_TRIANGLE) {
 		dls_sel = dls_top = 0;
 		dls_confirm = -1;
@@ -1753,7 +1765,7 @@ void ui_init(void)
 	card_bg = Load_Image("cards/bg.png", 256, 256);
 	for (int t = 0; t < NUM_TYPES; t++) {
 		snprintf(name, sizeof(name), "cards/%s.png", home_cards[t].art);
-		home_art[t] = Load_Image(name, t == TYPE_HOMEBREW ? LIST_W - 504 - CARD_GAP : 504, t == TYPE_HOMEBREW ? CARD_H : (CARD_H - CARD_GAP) / 2);
+		home_art[t] = Load_Image(name, t == TYPE_HOMEBREW ? LIST_W - 504 - CARD_GAP : 504, t == TYPE_HOMEBREW ? HOME_H : (HOME_H - CARD_GAP) / 2);
 	}
 	for (int i = 0; i < NUM_CAT_CARDS; i++) {
 		snprintf(name, sizeof(name), "cards/%s.png", cat_cards[i].art);
@@ -1943,10 +1955,30 @@ static void Count_Text(int t, int n, char *out, int size)
 	snprintf(out, size, tr(f), num);
 }
 
+// the home screen's Favourites card: how many, and the first of them
+static void Draw_Fav_Card(int x, int y, int w, int h, int on)
+{
+	int n = favs ? favs->count : 0;
+	char line[200];
+	Card_Frame(x, y, w, h, on);
+	snprintf(line, sizeof(line), "\xe2\x98\x85  %s", tr("Favourites"));
+	font_draw(FONT_BOLD, 30, x + 28, y + 20, line, n ? C_TEXT : C_DIM, 320);
+	if (n) snprintf(line, sizeof(line), tr(n == 1 ? "%d favourite" : "%d favourites"), n);
+	else snprintf(line, sizeof(line), "%s", tr("No favourites yet. Press Select on an item to add it."));
+	font_draw(FONT_REGULAR, 19, x + 28, y + 62, line, C_TEXT2, n ? 300 : w - 56);
+	// the first few, as their pictures
+	int px = x + 360, py = y + (h - THUMB_H) / 2;
+	for (int i = 0; i < n && px + THUMB_W <= x + w - 28; i++) {
+		const cat_item_t *it = &favs->items[i];
+		if (it->type == TYPE_THEME) { Thumb_Draw(it, it->title, px, py); px += THUMB_W + 12; }
+		else { Icon_Draw(it, px, py, THUMB_H); px += THUMB_H + 12; }
+	}
+}
+
 static void Draw_Home(void)
 {
 	Draw_Top(NULL);
-	int rw = 504, lw = LIST_W - rw - CARD_GAP, rh = (CARD_H - CARD_GAP) / 2;
+	int rw = 504, lw = LIST_W - rw - CARD_GAP, rh = (HOME_H - CARD_GAP) / 2;
 	for (int t = 0; t < NUM_TYPES; t++) {
 		const card_text_t *c = &home_cards[t];
 		const char *chips[16];
@@ -1954,11 +1986,12 @@ static void Draw_Home(void)
 		for (int l = 0; l < ix->num_lists[t] && n < 16; l++)		// its categories ("All ..." is the whole section)
 			if (strncmp(ix->lists[t][l].name, "All ", 4)) chips[n++] = ix->lists[t][l].name;
 		if (t == TYPE_HOMEBREW)
-			Card(LIST_X, CARD_Y, lw, CARD_H, home_sel == t, home_art[t], c->kicker, c->title, 64, c->blurb, chips, n);
+			Card(LIST_X, CARD_Y, lw, HOME_H, home_sel == t, home_art[t], c->kicker, c->title, 64, c->blurb, chips, n);
 		else
 			Card(LIST_X + lw + CARD_GAP, CARD_Y + (t - 1) * (rh + CARD_GAP), rw, rh, home_sel == t, home_art[t],
 				c->kicker, c->title, 44, c->blurb, chips, n);
 	}
+	Draw_Fav_Card(LIST_X, CARD_Y + HOME_H + CARD_GAP, LIST_W, FAV_H, home_sel == HOME_FAVS);
 	if (!banner[0] && !fetch_job && Update_Available()) {
 		char line[96];
 		snprintf(line, sizeof(line), tr("PS3 World %s is out: press Square to get it"), ix->app.version);

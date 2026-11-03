@@ -67,7 +67,7 @@ Tick each box. Where a step fails, note what the screen said and copy `/dev_hdd0
 - [ ] Avatars > a list: Square on a pack says "N avatars queued", and they download one after another (My downloads shows them). Inside a pack, Square does the same for that pack. With several users, it asks which user first.
 - [ ] A theme's detail: Triangle shows the preview full screen; Circle goes back.
 - [ ] An Edit (about 4 GB): Size says how long it takes once a download has finished before (it learns the speed). Cross once says "This is 4.40 GB ... Press X again"; the second Cross queues it. With less free space than that, it says so and doesn't start.
-- [ ] Select on an item stars it (★ in the list). Home > Triangle > R1: Favourites lists it; Cross opens it, Square takes it off. Still there after quitting and reopening.
+- [ ] Select on an item stars it (★ in the list). The home screen's Favourites card (Down from Homebrew or Avatars) shows how many and their pictures; Cross opens them (also Home > Triangle > R1). The list Cross opens it, Square takes it off. Still there after quitting and reopening.
 
 ## 4b. Queue, My downloads, free space (0.6.0)
 

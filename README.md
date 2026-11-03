@@ -21,7 +21,7 @@
 - **A download queue:** start several and keep browsing; the one running shows bottom right. Square on an avatar pack queues every avatar in it.
 - **Before a big download** (1 GB or more) it says how big and roughly how long at the speed downloads have been getting, and checks there's room on the HDD.
 - **Full-screen previews** (Triangle on an item).
-- **Favourites:** Select on an item stars it; they're in My downloads (L1/R1).
+- **Favourites:** Select on an item stars it; they have their own card on the home screen (and a tab in My downloads).
 - **Recently added:** each section lists what's new in the last 30 days.
 - **My downloads** (Triangle on the home screen): the queue, then everything on the HDD with its date. Delete a file (Square twice), or get a homebrew's new version.
 - **Free space** on the HDD, on the home screen.
