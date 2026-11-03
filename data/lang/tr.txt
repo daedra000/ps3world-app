@@ -187,3 +187,4 @@ Recently added	Yeni eklenenler
 New	Yeni
 Not every theme has a preview: some were archived without one.	Her temanın önizlemesi yok: bazıları önizlemesiz arşivlendi.
 This theme was archived without a preview.	Bu tema önizlemesiz arşivlendi.
+What's new	Yenilikler

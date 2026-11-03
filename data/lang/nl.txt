@@ -187,3 +187,4 @@ Recently added	Onlangs toegevoegd
 New	Nieuw
 Not every theme has a preview: some were archived without one.	Niet elk thema heeft een voorbeeld: sommige zijn zonder gearchiveerd.
 This theme was archived without a preview.	Dit thema is zonder voorbeeld gearchiveerd.
+What's new	Nieuw

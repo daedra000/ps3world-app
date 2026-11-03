@@ -187,3 +187,4 @@ Recently added	Ajouts récents
 New	Nouveau
 Not every theme has a preview: some were archived without one.	Tous les thèmes n'ont pas d'aperçu : certains ont été archivés sans.
 This theme was archived without a preview.	Ce thème a été archivé sans aperçu.
+What's new	Nouveautés

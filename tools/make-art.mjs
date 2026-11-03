@@ -69,7 +69,7 @@ const cardBg = `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"
   <rect width="256" height="256" fill="url(#p)"/><rect width="256" height="256" fill="url(#g)"/>
 </svg>`;
 
-// [file, the site's art, width, height, art height (default: the card's)]: the sizes src/ui.c draws them at
+// [file, the site's art (or a file in this repo), width, height, art height (default: the card's)]: the sizes src/ui.c draws them at
 // (in 720p canvas units: they're made HI times that, for the screen at 1080p)
 const HI = 1.5;
 const CARDS = [
@@ -82,6 +82,7 @@ const CARDS = [
   ['cat-tools', 'homebrew-tools', 376, 256],
   ['cat-media', 'homebrew-media', 376, 256],
   ['cat-misc', 'homebrew-misc', 376, 256],
+  ['cat-recent', 'tools/art/recently-added.webp', 376, 256, 190],	// (ours: the site has none; smaller, his face below the title)
 ];
 
 // the art at the card's height, against its right edge, under the site's
@@ -103,7 +104,7 @@ fs.mkdirSync(path.join(ROOT, 'art'), { recursive: true });
 fs.mkdirSync(path.join(ROOT, 'data/cards'), { recursive: true });
 await sharp(Buffer.from(cardBg)).png().toFile(path.join(ROOT, 'data/cards/bg.png'));
 for (const [name, src, w, h, ah] of CARDS)
-  await (await cardArt(path.join(site, 'images/home', src + '.webp'), Math.round(w * HI), Math.round(h * HI), ah && Math.round(ah * HI)))
+  await (await cardArt(src.includes('/') ? path.join(ROOT, src) : path.join(site, 'images/home', src + '.webp'), Math.round(w * HI), Math.round(h * HI), ah && Math.round(ah * HI)))
     .toFile(path.join(ROOT, 'data/cards', name + '.png'));
 await sharp(path.join(site, 'files/meta.jpg')).resize(320, 176, { fit: 'cover' }).png().toFile(path.join(ROOT, 'art/ICON0.PNG'));
 await sharp(Buffer.from(wavesSvg(1920, 1080))).png().toFile(path.join(ROOT, 'art/PIC1.PNG'));

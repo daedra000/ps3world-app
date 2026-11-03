@@ -187,3 +187,4 @@ Recently added	Nyligt tilføjet
 New	Nyt
 Not every theme has a preview: some were archived without one.	Ikke alle temaer har en forhåndsvisning: nogle blev arkiveret uden.
 This theme was archived without a preview.	Dette tema blev arkiveret uden forhåndsvisning.
+What's new	Nyheder

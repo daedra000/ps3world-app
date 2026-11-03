@@ -187,3 +187,4 @@ Recently added	Baru ditambahkan
 New	Baru
 Not every theme has a preview: some were archived without one.	Tidak semua tema punya pratinjau: sebagian diarsipkan tanpa pratinjau.
 This theme was archived without a preview.	Tema ini diarsipkan tanpa pratinjau.
+What's new	Yang baru

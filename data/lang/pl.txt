@@ -187,3 +187,4 @@ Recently added	Ostatnio dodane
 New	Nowe
 Not every theme has a preview: some were archived without one.	Nie każdy motyw ma podgląd: niektóre zarchiwizowano bez niego.
 This theme was archived without a preview.	Ten motyw zarchiwizowano bez podglądu.
+What's new	Nowości

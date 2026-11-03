@@ -248,6 +248,7 @@ static const card_text_t cat_cards[] = {
 	{"Edits", "cat-edits", "PS2 Classics", "Edits", "Modded PS2 classics: Budokai Tenkaichi 3, WWE 2K24, GTA Forelli Redemption and more."},
 	{"Tools", "cat-tools", "Essentials", "Homebrew Tools", "Apollo, IRISMAN, webMAN MOD, PKGi, multiMAN and more."},
 	{"Media", "cat-media", "Watch & listen", "Media Players", "Movian, Yo! Player, Jellyfin, Spotify and Resonant for Plex."},
+	{"Recently added", "cat-recent", "What's new", "Recently added", NULL},		// (no line of text: it'd run into his face)
 	{"Misc", "cat-misc", "Prototypes & demos", "Miscellaneous", "Unreleased prototypes, demos and more."},
 };
 #define NUM_CAT_CARDS	((int)(sizeof(cat_cards) / sizeof(cat_cards[0])))
