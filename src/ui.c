@@ -495,6 +495,7 @@ typedef struct {
 	int *results;					// positions that match the search (NULL: the whole list)
 	int num_results;
 	int search_wait;				// the search.txt is on its way
+	int sort;						// SORT_*: which order of the list (when the catalogue has it)
 } view_t;
 
 static view_t *views[NUM_TYPES];	// one per list
@@ -508,7 +509,8 @@ static view_t folder_view;
 
 static cat_list_t *List(int t, int l) { return ix && l >= 0 && l < ix->num_lists[t] ? &ix->lists[t][l] : NULL; }
 static int Picking(void) { return ix && ix->num_lists[cur] > 1 && cur_list[cur] < 0; }
-static cat_list_t *Cur_List(void)
+// the list picked (in A-Z order)
+static cat_list_t *Base_List(void)
 {
 	if (folder.pages) return &folder;
 	return Picking() ? NULL : List(cur, cur_list[cur] < 0 ? 0 : cur_list[cur]);
@@ -516,7 +518,15 @@ static cat_list_t *Cur_List(void)
 static view_t *Cur_View(void)
 {
 	if (folder.pages) return &folder_view;
-	return Cur_List() && views[cur] ? &views[cur][cur_list[cur] < 0 ? 0 : cur_list[cur]] : NULL;
+	return Base_List() && views[cur] ? &views[cur][cur_list[cur] < 0 ? 0 : cur_list[cur]] : NULL;
+}
+// the list on screen: the one picked, in the order its view has
+static cat_list_t *Cur_List(void)
+{
+	cat_list_t *l = Base_List();
+	view_t *v = Cur_View();
+	if (l && v && v->sort > 0 && v->sort <= l->num_sorted) return &l->sorted[v->sort - 1];
+	return l;
 }
 
 static void Folder_Close(void)
@@ -1101,6 +1111,77 @@ static void Note(const char *msg)
 
 /*
 ==================
+Homebrew's descriptions in the UI's language (the catalogue's lang/<code>.json: id to text),
+fetched and checked like a page; an item without one shows the English
+==================
+*/
+static cJSON *desc_root;			// the language in use's, or NULL
+static unsigned char desc_sha[32], desc_want[32];
+static job_t *desc_job;
+static uint64_t desc_failed_at;
+
+static void Desc_Run(job_t *j)
+{
+	size_t len;
+	char *t = store_get_file(j->arg, &len, &j->cancel, &j->ival, j->err, sizeof(j->err));
+	if (!t) return;
+	j->result = cJSON_ParseWithLength(t, len);
+	free(t);
+}
+
+static void Desc_Cleanup(job_t *j)
+{
+	free(j->arg);
+	cJSON_Delete(j->result);
+}
+
+static void Desc_Tick(void)
+{
+	if (desc_job) {
+		if (!job_done(desc_job)) return;
+		cJSON *r = desc_job->result;
+		desc_job->result = NULL;
+		if (r) {
+			cJSON_Delete(desc_root);
+			desc_root = r;
+			memcpy(desc_sha, desc_want, 32);
+		} else {
+			plat_log("descriptions: %s", desc_job->err);
+			desc_failed_at = t_now;
+		}
+		job_release(desc_job);
+		desc_job = NULL;
+		dirty = 1;
+		return;
+	}
+	const cat_file_t *want = NULL;
+	for (int i = 0; ix && i < ix->num_desc; i++)
+		if (!strcmp(ix->desc[i].code, lang_code(lang_current()))) want = &ix->desc[i].file;
+	if (!want) {		// English, or none for this language
+		if (desc_root) { cJSON_Delete(desc_root); desc_root = NULL; dirty = 1; }
+		return;
+	}
+	if (desc_root && !memcmp(desc_sha, want->sha256, 32)) return;
+	if (desc_failed_at && t_now - desc_failed_at < 30000000) return;		// (tried lately)
+	cat_file_t *f = malloc(sizeof(*f));
+	job_t *j = f ? job_new(Desc_Run, Desc_Cleanup) : NULL;
+	if (!j) { free(f); return; }
+	*f = *want;
+	memcpy(desc_want, want->sha256, 32);
+	desc_failed_at = 0;
+	j->arg = f;
+	desc_job = j;
+	job_post(j, LANE_API);
+}
+
+static const char *Desc_Of(const cat_item_t *it)
+{
+	const cJSON *d = desc_root ? cJSON_GetObjectItemCaseSensitive(desc_root, it->id) : NULL;
+	return cJSON_IsString(d) && d->valuestring[0] ? d->valuestring : it->description;
+}
+
+/*
+==================
 Favourites: items starred on the detail screen (Select), kept in USRDIR/favourites.json
 as a catalogue page, so they open and download without their own pages
 ==================
@@ -1194,6 +1275,8 @@ static void Pack_Start(const cat_list_t *l)
 	memcpy(pages, l->pages, l->num_pages * sizeof(cat_file_t));
 	pack = *l;
 	pack.pages = pages;
+	pack.sorted = NULL;		// (a pack's list has no other orders; this one owns nothing else)
+	pack.num_sorted = 0;
 	Note(tr("Getting the pack's avatars..."));
 }
 
@@ -1292,6 +1375,10 @@ static void Download_Tick(void)
 			Error_Text(dl->err_kind, dl->err),
 			dl->err_kind == ERR_NETWORK ? tr("\nPress X to resume where it stopped.") : "");
 	}
+	if (dl->state != DL_DONE)		// (done ones are logged by download.c, with their sha256)
+		plat_log("download: %s %s at %lld of %lld bytes%s%s", dl->dest,
+			dl->state == DL_CANCELLED ? "cancelled" : dl->state == DL_PAUSED ? "paused" : "failed",
+			(long long)dl->got, dl->size, dl->err[0] ? ": " : "", dl->err);
 	job_release(dl_job);
 	dl_job = NULL;
 	free(dl);
@@ -1488,6 +1575,25 @@ Input
 ==================
 */
 static int searching;
+static int sound_on = 1;		// (USRDIR/sound.txt: "off" turns them off)
+
+static void Sound_Load(void)
+{
+	char path[512];
+	snprintf(path, sizeof(path), "%s/sound.txt", plat_save_dir());
+	char *t = (char *)plat_read_file(path, NULL);
+	if (t) { sound_on = strncmp(t, "off", 3) != 0; free(t); }
+	plat_sound_enable(sound_on);
+}
+
+static void Sound_Set(int on)
+{
+	char path[512];
+	sound_on = on;
+	plat_sound_enable(on);
+	snprintf(path, sizeof(path), "%s/sound.txt", plat_save_dir());
+	plat_write_file(path, on ? "on\n" : "off\n", on ? 3 : 4);
+}
 static int lang_sel;		// the language screen's row: 0 the PS3's, then LANG_* + 1
 
 static void Letter_Jump(view_t *v, const cat_list_t *l, int dir)
@@ -1583,10 +1689,11 @@ static void Input_Credits(uint32_t p)
 
 static void Input_Lang(uint32_t p)
 {
-	if (p & BTN_DOWN && lang_sel < LANG_COUNT) lang_sel++;
+	if (p & BTN_DOWN && lang_sel < LANG_COUNT + 1) lang_sel++;
 	if (p & BTN_UP && lang_sel > 0) lang_sel--;
 	if (p & BTN_CIRCLE) screen = SCR_HOME;
-	if (p & BTN_CROSS) {
+	if ((p & BTN_CROSS) && lang_sel == LANG_COUNT + 1) Sound_Set(!sound_on);		// (the last row)
+	else if (p & BTN_CROSS) {
 		i18n_set(lang_sel - 1);
 		font_flush();		// (another language may draw characters from other fonts)
 		screen = SCR_HOME;
@@ -1594,8 +1701,60 @@ static void Input_Lang(uint32_t p)
 	if (p) dirty = 1;
 }
 
+/*
+==================
+Surprise me: something at random from the section (its whole list, or for homebrew any of its
+categories by their size); opened when its page is here
+==================
+*/
+static int surprise_list = -1, surprise_pos;
+
+static void Surprise_Start(void)
+{
+	int n = ix->num_lists[cur], l = -1, total = 0;
+	if (n && !strncmp(ix->lists[cur][0].name, "All ", 4)) l = 0;		// themes, avatars: all of them
+	else {
+		for (int i = 0; i < n; i++)
+			if (strcmp(ix->lists[cur][i].name, "Recently added")) total += ix->lists[cur][i].count;
+		if (total <= 0) return;
+		int r = rand() % total;
+		for (int i = 0; i < n && l < 0; i++) {
+			if (!strcmp(ix->lists[cur][i].name, "Recently added")) continue;
+			if (r < ix->lists[cur][i].count) { l = i; surprise_pos = r; }
+			else r -= ix->lists[cur][i].count;
+		}
+	}
+	if (l < 0 || ix->lists[cur][l].count <= 0) return;
+	if (l == 0 && !strncmp(ix->lists[cur][0].name, "All ", 4)) surprise_pos = rand() % ix->lists[cur][0].count;
+	surprise_list = l;
+	Note(tr("Picking something at random..."));
+}
+
+static void Surprise_Tick(void)
+{
+	if (surprise_list < 0) return;
+	cat_list_t *l = List(cur, surprise_list);
+	if (!l || screen != SCR_LIST || !Picking()) { surprise_list = -1; return; }
+	file_slot_t *slot;
+	const cat_item_t *it = Item_At(l, surprise_pos, &slot);
+	if (slot && slot->failed) { Note(Error_Text(slot->err_kind, slot->err)); surprise_list = -1; return; }
+	if (!it) return;
+	Search_Banner_Clear();
+	if (it->list[0]) {		// an avatar pack: its list, at it, opened
+		cat_list_t f;
+		cur_list[cur] = surprise_list;
+		view_t *v = Cur_View();
+		if (v) { v->sort = SORT_AZ; v->sel = v->top = surprise_pos; }		// (the position is in A-Z order)
+		if (catalog_parse_list(it->list, &f)) { Folder_Close(); folder = f; }
+	} else
+		Detail_Open(it, SCR_LIST);		// (Circle: back to the categories)
+	surprise_list = -1;
+	dirty = 1;
+}
+
 static void Input_Picker(uint32_t p)
 {
+	if (p & BTN_SQUARE) { Surprise_Start(); return; }
 	int n = ix->num_lists[cur], cols = Picker_Cols(), shown = Picker_Rows_Shown();
 	if (p & BTN_R1) { Section_Step(1); return; }
 	if (p & BTN_L1) { Section_Step(-1); return; }
@@ -1640,8 +1799,20 @@ static void Input_List(uint32_t p)
 	if (p & BTN_UP) v->sel--;
 	if (p & BTN_RIGHT) v->sel += ROWS;
 	if (p & BTN_LEFT) v->sel -= ROWS;
-	if (!v->results && (p & BTN_R2)) Letter_Jump(v, l, 1);
-	if (!v->results && (p & BTN_L2)) Letter_Jump(v, l, -1);
+	if (!v->results && !v->sort && (p & BTN_R2)) Letter_Jump(v, l, 1);
+	if (!v->results && !v->sort && (p & BTN_L2)) Letter_Jump(v, l, -1);
+	cat_list_t *base = Base_List();
+	if ((p & BTN_SELECT) && base && base->num_sorted) {
+		v->sort = (v->sort + 1) % (base->num_sorted + 1);
+		free(v->results);
+		v->results = NULL;
+		v->query[0] = 0;
+		v->search_wait = 0;
+		v->sel = v->top = 0;
+		Search_Banner_Clear();
+		dirty = 1;
+		return;
+	}
 	if (p & BTN_TRIANGLE) {
 		char title[64];
 		snprintf(title, sizeof(title), "%s %s%s%s", tr("Search"), tr(section_names[cur]), l->name[0] ? ": " : "", tr(l->name));
@@ -1761,7 +1932,9 @@ Frame
 void ui_init(void)
 {
 	i18n_init();
+	srand((unsigned)plat_time_us());
 	Speed_Load();
+	Sound_Load();
 	char name[64];
 	backdrop = Load_Image("backdrop.png", SCREEN_W, SCREEN_H);
 	logo = Load_Image("logo.png", 220, 31);
@@ -1803,6 +1976,8 @@ void ui_update(void)
 	Icons_Tick();
 	Download_Tick();
 	Pack_Tick();
+	Surprise_Tick();
+	Desc_Tick();
 	if (screen == SCR_HOME) {
 		Ticker_Build();
 		if (Ticker_Scrolls() && t_now - ticker_at >= (gfx_gpu() ? 33000u : 66000u)) dirty = 1;
@@ -1831,6 +2006,10 @@ void ui_update(void)
 	if (v && v->search_wait) Search_Run(v, Cur_List());		// (once the search.txt is here)
 
 	uint32_t p = input_pressed();
+	// a tick for a move, a blip for Cross, a lower one for Circle
+	if (p & (BTN_UP | BTN_DOWN | BTN_LEFT | BTN_RIGHT | BTN_L1 | BTN_R1 | BTN_L2 | BTN_R2)) plat_sound(SND_MOVE);
+	if (p & BTN_CROSS) plat_sound(SND_OK);
+	else if (p & BTN_CIRCLE) plat_sound(SND_BACK);
 	switch (screen) {
 	case SCR_START:
 		if ((p & BTN_CROSS) && start_err) Fetch_Start();
@@ -1886,6 +2065,9 @@ static void Draw_Header(void)
 	} else if (folder.pages) {
 		snprintf(line, sizeof(line), "%s", folder.name);
 		c = C_TEXT;
+	} else if (v && v->sort) {
+		snprintf(line, sizeof(line), "%s", tr(v->sort == SORT_NEWEST ? "Newest first" : "Largest first"));
+		c = C_CYAN;
 	} else {
 		Fmt_Count(ix->count[cur], n, sizeof(n));
 		snprintf(line, sizeof(line), "%s  %s", tr(section_names[cur]), n);
@@ -2160,6 +2342,7 @@ static void Draw_Picker(void)
 		}
 	}
 	int x = Hint(LIST_X, G_CROSS, tr("Open"));
+	x = Hint(x, G_SQUARE, tr("Surprise me"));
 	Hint(x, G_CIRCLE, tr("Back"));
 	if (!Draw_Strip() && cur == TYPE_THEME)
 		font_draw_right(FONT_REGULAR, 18, SCREEN_W - LIST_X, SCREEN_H - 55,
@@ -2242,7 +2425,9 @@ static void Draw_List(void)
 	else if (folder.pages) x = Hint(x, G_CIRCLE, tr("Packs"));
 	else if (ix->num_lists[cur] > 1) x = Hint(x, G_CIRCLE, tr("Categories"));
 	else x = Hint(x, G_CIRCLE, tr("Back"));
-	if (!v->results && count > 50) x = Hint2(x, G_L2, G_R2, tr("A-Z"));
+	if (!v->results && !v->sort && count > 50) x = Hint2(x, G_L2, G_R2, tr("A-Z"));
+	if (Base_List() && Base_List()->num_sorted)		// what Select changes to
+		x = Hint(x, G_SELECT, tr(v->sort == SORT_AZ ? "Newest first" : v->sort == SORT_NEWEST ? "Largest first" : "A-Z order"));
 	if (cur == TYPE_THEME)
 		font_draw_right(FONT_REGULAR, 16, SCREEN_W - LIST_X, LIST_Y + ROWS * ROW_H + 12,
 			tr("Not every theme has a preview: some were archived without one."), C_DIM);
@@ -2251,7 +2436,7 @@ static void Draw_List(void)
 		int at = View_Pos(v, v->sel);
 		for (int i = 0; i < NUM_LETTERS; i++)
 			if (l->letter_first[i] >= 0 && l->letter_first[i] <= at) letter = i ? 'A' + i - 1 : '#';
-		snprintf(pos, sizeof(pos), "%c   %d / %d", v->results ? ' ' : letter, v->sel + 1, count);
+		snprintf(pos, sizeof(pos), "%c   %d / %d", v->results || v->sort ? ' ' : letter, v->sel + 1, count);
 		font_draw_right(FONT_MEDIUM, 19, SCREEN_W - LIST_X, SCREEN_H - 55, pos, C_DIM);
 	}
 }
@@ -2320,9 +2505,10 @@ static void Draw_Detail(void)
 	y = Info_Row(x, y, w, tr("Saves to"), code == DEST_OK ? dest : tr(store_dest_message(code)), code == DEST_OK ? C_TEXT : C_WARN);
 	const char *have = store_downloaded(it);
 	if (have) y = Info_Row(x, y, w, tr("Downloaded"), tr("Yes"), C_OK);
-	if (it->description[0]) {		// as much of it as fits above the panel's foot
+	const char *desc = Desc_Of(it);		// (in the UI's language, when there's one)
+	if (desc[0]) {		// as much of it as fits above the panel's foot
 		int max = (SCREEN_H - 112 - (y + 8)) / 28;
-		n = max > 0 ? Wrap(FONT_REGULAR, 20, it->description, w, lines, max > 8 ? 8 : max) : 0;
+		n = max > 0 ? Wrap(FONT_REGULAR, 20, desc, w, lines, max > 8 ? 8 : max) : 0;
 		for (int i = 0; i < n; i++)
 			font_draw(FONT_REGULAR, 20, x, y + 8 + i * 28, lines[i], C_TEXT2, 0);
 	}
@@ -2443,13 +2629,17 @@ static void Draw_Lang(void)
 	Draw_Top(tr("Language"));
 	char line[160];
 	for (int i = 0; i <= LANG_COUNT; i++) {
-		int y = 120 + i * 38;
+		int y = 116 + i * 36;
 		if (i == lang_sel) gfx_round_rect(SCREEN_W / 2 - 320, y - 6, 640, 36, 10, C_ROW_ON);
 		if (i == 0) snprintf(line, sizeof(line), tr("The PS3's language (%s)"), lang_name(i18n_system()));
 		else snprintf(line, sizeof(line), "%s", lang_name(i - 1));
 		int chosen = i == i18n_choice() + 1;
 		font_draw_center(chosen ? FONT_BOLD : FONT_MEDIUM, 22, SCREEN_W / 2, y, line, chosen ? C_CYAN : C_TEXT, 600);
 	}
+	int y = 116 + (LANG_COUNT + 1) * 36 + 12;		// the sounds, under a line
+	gfx_rect(SCREEN_W / 2 - 200, y - 12, 400, 1, C_BORDER);
+	if (lang_sel == LANG_COUNT + 1) gfx_round_rect(SCREEN_W / 2 - 320, y - 6, 640, 36, 10, C_ROW_ON);
+	font_draw_center(FONT_MEDIUM, 22, SCREEN_W / 2, y, tr(sound_on ? "Sound effects: on" : "Sound effects: off"), C_TEXT, 600);
 	int x = Hint(LIST_X, G_CROSS, tr("Choose"));
 	Hint(x, G_CIRCLE, tr("Back"));
 }

@@ -192,3 +192,10 @@ Credits & contact	Emeği geçenler ve iletişim
 Made by	Yapanlar
 Thanks to	Teşekkürler
 Want your homebrew, theme or avatar on PS3 World? Send it in with the contact form:	Homebrew, tema ya da avatarınızın PS3 World'de olmasını mı istiyorsunuz? İletişim formundan gönderin:
+Surprise me	Şaşırt beni
+Picking something at random...	Rastgele bir şey seçiliyor...
+Sound effects: on	Ses efektleri: açık
+Sound effects: off	Ses efektleri: kapalı
+Newest first	Önce en yeniler
+Largest first	Önce en büyükler
+A-Z order	A-Z sırası

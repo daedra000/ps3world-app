@@ -4,8 +4,8 @@ store.h: what the app keeps on the PS3, and where downloads go.
   USRDIR/cache/catalog.json     the last index that parsed (the app opens offline)
   USRDIR/cache/files/<sha256>   pages and search.txt files, named by their sha256
                                 (a cached one is good exactly when the index's sha256 matches)
-  USRDIR/cache/icons/<id>.jpg   icons, fetched once
-  USRDIR/cache/previews/<id>    previews (JPEG or PNG), fetched once
+  USRDIR/cache/icons/<id>-<url hash>.jpg   icons, fetched once (again when the catalogue moves one)
+  USRDIR/cache/previews/<id>-<url hash>    previews (JPEG or PNG), the same
   USRDIR/downloaded.txt         "id<TAB>sha256<TAB>path<TAB>time<TAB>title" for each finished
                                 download (before 0.6.0: the first three)
   USRDIR/settings.txt           "avatar_profile=00000001"

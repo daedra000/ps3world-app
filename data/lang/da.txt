@@ -192,3 +192,10 @@ Credits & contact	Krediteringer og kontakt
 Made by	Lavet af
 Thanks to	Tak til
 Want your homebrew, theme or avatar on PS3 World? Send it in with the contact form:	Vil du have din homebrew, dit tema eller din avatar på PS3 World? Send det via kontaktformularen:
+Surprise me	Overrask mig
+Picking something at random...	Vælger noget tilfældigt...
+Sound effects: on	Lydeffekter: til
+Sound effects: off	Lydeffekter: fra
+Newest first	Nyeste først
+Largest first	Største først
+A-Z order	A-Å

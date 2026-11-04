@@ -258,14 +258,23 @@ char *store_get_file(const cat_file_t *f, size_t *len, volatile int *cancel, int
 	return s;
 }
 
+// a cached picture is named by its item and where it came from: when the catalogue
+// points it somewhere new (a sharper one), it's fetched again
+static unsigned Url_Hash(const char *s)
+{
+	unsigned h = 2166136261u;
+	for (; *s; s++) h = (h ^ (unsigned char)*s) * 16777619u;
+	return h;
+}
+
 void store_icon_path(const cat_item_t *it, char *out, int size)
 {
-	snprintf(out, size, "%s/%s.jpg", icons_dir, it->id);
+	snprintf(out, size, "%s/%s-%08x.jpg", icons_dir, it->id, Url_Hash(it->icon));
 }
 
 void store_preview_path(const cat_item_t *it, char *out, int size)
 {
-	snprintf(out, size, "%s/%s", previews_dir, it->id);
+	snprintf(out, size, "%s/%s-%08x", previews_dir, it->id, Url_Hash(it->preview));
 }
 
 /*

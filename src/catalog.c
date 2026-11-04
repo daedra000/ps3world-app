@@ -109,6 +109,8 @@ static int File_Of(const cJSON *o, cat_file_t *f)
 	return 1;
 }
 
+static void List_Free(cat_list_t *l);
+
 static int List_Of(const cJSON *o, cat_list_t *l)
 {
 	const cJSON *count = cJSON_GetObjectItemCaseSensitive(o, "count");
@@ -131,7 +133,30 @@ static int List_Of(const cJSON *o, cat_list_t *l)
 	cJSON_ArrayForEach(p, letters)
 		if (p->string && cJSON_IsNumber(p) && p->valueint >= 0 && p->valueint < l->count)
 			l->letter_first[catalog_letter_slot(p->string[0])] = p->valueint;
+	// the other orders (each a list of its own, with no orders of its own); any that's off is left out
+	const cJSON *sorted = cJSON_GetObjectItemCaseSensitive(o, "sorted");
+	int ns = cJSON_IsArray(sorted) ? cJSON_GetArraySize(sorted) : 0;
+	if (ns > NUM_SORTS - 1) ns = NUM_SORTS - 1;
+	if (ns && (l->sorted = calloc(ns, sizeof(cat_list_t)))) {
+		cJSON_ArrayForEach(p, sorted) {
+			if (l->num_sorted == ns) break;
+			cat_list_t *s = &l->sorted[l->num_sorted];
+			if (cJSON_GetObjectItemCaseSensitive(p, "sorted") || !List_Of(p, s) || s->count != l->count) {
+				List_Free(s);
+				break;		// (in order: newest, largest; one off and the ones after it go too)
+			}
+			l->num_sorted++;
+		}
+	}
 	return 1;
+}
+
+static void List_Free(cat_list_t *l)
+{
+	for (int i = 0; i < l->num_sorted; i++) List_Free(&l->sorted[i]);
+	free(l->sorted);
+	free(l->pages);
+	memset(l, 0, sizeof(*l));
 }
 
 cat_index_t *catalog_parse_index(const char *json, size_t len, char *err, int errsize)
@@ -160,6 +185,16 @@ cat_index_t *catalog_parse_index(const char *json, size_t len, char *err, int er
 	ix = calloc(1, sizeof(*ix));
 	if (!ix) { snprintf(err, errsize, "Out of memory"); goto out; }
 	snprintf(ix->generated, sizeof(ix->generated), "%s", Str(root, "generated"));
+	// homebrew's descriptions in other languages: "descriptions": {"es": {url, sha256}, ...}
+	const cJSON *d;
+	cJSON_ArrayForEach(d, cJSON_GetObjectItemCaseSensitive(root, "descriptions")) {
+		if (ix->num_desc == MAX_DESC_LANGS || !d->string || strlen(d->string) >= sizeof(ix->desc[0].code) ||
+			strspn(d->string, "abcdefghijklmnopqrstuvwxyz") != strlen(d->string)) continue;
+		cat_desc_t *c = &ix->desc[ix->num_desc];
+		if (!File_Of(d, &c->file)) continue;
+		snprintf(c->code, sizeof(c->code), "%s", d->string);
+		ix->num_desc++;
+	}
 	// the app's update: "1.2.3", a PKG under the base, its size and sha256 (left out if any of it's off)
 	const cJSON *app = cJSON_GetObjectItemCaseSensitive(root, "app");
 	const char *ver = Str(app, "version");
@@ -184,8 +219,7 @@ cat_index_t *catalog_parse_index(const char *json, size_t len, char *err, int er
 				sum += ix->lists[t][k].count;
 				k++;
 			} else {
-				free(ix->lists[t][k].pages);
-				memset(&ix->lists[t][k], 0, sizeof(cat_list_t));
+				List_Free(&ix->lists[t][k]);
 				plat_log("catalog: a %s list was skipped (bad fields)", type_names[t]);
 			}
 		}
@@ -204,7 +238,7 @@ void catalog_free_index(cat_index_t *ix)
 	if (!ix) return;
 	for (int t = 0; t < NUM_TYPES; t++) {
 		for (int i = 0; i < ix->num_lists[t]; i++)
-			free(ix->lists[t][i].pages);
+			List_Free(&ix->lists[t][i]);
 		free(ix->lists[t]);
 	}
 	free(ix);
@@ -322,8 +356,7 @@ int catalog_parse_list(const char *json, cat_list_t *l)
 
 void catalog_free_list(cat_list_t *l)
 {
-	free(l->pages);
-	memset(l, 0, sizeof(*l));
+	List_Free(l);
 }
 
 void catalog_free(catalog_t *c)

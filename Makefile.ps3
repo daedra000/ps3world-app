@@ -39,7 +39,7 @@ endif
 
 SOURCES := src/app.c src/gfx.c src/font.c src/input.c src/jobs.c src/lang.c src/i18n.c src/ui.c src/catalog.c src/download.c src/store.c \
 	src/http_common.c src/thirdparty/cJSON.c \
-	src/ps3/main_ps3.c src/ps3/video_ps3.c src/ps3/input_ps3.c src/ps3/http_ps3.c src/ps3/osk_ps3.c
+	src/ps3/main_ps3.c src/ps3/audio_ps3.c src/ps3/video_ps3.c src/ps3/input_ps3.c src/ps3/http_ps3.c src/ps3/osk_ps3.c
 OBJECTS := $(patsubst %.c,$(OBJDIR)/%.o,$(SOURCES))
 
 MBEDTLS_DIR ?= $(PORTLIBS)
@@ -55,7 +55,7 @@ CFLAGS   := $(OPT) -mcpu=cell -mtune=cell -mno-altivec -mminimal-toc $(MACHDEP) 
 	-MMD -MP $(DEFINES) $(INCLUDES)
 LDFLAGS  := $(MACHDEP) -Wl,--no-multi-toc $(LIBPSL1GHT_LIB) -L$(MBEDTLS_DIR)/library -L$(PORTLIBS)/lib
 LIBS     := -lrsx -lgcm_sys -lio -lmbedtls -lmbedx509 -lmbedcrypto -lsysfs -lsysmodule \
-	-lsysutil -lnet -lrt -llv2 -lm
+	-lsysutil -lnet -laudio -lrt -llv2 -lm
 
 .PHONY: all pkg self clean pkgfiles
 

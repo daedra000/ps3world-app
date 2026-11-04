@@ -192,3 +192,10 @@ Credits & contact	الشكر والتواصل
 Made by	من صنع
 Thanks to	شكرًا لـ
 Want your homebrew, theme or avatar on PS3 World? Send it in with the contact form:	هل تريد إضافة تطبيقك أو سمتك أو صورتك الرمزية إلى PS3 World؟ أرسلها عبر نموذج التواصل:
+Surprise me	فاجئني
+Picking something at random...	جارٍ اختيار شيء عشوائي...
+Sound effects: on	المؤثرات الصوتية: تشغيل
+Sound effects: off	المؤثرات الصوتية: إيقاف
+Newest first	الأحدث أولًا
+Largest first	الأكبر أولًا
+A-Z order	ترتيب A-Z

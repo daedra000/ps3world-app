@@ -192,3 +192,10 @@ Credits & contact	Kredit & kontak
 Made by	Dibuat oleh
 Thanks to	Terima kasih kepada
 Want your homebrew, theme or avatar on PS3 World? Send it in with the contact form:	Ingin homebrew, tema, atau avatarmu ada di PS3 World? Kirim lewat formulir kontak:
+Surprise me	Kejutkan aku
+Picking something at random...	Memilih secara acak...
+Sound effects: on	Efek suara: aktif
+Sound effects: off	Efek suara: mati
+Newest first	Terbaru dulu
+Largest first	Terbesar dulu
+A-Z order	Urutan A-Z

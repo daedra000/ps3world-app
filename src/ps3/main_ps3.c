@@ -362,6 +362,7 @@ int main(int argc, char **argv)
 	Net_Init();
 	if (!app_start())
 		return 1;
+	plat_sound_init();
 
 	uint64_t last = plat_time_us(), present_us = 0, presents = 0, present_log = last, last_flip = last;
 	while (!quit_requested) {
@@ -407,6 +408,7 @@ int main(int argc, char **argv)
 	}
 	plat_log("XMB: quit");
 	app_shutdown();
+	plat_sound_quit();
 	ps3_video_shutdown();
 	sysUtilUnregisterCallback(SYSUTIL_EVENT_SLOT0);
 	if (log_lock_made) sysMutexLock(log_lock, 0);

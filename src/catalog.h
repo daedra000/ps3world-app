@@ -27,13 +27,16 @@ typedef struct {
 } cat_file_t;
 
 #define NUM_LETTERS 27			// '#', then A..Z
-typedef struct {
+enum { SORT_AZ, SORT_NEWEST, SORT_LARGEST, NUM_SORTS };
+typedef struct cat_list_s {
 	char name[32];				// "Games", "Ports"...; "All themes", "Anime & Comics"...; "All avatars", "US"...
 	int count;
 	int num_pages;
 	cat_file_t *pages;
 	cat_file_t search;
 	int letter_first[NUM_LETTERS];	// where each letter starts in the list, -1 if none
+	struct cat_list_s *sorted;		// the same items newest first, then largest first (NULL: none; 1.2.0 on)
+	int num_sorted;
 } cat_list_t;
 
 typedef struct {
@@ -42,9 +45,17 @@ typedef struct {
 	long long size;
 } cat_app_t;
 
+#define MAX_DESC_LANGS	16
+typedef struct {
+	char code[8];				// "es"...
+	cat_file_t file;			// id: description, for homebrew
+} cat_desc_t;
+
 typedef struct {
 	char generated[32];
 	cat_app_t app;				// the newest PS3 World (the app checks it against its own version)
+	cat_desc_t desc[MAX_DESC_LANGS];	// homebrew's descriptions in other languages (1.2.0 on)
+	int num_desc;
 	int page_size;
 	int count[NUM_TYPES];
 	int num_lists[NUM_TYPES];

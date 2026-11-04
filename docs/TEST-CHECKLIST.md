@@ -68,6 +68,12 @@ Tick each box. Where a step fails, note what the screen said and copy `/dev_hdd0
 - [ ] Homebrew > the Recently added card has Nathan Drake, his face clear of the title.
 - [ ] Home > Start: Credits & contact. "Made by daedra000 · Claude (Anthropic)", the thanks, and "Send it in with the contact form: ps3.world/contact". Circle goes back.
 - [ ] No grey HEN / CFW badges in lists; "CFW only" still shows where it applies.
+- [ ] Homebrew icons and previews look sharp at 1080p (they're fetched again once: their addresses changed).
+- [ ] Themes > Square on the categories: "Picking something at random..." then a random theme's detail; Circle goes back to the categories. In Avatars it opens a random pack.
+- [ ] Soft clicks when moving, a blip on Cross, a lower one on Circle. Home > Select > the last row turns them off, and they stay off after quitting.
+- [ ] In a list, Select: "Newest first" (top right, cyan), then "Largest first" (Themes > All themes starts with the 26 MB ones), then A-Z again. The hint says what Select changes to.
+- [ ] In Spanish (or any of the 11), a homebrew's description is in that language; English shows for one added later and not translated yet.
+- [ ] The log has a line for a cancelled download ("cancelled at N of M bytes").
 
 ## 4c. Packs, previews, big downloads, favourites, Recently added (1.1.0)
 

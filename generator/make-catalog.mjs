@@ -61,6 +61,7 @@ const TYPES = ['homebrew', 'theme', 'avatar'];
 // homebrew is split into the site's categories (the manifest's "group"), in this order
 const HOMEBREW_LISTS = ['Games', 'Ports', 'Edits', 'Tools', 'Media', 'Misc'];
 const ICON_SIZE = 128;
+const HOMEBREW_ICON = 256;					// (homebrew's few are drawn up to 300 px at 1080p)
 const ICON_BG = { r: 0x1a, g: 0x1c, b: 0x20 };
 const HASH_JOBS = 4;
 
@@ -178,17 +179,19 @@ async function pool(items, n, label, fn) {
 }
 
 // ---- icons ----
-async function makeIcon(src, id) {
+// (homebrew's are bigger, in icons/hd: sharp at 1080p, and a new address so apps fetch them again)
+async function makeIcon(src, id, size = ICON_SIZE, dir = 'icons') {
   if (!src) return '';
   try { await fsp.access(src); } catch { warn(`icon missing for ${id}: ${src}`); return ''; }
-  const rel = `${CATALOG_DIR}/icons/${id}.jpg`;
+  const rel = `${CATALOG_DIR}/${dir}/${id}.jpg`;
   const out = path.join(CONFIG.outDir, rel);
   try {
     const [a, b] = await Promise.all([fsp.stat(src), fsp.stat(out).catch(() => null)]);
     if (b && b.mtimeMs >= a.mtimeMs) return rel;		// made already
+    await fsp.mkdir(path.dirname(out), { recursive: true });
     // the PS3 shows JPEG and PNG only: baseline JPEG, letterboxed into a square
     // (failOn none: a few avatar PNGs have damaged chunks but still decode)
-    await sharp(src, { failOn: 'none' }).resize(ICON_SIZE, ICON_SIZE, { fit: 'contain', background: ICON_BG })
+    await sharp(src, { failOn: 'none' }).resize(size, size, { fit: 'contain', background: ICON_BG })
       .flatten({ background: ICON_BG })
       .jpeg({ quality: 80, progressive: false, mozjpeg: false, chromaSubsampling: '4:2:0' })
       .toFile(out);
@@ -199,17 +202,17 @@ async function makeIcon(src, id) {
   }
 }
 
-// homebrew's preview: its site image, letterboxed into 480x270 (a theme preview's size)
+// homebrew's preview: its site image, letterboxed into 960x540 (the detail screen's box at 1080p)
 async function makePreview(src, id) {
   if (!src) return '';
   try { await fsp.access(src); } catch { return ''; }
-  const rel = `${CATALOG_DIR}/previews/${id}.jpg`;
+  const rel = `${CATALOG_DIR}/previews/hd/${id}.jpg`;
   const out = path.join(CONFIG.outDir, rel);
   try {
     const [a, b] = await Promise.all([fsp.stat(src), fsp.stat(out).catch(() => null)]);
     if (b && b.mtimeMs >= a.mtimeMs) return rel;
     await fsp.mkdir(path.dirname(out), { recursive: true });
-    await sharp(src, { failOn: 'none' }).resize(480, 270, { fit: 'contain', background: ICON_BG })
+    await sharp(src, { failOn: 'none' }).resize(960, 540, { fit: 'contain', background: ICON_BG })
       .flatten({ background: ICON_BG })
       .jpeg({ quality: 82, progressive: false, mozjpeg: false, chromaSubsampling: '4:2:0' })
       .toFile(out);
@@ -313,6 +316,16 @@ const RECENT_DAYS = 30;
 let seen = {};
 const seenOf = i => i._seen || seen[i.id] || 'before';
 const newestFirst = (a, b) => seenOf(b).localeCompare(seenOf(a)) || a.title.localeCompare(b.title, 'en', { sensitivity: 'base', numeric: true });
+const largestFirst = (a, b) => b.size - a.size || a.title.localeCompare(b.title, 'en', { sensitivity: 'base', numeric: true });
+
+// a section's list, and the same in two more orders the app can switch to (Select): newest
+// first, largest first. Each is a list of its own (pages, search.txt) under the list's "sorted";
+// apps before 1.2.0 don't look there
+function topList(name, rows, relDir) {
+  const entry = writeList(name, rows, relDir);
+  entry.sorted = [writeList(name, [...rows], `${relDir}/newest`, newestFirst), writeList(name, [...rows], `${relDir}/largest`, largestFirst)];
+  return entry;
+}
 
 // avatars as folders: an item per pack, whose "list" (the index's list entry, as a string)
 // is the pack's avatars in pages of their own under relDir/packs/<pack>
@@ -374,7 +387,7 @@ async function build() {
     if (!info) { warn(`${s.type} ${s.id}: file not found: ${s._file}`); return; }
     s.size = info.size;
     s.sha256 = info.sha256;
-    s.icon = await makeIcon(s._icon, s.id);
+    s.icon = s.type === 'homebrew' ? await makeIcon(s._icon, s.id, HOMEBREW_ICON, 'icons/hd') : await makeIcon(s._icon, s.id);
     s.preview = s.type === 'homebrew' ? await makePreview(s._icon, s.id) : s._preview || '';
     items.push(s);
   });
@@ -408,14 +421,14 @@ async function build() {
       const names = [...HOMEBREW_LISTS, ...new Set(all.map(i => i.group).filter(g => !HOMEBREW_LISTS.includes(g)))];
       for (const name of names) {
         const list = all.filter(i => i.group === name);
-        if (list.length) section.lists.push(writeList(name, list, `${CATALOG_DIR}/homebrew/${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`));
+        if (list.length) section.lists.push(topList(name, list, `${CATALOG_DIR}/homebrew/${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`));
       }
       const recent = all.filter(isRecent);
       if (recent.length) section.lists.push(writeList('Recently added', recent, `${CATALOG_DIR}/homebrew/recent`, newestFirst));
     } else {
       // (avatars: a list's rows are its packs)
       const rows = (list, relDir) => (type === 'avatar' ? packFolders(list, relDir) : list);
-      section.lists.push(writeList(`All ${type}s`, rows(all, `${CATALOG_DIR}/${type}/all`), `${CATALOG_DIR}/${type}/all`));
+      section.lists.push(topList(`All ${type}s`, rows(all, `${CATALOG_DIR}/${type}/all`), `${CATALOG_DIR}/${type}/all`));
       const recent = all.filter(isRecent);
       if (recent.length)
         section.lists.push(writeList('Recently added', rows(recent, `${CATALOG_DIR}/${type}/recent`), `${CATALOG_DIR}/${type}/recent`, newestFirst));
@@ -426,11 +439,26 @@ async function build() {
       for (const [name, list] of Object.entries(by).sort((a, b) =>
         (a[0] === 'Other') - (b[0] === 'Other') || size(b[1]) - size(a[1]))) {
         const relDir = `${CATALOG_DIR}/${type}/${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
-        section.lists.push(writeList(name, rows(list, relDir), relDir));
+        section.lists.push(topList(name, rows(list, relDir), relDir));
       }
     }
     index.sections.push(section);
   }
+  // homebrew's descriptions in other languages: generator/descriptions/<code>.json (id: text),
+  // published as lang/<code>.json with what's in the catalogue; the app loads its language's
+  const descDir = path.join(HERE, 'descriptions');
+  const hb = items.filter(i => i.type === 'homebrew' && i.description);
+  for (const f of fs.existsSync(descDir) ? fs.readdirSync(descDir).filter(f => /^[a-z]{2}\.json$/.test(f)).sort() : []) {
+    const code = f.slice(0, 2), all = readJson(path.join(descDir, f)), out = {};
+    for (const i of [...hb].sort((a, b) => a.id.localeCompare(b.id))) if (all[i.id]) out[i.id] = all[i.id];
+    const missing = hb.filter(i => !all[i.id]).map(i => i.title);
+    if (missing.length) warn(`descriptions/${f}: none yet for ${missing.join(', ')} (English shows)`);
+    const text = JSON.stringify(out), rel = `${CATALOG_DIR}/lang/${code}.json`;
+    fs.mkdirSync(path.join(CONFIG.outDir, CATALOG_DIR, 'lang'), { recursive: true });
+    fs.writeFileSync(path.join(CONFIG.outDir, rel), text);
+    (index.descriptions ||= {})[code] = { url: rel, sha256: sha256Of(text), size: Buffer.byteLength(text) };
+  }
+
   const json = JSON.stringify(index);
   const outFile = path.join(CONFIG.outDir, CATALOG_DIR, 'catalog.json');
   fs.writeFileSync(outFile, json);
@@ -470,6 +498,12 @@ async function verify() {
         if (it.list) lists.push(JSON.parse(it.list));
         else cat.items.push(it);
     }
+  for (const f of Object.values(index.descriptions || {}))		// (the translated descriptions)
+    if (sha256Of(fs.readFileSync(path.join(CONFIG.outDir, f.url), 'utf8')) !== f.sha256) { bad++; warn(`MISMATCH ${f.url}`); }
+  // the other orders: the same items, so only their pages and search files are checked
+  for (const l of index.sections.flatMap(s => s.lists).flatMap(l => l.sorted || []))
+    for (const f of [...l.pages, l.search])
+      if (sha256Of(fs.readFileSync(path.join(CONFIG.outDir, f.url), 'utf8')) !== f.sha256) { bad++; warn(`MISMATCH ${f.url}`); }
   if (index.app) {		// the app's update, checked like an item
     homebrewByUrl[index.app.url] = path.join(CONFIG.homebrewRoot, ...index.app.url.split('/').map(decodeURIComponent));
     cat.items.push({ id: 'ps3world-app', type: 'homebrew', ...index.app });

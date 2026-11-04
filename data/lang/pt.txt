@@ -192,3 +192,10 @@ Credits & contact	Créditos e contato
 Made by	Feito por
 Thanks to	Agradecimentos
 Want your homebrew, theme or avatar on PS3 World? Send it in with the contact form:	Quer seu homebrew, tema ou avatar no PS3 World? Envie pelo formulário de contato:
+Surprise me	Me surpreenda
+Picking something at random...	Escolhendo algo aleatório...
+Sound effects: on	Efeitos sonoros: ligados
+Sound effects: off	Efeitos sonoros: desligados
+Newest first	Mais novos primeiro
+Largest first	Maiores primeiro
+A-Z order	Ordem A-Z
