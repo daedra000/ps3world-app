@@ -3,7 +3,7 @@ i18n.c: which language the UI is in, and its words from data/lang/<code>.txt.
 
 The PS3's own language unless one was picked in the app (USRDIR/language.txt:
 a code, or "auto"). Arabic and Indonesian aren't PS3 system languages: they're
-only there by picking them. (Russian is one: it follows the PS3.)
+only there by picking them. (Russian, Chinese, Japanese and Korean are: they follow the PS3.)
 
 A line of a language file is "English<TAB>translation"; "\n" in either is a
 new line and a line starting with # is a comment. A translation whose printf
@@ -103,6 +103,7 @@ static const lang_table_t *Load(int lang)
 int i18n_system(void)
 {
 	switch (plat_system_lang()) {
+	case 0: return LANG_JA;
 	case 2: return LANG_FR;
 	case 3: return LANG_ES;
 	case 4: return LANG_DE;
@@ -110,6 +111,8 @@ int i18n_system(void)
 	case 6: return LANG_NL;
 	case 7: case 17: return LANG_PT;
 	case 8: return LANG_RU;
+	case 9: return LANG_KO;
+	case 10: case 11: return LANG_ZH;		// (traditional too: simplified is closer than English)
 	case 14: return LANG_DA;
 	case 16: return LANG_PL;
 	case 19: return LANG_TR;

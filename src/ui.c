@@ -69,6 +69,13 @@ Resonant (swapped on consoles that confirm with Circle).
 #define FAV_H		104			// the home screen's Favourites card, under the sections'
 #define HOME_H		(CARD_H - FAV_H - CARD_GAP)	// the sections' cards
 #define HOME_FAVS	NUM_TYPES	// home_sel: the Favourites card
+#define LG_COLS		4			// the language screen: a card per language, LG_COLS a row
+#define LG_W		((LIST_W - (LG_COLS - 1) * CARD_GAP) / LG_COLS)
+#define LG_H		72
+#define LG_TOP		104			// the PS3's-language card, the width of the grid
+#define LG_GRID		(LG_TOP + 60 + 22)
+#define LG_ROW(r)	(LG_GRID + (r) * (LG_H + 12))
+#define LG_SOUND	(LG_ROW((LANG_COUNT + LG_COLS - 1) / LG_COLS) + 10)
 #define QR_PX		132			// the contact QR code: 33 modules, 4 px each at 720p, 6 at 1080p (sharp)
 
 enum { SCR_START, SCR_HOME, SCR_LIST, SCR_DETAIL, SCR_PROFILE, SCR_DOWNLOADS, SCR_LANG, SCR_CREDITS };
@@ -76,7 +83,7 @@ enum { SCR_START, SCR_HOME, SCR_LIST, SCR_DETAIL, SCR_PROFILE, SCR_DOWNLOADS, SC
 static int screen = SCR_START;
 static int dirty = 1;
 static uint64_t t_now;
-static image_t *backdrop, *logo, *qr_contact;	// (qr: ps3.world/contact, made by tools/qr.mjs)
+static image_t *backdrop, *logo, *qr_contact, *flag_img[LANG_COUNT];	// (qr: ps3.world/contact, made by tools/qr.mjs)
 
 static const char *section_names[NUM_TYPES] = {"Homebrew", "Themes", "Avatars"};
 
@@ -1688,10 +1695,22 @@ static void Input_Credits(uint32_t p)
 	if (p) dirty = 1;
 }
 
+// lang_sel: 0 the PS3's language, 1..LANG_COUNT a language (in a grid, LG_COLS a row), then the sounds
 static void Input_Lang(uint32_t p)
 {
-	if (p & BTN_DOWN && lang_sel < LANG_COUNT + 1) lang_sel++;
-	if (p & BTN_UP && lang_sel > 0) lang_sel--;
+	int n = LANG_COUNT, last_row = (n - 1) / LG_COLS * LG_COLS;
+	if (lang_sel == 0) {
+		if (p & BTN_DOWN) lang_sel = 1;
+	} else if (lang_sel == n + 1) {
+		if (p & BTN_UP) lang_sel = last_row + 1;
+	} else {
+		int i = lang_sel - 1, col = i % LG_COLS;
+		if ((p & BTN_LEFT) && col > 0) i--;
+		else if ((p & BTN_RIGHT) && col < LG_COLS - 1 && i + 1 < n) i++;
+		if (p & BTN_UP) i = i >= LG_COLS ? i - LG_COLS : -1;
+		else if (p & BTN_DOWN) i = i + LG_COLS < n ? i + LG_COLS : (i >= last_row ? n : n - 1);
+		lang_sel = i + 1;
+	}
 	if (p & BTN_CIRCLE) screen = SCR_HOME;
 	if ((p & BTN_CROSS) && lang_sel == LANG_COUNT + 1) Sound_Set(!sound_on);		// (the last row)
 	else if (p & BTN_CROSS) {
@@ -1940,6 +1959,11 @@ void ui_init(void)
 	backdrop = Load_Image("backdrop.png", SCREEN_W, SCREEN_H);
 	logo = Load_Image("logo.png", 220, 31);
 	qr_contact = Load_Image("qr-contact.png", QR_PX, QR_PX);
+	for (int i = 0; i < LANG_COUNT; i++) {
+		char f[64];
+		snprintf(f, sizeof(f), "flags/%s.png", lang_flag(i));
+		flag_img[i] = Load_Image(f, 56, 42);
+	}
 	for (int i = 0; i < NUM_GLYPHS; i++) {
 		snprintf(name, sizeof(name), "glyphs/%s.png", glyph_files[i]);
 		glyphs[i] = Load_Image(name, GLYPH, GLYPH);		// (at the screen's size: Load_Image sees to it)
@@ -2008,6 +2032,15 @@ void ui_update(void)
 	if (v && v->search_wait) Search_Run(v, Cur_List());		// (once the search.txt is here)
 
 	uint32_t p = input_pressed();
+	// right to left (Arabic): the screen is mirrored, so are the directions (Right moves right on it)
+	if (lang_current() == LANG_AR) {
+		uint32_t sw = p & ~(BTN_LEFT | BTN_RIGHT | BTN_L1 | BTN_R1);
+		if (p & BTN_LEFT) sw |= BTN_RIGHT;
+		if (p & BTN_RIGHT) sw |= BTN_LEFT;
+		if (p & BTN_L1) sw |= BTN_R1;
+		if (p & BTN_R1) sw |= BTN_L1;
+		p = sw;
+	}
 	// a tick for a move, a blip for Cross, a lower one for Circle
 	if (p & (BTN_UP | BTN_DOWN | BTN_LEFT | BTN_RIGHT | BTN_L1 | BTN_R1 | BTN_L2 | BTN_R2)) plat_sound(SND_MOVE);
 	if (p & BTN_CROSS) plat_sound(SND_OK);
@@ -2632,22 +2665,49 @@ static void Draw_Credits(void)
 	Hint(LIST_X, G_CIRCLE, tr("Back"));
 }
 
+// a flag at x, y (56x42, rounded), or a grey box when it's missing
+static void Flag(int lang, int x, int y)
+{
+	if (flag_img[lang]) gfx_image(flag_img[lang], x, y, 56, 42, 6, 255);
+	else gfx_round_rect(x, y, 56, 42, 6, 0xff2a3040);
+}
+
+// the one in use: a cyan dot at the card's far end
+static void In_Use(int x, int y, int w, int h)
+{
+	gfx_circle(x + w - 22, y + h / 2, 6, C_CYAN);
+}
+
 static void Draw_Lang(void)
 {
-	Draw_Top(tr("Language"));
 	char line[160];
-	for (int i = 0; i <= LANG_COUNT; i++) {
-		int y = 116 + i * 34;
-		if (i == lang_sel) gfx_round_rect(SCREEN_W / 2 - 320, y - 6, 640, 36, 10, C_ROW_ON);
-		if (i == 0) snprintf(line, sizeof(line), tr("The PS3's language (%s)"), lang_name(i18n_system()));
-		else snprintf(line, sizeof(line), "%s", lang_name(i - 1));
-		int chosen = i == i18n_choice() + 1;
-		font_draw_center(chosen ? FONT_BOLD : FONT_MEDIUM, 22, SCREEN_W / 2, y, line, chosen ? C_CYAN : C_TEXT, 600);
+	int sys = i18n_system(), choice = i18n_choice();
+	Draw_Top(tr("Language"));
+
+	// the PS3's language
+	Card_Frame(LIST_X, LG_TOP, LIST_W, 60, lang_sel == 0);
+	Flag(sys, LIST_X + 16, LG_TOP + 9);
+	snprintf(line, sizeof(line), tr("The PS3's language (%s)"), lang_name(sys));
+	font_draw(FONT_BOLD, 22, LIST_X + 88, LG_TOP + 19, line, choice < 0 ? C_CYAN : C_TEXT, LIST_W - 140);
+	if (choice < 0) In_Use(LIST_X, LG_TOP, LIST_W, 60);
+
+	// the languages
+	for (int i = 0; i < LANG_COUNT; i++) {
+		int x = LIST_X + (i % LG_COLS) * (LG_W + CARD_GAP), y = LG_ROW(i / LG_COLS);
+		Card_Frame(x, y, LG_W, LG_H, lang_sel == i + 1);
+		Flag(i, x + 14, y + (LG_H - 42) / 2);
+		int room = LG_W - 84 - (i == choice ? 34 : 14), npx = font_width(FONT_BOLD, 22, lang_name(i)) > room ? 19 : 22;	// (a long name a size smaller)
+		font_draw(FONT_BOLD, npx, x + 84, y + 13 + (22 - npx) / 2, lang_name(i), i == choice ? C_CYAN : C_TEXT, room);
+		font_draw(FONT_REGULAR, 16, x + 84, y + 43, lang_english(i), C_DIM, LG_W - 84 - 34);
+		if (i == choice) In_Use(x, y, LG_W, LG_H);
 	}
-	int y = 116 + (LANG_COUNT + 1) * 34 + 12;		// the sounds, under a line
-	gfx_rect(SCREEN_W / 2 - 200, y - 12, 400, 1, C_BORDER);
-	if (lang_sel == LANG_COUNT + 1) gfx_round_rect(SCREEN_W / 2 - 320, y - 6, 640, 36, 10, C_ROW_ON);
-	font_draw_center(FONT_MEDIUM, 22, SCREEN_W / 2, y, tr(sound_on ? "Sound effects: on" : "Sound effects: off"), C_TEXT, 600);
+
+	// the sounds
+	Card_Frame(LIST_X, LG_SOUND, LIST_W, 52, lang_sel == LANG_COUNT + 1);
+	font_draw(FONT_MEDIUM, 21, LIST_X + 24, LG_SOUND + 15, tr(sound_on ? "Sound effects: on" : "Sound effects: off"), C_TEXT, LIST_W - 80);
+	gfx_round_rect(LIST_X + LIST_W - 70, LG_SOUND + 15, 44, 22, 11, sound_on ? C_ACCENT : 0xff3a4152);		// a switch
+	gfx_circle(LIST_X + LIST_W - (sound_on ? 37 : 59), LG_SOUND + 26, 8, C_TEXT);
+
 	int x = Hint(LIST_X, G_CROSS, tr("Choose"));
 	Hint(x, G_CIRCLE, tr("Back"));
 }

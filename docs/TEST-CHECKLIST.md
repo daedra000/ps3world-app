@@ -28,9 +28,11 @@ Tick each box. Where a step fails, note what the screen said and copy `/dev_hdd0
 ## 1b. Languages (1.1.0)
 
 - [ ] With the PS3 in Spanish (Settings > Language Settings > System Language), the app opens in Spanish: cards, hints, the detail screen, errors. Theme categories are Spanish too; item names and descriptions stay as they are on the site.
-- [ ] Home > Select: the language list. The first row is "The PS3's language (...)", the one in use is in blue. Pick **Français**: everything changes at once, and it's still French after quitting and reopening.
+- [ ] Home > Select: the language screen. The top card is "The PS3's language (...)" with that language's flag; under it a grid of 16 flags, 4 across, each with its own name and the English name under it, a blue dot on the one in use. Up/Down/Left/Right move around the grid, Down from the last row reaches the sound switch. No name runs past its card. Pick **Français**: everything changes at once, and it's still French after quitting and reopening.
 - [ ] Pick **العربية** (Arabic): the letters are joined (not separate shapes) and read right to left; numbers and paths in a line (/dev_hdd0..., 45%) stay left to right. The whole screen is mirrored: text right-aligned, hints from the right, list icons on the right, the detail preview on the right, card art on the left (turned round). Previews and icons are not mirrored.
-- [ ] Pick **Русский** (Russian), or set the PS3 to Russian: everything in Russian (Cyrillic from DejaVu), homebrew descriptions too once the catalogue is uploaded. The language list (14 rows and the sound row) fits above the hints.
+- [ ] Pick **Русский** (Russian), or set the PS3 to Russian: everything in Russian (Cyrillic from DejaVu), homebrew descriptions too once the catalogue is uploaded. The whole grid and the sound card fit above the hints.
+- [ ] In Arabic, the controls are mirrored too: Left moves right on screen and Right moves left (in lists, card rows and the language grid), and L1/R1 swap so the button on the screen's side goes that way. Up/Down are unchanged.
+- [ ] Pick **中文 (简体)**, **日本語** and **한국어** in turn, or set the PS3 to Chinese (Simplified), Japanese or Korean: the screens are in that language, using the PS3's own fonts, with no boxes. Long lines wrap; hints don't run into the download strip. Homebrew descriptions are translated once the catalogue is uploaded. [unverified: whether every simplified Chinese character is in the PS3 fonts]
 - [ ] Polish and Turkish letters (ą ę ł ż, ğ ş ı İ) show, not boxes.
 - [ ] Long German or French hints don't run into the download strip bottom right.
 - [ ] Back to "The PS3's language": it follows the console again.

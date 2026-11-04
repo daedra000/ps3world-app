@@ -1,0 +1,202 @@
+# PS3 World in Korean: "English<TAB>translation" a line; \n is a new line.
+# Keep every %s, %d... in the same order. Corrections welcome.
+No network connection. Check Settings > Network Settings on the PS3, then try again.	네트워크에 연결되어 있지 않습니다. PS3의 [설정 > 네트워크 설정]을 확인한 뒤 다시 시도하세요.
+The secure connection to dl.ps3.world failed. Check the PS3's date and time (Settings > Date and Time Settings), then try again.	dl.ps3.world와의 보안 연결에 실패했습니다. PS3의 날짜와 시간([설정 > 날짜 및 시간 설정])을 확인한 뒤 다시 시도하세요.
+Not found on the server (404). It may have moved: try again in a moment.	서버에서 찾을 수 없습니다(404). 옮겨졌을 수 있으니 잠시 후 다시 시도하세요.
+Not enough free space. %s	여유 공간이 부족합니다. %s
+The catalogue wasn't found on the server (HTTP %d)	서버에서 카탈로그를 찾을 수 없습니다(HTTP %d)
+Loading the catalogue...	카탈로그를 불러오는 중...
+Offline: showing the catalogue from %.10s	오프라인: %.10s의 카탈로그를 표시 중
+Search isn't available: %s	검색할 수 없습니다: %s
+Couldn't make the folder %s	%s 폴더를 만들 수 없습니다
+Out of memory	메모리가 부족합니다
+%d downloads are waiting already: add this one when some have finished.	이미 %d개의 다운로드가 대기 중입니다. 몇 개가 끝난 뒤 추가하세요.
+Install it from the XMB: Package Manager > Install Package Files.	XMB에서 설치: [패키지 관리자 > 패키지 파일 설치].
+Choose it on the XMB: Settings > Theme Settings > Theme.	XMB에서 선택: [설정 > 테마 설정 > 테마].
+Choose it from the XMB: PlayStation Network > Account Management > Avatar.	XMB에서 선택: [PlayStation Network > 계정 관리 > 아바타].
+Checksum OK (%s). Saved to %s\n%s	체크섬 확인 완료(%s). %s에 저장했습니다\n%s
+Download cancelled.	다운로드를 취소했습니다.
+Download paused. Press X to resume.	다운로드를 일시 정지했습니다. X를 눌러 계속하세요.
+The download didn't match its checksum, so it was deleted. Try again.	다운로드한 파일이 체크섬과 맞지 않아 삭제했습니다. 다시 시도하세요.
+\nPress X to resume where it stopped.	\nX를 눌러 멈춘 곳부터 계속하세요.
+Couldn't delete that file	파일을 삭제할 수 없습니다
+A new version of this app. Once it's downloaded, install it from Package Manager > Install Package Files: it installs over this one.	이 앱의 새 버전입니다. 다운로드한 뒤 [패키지 관리자 > 패키지 파일 설치]에서 설치하세요. 지금 버전 위에 설치됩니다.
+Search	검색
+Searching for "%s"...	"%s" 검색 중...
+Search: "%s"  (%d%s)	검색: "%s"  (%d%s)
+Checking for updates...	업데이트 확인 중...
+%s  %d%%  ·  %d more	%s  %d%%  ·  %d개 더
+%s free on the HDD  ·  %d downloaded	HDD 여유 %s  ·  %d개 다운로드됨
+%d downloaded	%d개 다운로드됨
+PS3 World %s is out: press Square to get it	PS3 World %s 출시: □ 버튼으로 받기
+Open	열기
+My downloads	내 다운로드
+Update	업데이트
+Language	언어
+Back	뒤로
+Section	섹션
+Nothing here yet.	아직 아무것도 없습니다.
+Nothing matches the search. Press Square to clear it.	검색 결과가 없습니다. □ 버튼으로 검색을 지우세요.
+Loading...	불러오는 중...
+Downloaded	다운로드됨
+CFW only	CFW 전용
+HEN / CFW	HEN / CFW
+Unknown author	제작자 알 수 없음
+Clear search	검색 지우기
+Packs	팩
+Categories	카테고리
+A-Z	A-Z
+Loading the preview...	미리 보기 불러오는 중...
+Author	제작자
+Version	버전
+Size	크기
+Pack	팩
+Category	카테고리
+Works on	지원
+HEN or CFW	HEN 또는 CFW
+Any PS3	모든 PS3
+Saves to	저장 위치
+Yes	예
+Checking what's there already...	이미 있는 파일 확인 중...
+Checking the sha256...	sha256 확인 중...
+Downloading	다운로드 중
+Resumed from %s	%s부터 이어서 받음
+Queued: %d download ahead of it. You can go back and keep browsing.	대기 중: 앞에 다운로드 %d개. 돌아가서 계속 둘러볼 수 있습니다.
+Queued: %d downloads ahead of it. You can go back and keep browsing.	대기 중: 앞에 다운로드 %d개. 돌아가서 계속 둘러볼 수 있습니다.
+After it downloads: %s	다운로드 후: %s
+Cancel download	다운로드 취소
+Try again	다시 시도
+Download again	다시 다운로드
+Download	다운로드
+Which user is the avatar for?	이 아바타는 어느 사용자용인가요?
+It's saved in that user's psn_avatar folder.	해당 사용자의 psn_avatar 폴더에 저장됩니다.
+Choose	선택
+The PS3's language (%s)	PS3 언어(%s)
+%d on the HDD (%s)  ·  %s free	HDD에 %d개(%s)  ·  여유 %s
+%d on the HDD (%s)	HDD에 %d개(%s)
+Nothing downloaded yet.	아직 다운로드한 것이 없습니다.
+Downloading %d%%	다운로드 중 %d%%
+Queued	대기 중
+Failed	실패
+New version	새 버전
+Press Square again to delete this file from the HDD.	□ 버튼을 한 번 더 누르면 이 파일을 HDD에서 삭제합니다.
+Delete	삭제
+Clear	지우기
+Apps · Games · Ports	앱 · 게임 · 이식작
+Homebrew	홈브루
+Homebrew tools and games, PC ports and media players for HEN & CFW.	HEN 및 CFW용 홈브루 도구와 게임, PC 이식작, 미디어 플레이어.
+Customise your XMB	XMB 꾸미기
+Themes	테마
+Custom themes from the full theme archive, by category.	전체 테마 아카이브의 커스텀 테마를 카테고리별로.
+Your profile picture	프로필 사진
+Avatars	아바타
+XMB avatars from every region, saved to your PS3 user.	모든 지역의 XMB 아바타. PS3 사용자에 저장됩니다.
+Games	게임
+Play	플레이
+Homebrew Games	홈브루 게임
+Grid Siege, Super Mario War, PS3Sweeper+ and more.	Grid Siege, Super Mario War, PS3Sweeper+ 등.
+Ports	이식작
+PC & retro	PC와 레트로
+Undertale, Nazi Zombies: Portable, Mario Kart 64 and more. No game files needed.	Undertale, Nazi Zombies: Portable, Mario Kart 64 등. 게임 파일이 필요 없습니다.
+Tools	도구
+Essentials	필수 앱
+Homebrew Tools	홈브루 도구
+Apollo, IRISMAN, webMAN MOD, PKGi, multiMAN and more.	Apollo, IRISMAN, webMAN MOD, PKGi, multiMAN 등.
+Media	미디어
+Watch & listen	보고 듣기
+Media Players	미디어 플레이어
+Movian, Yo! Player, Jellyfin, Spotify and Resonant for Plex.	Movian, Yo! Player, Jellyfin, Spotify, Resonant for Plex.
+Misc	기타
+Prototypes & demos	프로토타입과 데모
+Miscellaneous	기타
+Unreleased prototypes, demos and more.	미출시 프로토타입, 데모 등.
+All themes	모든 테마
+Anime & Comics	애니메이션과 만화
+Movies & TV	영화와 TV
+Sports	스포츠
+Abstract Art & Design	추상 아트와 디자인
+Art & Graphics	아트와 그래픽
+Music	음악
+Computers & Tech	컴퓨터와 기술
+Dynamic & Animated	다이내믹과 애니메이션
+Cars & Transportation	자동차와 교통
+Nature & Animals	자연과 동물
+Celebrities & People	유명인과 인물
+Slideshow	슬라이드쇼
+General	일반
+Holiday & Seasonal	명절과 계절
+Official PlayStation Themes	PlayStation 공식 테마
+All avatars	모든 아바타
+US	미국
+EU	유럽
+Japan	일본
+Asia	아시아
+Other	기타
+No user profiles were found in /dev_hdd0/home.	/dev_hdd0/home에서 사용자 프로필을 찾을 수 없습니다.
+Choose which user the avatar is for.	이 아바타를 어느 사용자용으로 할지 선택하세요.
+%s doesn't match the catalogue (it may be being updated): try again later	%s이(가) 카탈로그와 맞지 않습니다(업데이트 중일 수 있음): 나중에 다시 시도하세요
+Not enough free space (%s)	여유 공간이 부족합니다(%s)
+Couldn't write to %s	%s에 쓸 수 없습니다
+The drive is full%s	드라이브가 가득 찼습니다%s
+The server sent the wrong part of the file. Try again%s	서버가 파일의 다른 부분을 보냈습니다. 다시 시도하세요%s
+Not found on the server (404)%s	서버에서 찾을 수 없습니다(404)%s
+The server's copy is different (416). Try again%s	서버의 사본이 다릅니다(416). 다시 시도하세요%s
+Download cut short%s	다운로드가 중단되었습니다%s
+Checksum mismatch: the file was deleted. Try again%s	체크섬 불일치: 파일을 삭제했습니다. 다시 시도하세요%s
+Couldn't rename the finished file in %s	%s의 완료된 파일 이름을 바꿀 수 없습니다
+Can't find %s (is the PS3 online?)	%s을(를) 찾을 수 없습니다(PS3가 온라인인가요?)
+Can't connect to %s:%d (%d)	%s:%d에 연결할 수 없습니다(%d)
+Secure connections are unavailable	보안 연결을 사용할 수 없습니다
+%s's certificate was rejected (is the PS3's clock right?)	%s의 인증서가 거부되었습니다(PS3 시계가 맞나요?)
+Secure connection to %s failed (-0x%04x)	%s와의 보안 연결에 실패했습니다(-0x%04x)
+Request to %s failed	%s에 대한 요청이 실패했습니다
+No reply from %s	%s에서 응답이 없습니다
+Reply from %s cut short	%s의 응답이 중단되었습니다
+The network isn't available	네트워크를 사용할 수 없습니다
+Bad URL	잘못된 URL
+The reply wasn't understood	응답을 이해할 수 없습니다
+Insecure redirect refused	안전하지 않은 리디렉션을 거부했습니다
+Redirect to another host refused	다른 호스트로의 리디렉션을 거부했습니다
+Too many redirects	리디렉션이 너무 많습니다
+Download cut short	다운로드가 중단되었습니다
+Cancelled	취소됨
+Stopped	중지됨
+Edits	Edits
+PS2 Classics	PS2 클래식
+Modded PS2 classics: Budokai Tenkaichi 3, WWE 2K24, GTA Forelli Redemption and more.	개조된 PS2 명작: Budokai Tenkaichi 3, WWE 2K24, GTA Forelli Redemption 등.
+under a minute	1분 미만
+about %d minutes	약 %d분
+about %d hours %d minutes	약 %d시간 %d분
+Not enough free space: this needs %s, and %s is free.	공간이 부족합니다: %s 필요, 여유 %s.
+This is %s (%s). Press X again to download it.	크기는 %s(%s)입니다. X를 한 번 더 누르면 다운로드합니다.
+This is %s. Press X again to download it.	크기는 %s입니다. X를 한 번 더 누르면 다운로드합니다.
+Getting the pack's avatars...	팩의 아바타를 가져오는 중...
+%d avatars queued: the queue is full, so add the rest later.	아바타 %d개 대기열 추가: 대기열이 가득 찼으니 나머지는 나중에 추가하세요.
+%d avatars queued: they download one after another.	아바타 %d개 대기열 추가: 차례로 다운로드됩니다.
+Every avatar in this pack is downloaded or queued already.	이 팩의 아바타는 모두 다운로드되었거나 대기 중입니다.
+Download pack	팩 다운로드
+Full screen	전체 화면
+Unfavourite	즐겨찾기 해제
+Favourite	즐겨찾기
+The preview couldn't be loaded.	미리 보기를 불러올 수 없습니다.
+Favourites	즐겨찾기
+%d favourite	즐겨찾기 %d개
+%d favourites	즐겨찾기 %d개
+No favourites yet. Press Select on an item to add it.	아직 즐겨찾기가 없습니다. 항목에서 Select를 누르면 추가됩니다.
+Recently added	최근 추가
+New	새로운
+Not every theme has a preview: some were archived without one.	모든 테마에 미리 보기가 있지는 않습니다: 일부는 미리 보기 없이 보관되었습니다.
+This theme was archived without a preview.	이 테마는 미리 보기 없이 보관되었습니다.
+What's new	새 소식
+Credits & contact	제작진 및 문의
+Made by	제작
+Thanks to	감사
+Want your homebrew, theme or avatar on PS3 World? Send it in with the contact form:	내 홈브루, 테마, 아바타를 PS3 World에 올리고 싶나요? 문의 양식으로 보내 주세요:
+Surprise me	아무거나
+Picking something at random...	무작위로 고르는 중...
+Sound effects: on	효과음: 켬
+Sound effects: off	효과음: 끔
+Newest first	최신순
+Largest first	큰 순
+A-Z order	가나다/A-Z순
+Scan with your phone	휴대폰으로 스캔

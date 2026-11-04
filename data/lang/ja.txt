@@ -1,0 +1,202 @@
+# PS3 World in Japanese: "English<TAB>translation" a line; \n is a new line.
+# Keep every %s, %d... in the same order. Corrections welcome.
+No network connection. Check Settings > Network Settings on the PS3, then try again.	ネットワークに接続されていません。PS3の「設定 > ネットワーク設定」を確認してから、もう一度お試しください。
+The secure connection to dl.ps3.world failed. Check the PS3's date and time (Settings > Date and Time Settings), then try again.	dl.ps3.world への安全な接続に失敗しました。PS3の日付と時刻（「設定 > 日付と時刻設定」）を確認してから、もう一度お試しください。
+Not found on the server (404). It may have moved: try again in a moment.	サーバーに見つかりません（404）。移動した可能性があります。しばらくしてからお試しください。
+Not enough free space. %s	空き容量が足りません。%s
+The catalogue wasn't found on the server (HTTP %d)	サーバーにカタログが見つかりません（HTTP %d）
+Loading the catalogue...	カタログを読み込み中...
+Offline: showing the catalogue from %.10s	オフライン：%.10s のカタログを表示中
+Search isn't available: %s	検索できません：%s
+Couldn't make the folder %s	フォルダー %s を作成できません
+Out of memory	メモリーが足りません
+%d downloads are waiting already: add this one when some have finished.	すでに %d 件のダウンロードが待機中です。いくつか終わってから追加してください。
+Install it from the XMB: Package Manager > Install Package Files.	XMBからインストール：「パッケージ管理 > パッケージファイルのインストール」。
+Choose it on the XMB: Settings > Theme Settings > Theme.	XMBで選択：「設定 > テーマ設定 > テーマ」。
+Choose it from the XMB: PlayStation Network > Account Management > Avatar.	XMBで選択：「PlayStation Network > アカウント管理 > アバター」。
+Checksum OK (%s). Saved to %s\n%s	チェックサムOK（%s）。%s に保存しました\n%s
+Download cancelled.	ダウンロードを中止しました。
+Download paused. Press X to resume.	ダウンロードを一時停止しました。X で再開します。
+The download didn't match its checksum, so it was deleted. Try again.	ダウンロードがチェックサムと一致しなかったため削除しました。もう一度お試しください。
+\nPress X to resume where it stopped.	\nX で止まったところから再開します。
+Couldn't delete that file	ファイルを削除できません
+A new version of this app. Once it's downloaded, install it from Package Manager > Install Package Files: it installs over this one.	このアプリの新しいバージョンです。ダウンロード後、「パッケージ管理 > パッケージファイルのインストール」からインストールしてください。今のバージョンに上書きされます。
+Search	検索
+Searching for "%s"...	「%s」を検索中...
+Search: "%s"  (%d%s)	検索：「%s」  (%d%s)
+Checking for updates...	アップデートを確認中...
+%s  %d%%  ·  %d more	%s  %d%%  ·  あと %d 件
+%s free on the HDD  ·  %d downloaded	HDDの空き %s  ·  ダウンロード済み %d 件
+%d downloaded	ダウンロード済み %d 件
+PS3 World %s is out: press Square to get it	PS3 World %s が出ました：□ボタンで入手
+Open	開く
+My downloads	マイダウンロード
+Update	アップデート
+Language	言語
+Back	戻る
+Section	セクション
+Nothing here yet.	まだ何もありません。
+Nothing matches the search. Press Square to clear it.	検索に一致するものはありません。□ボタンで検索を解除します。
+Loading...	読み込み中...
+Downloaded	ダウンロード済み
+CFW only	CFWのみ
+HEN / CFW	HEN / CFW
+Unknown author	作者不明
+Clear search	検索を解除
+Packs	パック
+Categories	カテゴリー
+A-Z	A-Z
+Loading the preview...	プレビューを読み込み中...
+Author	作者
+Version	バージョン
+Size	サイズ
+Pack	パック
+Category	カテゴリー
+Works on	対応
+HEN or CFW	HEN または CFW
+Any PS3	すべてのPS3
+Saves to	保存先
+Yes	はい
+Checking what's there already...	すでにあるものを確認中...
+Checking the sha256...	sha256 を確認中...
+Downloading	ダウンロード中
+Resumed from %s	%s から再開しました
+Queued: %d download ahead of it. You can go back and keep browsing.	待機中：前に %d 件のダウンロードがあります。戻って閲覧を続けられます。
+Queued: %d downloads ahead of it. You can go back and keep browsing.	待機中：前に %d 件のダウンロードがあります。戻って閲覧を続けられます。
+After it downloads: %s	ダウンロード後：%s
+Cancel download	ダウンロードを中止
+Try again	もう一度
+Download again	もう一度ダウンロード
+Download	ダウンロード
+Which user is the avatar for?	このアバターはどのユーザー用ですか？
+It's saved in that user's psn_avatar folder.	そのユーザーの psn_avatar フォルダーに保存されます。
+Choose	選択
+The PS3's language (%s)	PS3の言語（%s）
+%d on the HDD (%s)  ·  %s free	HDDに %d 件（%s）  ·  空き %s
+%d on the HDD (%s)	HDDに %d 件（%s）
+Nothing downloaded yet.	まだ何もダウンロードしていません。
+Downloading %d%%	ダウンロード中 %d%%
+Queued	待機中
+Failed	失敗
+New version	新しいバージョン
+Press Square again to delete this file from the HDD.	もう一度□ボタンを押すと、このファイルをHDDから削除します。
+Delete	削除
+Clear	消去
+Apps · Games · Ports	アプリ · ゲーム · 移植
+Homebrew	自作ソフト
+Homebrew tools and games, PC ports and media players for HEN & CFW.	HEN・CFW向けの自作ツールやゲーム、PC移植、メディアプレーヤー。
+Customise your XMB	XMBをカスタマイズ
+Themes	テーマ
+Custom themes from the full theme archive, by category.	テーマアーカイブ全体のカスタムテーマを、カテゴリー別に。
+Your profile picture	プロフィール画像
+Avatars	アバター
+XMB avatars from every region, saved to your PS3 user.	全地域のXMBアバター。PS3のユーザーに保存されます。
+Games	ゲーム
+Play	遊ぶ
+Homebrew Games	自作ゲーム
+Grid Siege, Super Mario War, PS3Sweeper+ and more.	Grid Siege、Super Mario War、PS3Sweeper+ など。
+Ports	移植
+PC & retro	PC・レトロ
+Undertale, Nazi Zombies: Portable, Mario Kart 64 and more. No game files needed.	Undertale、Nazi Zombies: Portable、Mario Kart 64 など。ゲームファイルは不要です。
+Tools	ツール
+Essentials	定番
+Homebrew Tools	自作ツール
+Apollo, IRISMAN, webMAN MOD, PKGi, multiMAN and more.	Apollo、IRISMAN、webMAN MOD、PKGi、multiMAN など。
+Media	メディア
+Watch & listen	観る・聴く
+Media Players	メディアプレーヤー
+Movian, Yo! Player, Jellyfin, Spotify and Resonant for Plex.	Movian、Yo! Player、Jellyfin、Spotify、Resonant for Plex。
+Misc	その他
+Prototypes & demos	試作品・体験版
+Miscellaneous	その他
+Unreleased prototypes, demos and more.	未発売の試作品や体験版など。
+All themes	すべてのテーマ
+Anime & Comics	アニメ・コミック
+Movies & TV	映画・テレビ
+Sports	スポーツ
+Abstract Art & Design	抽象アート・デザイン
+Art & Graphics	アート・グラフィック
+Music	音楽
+Computers & Tech	コンピューター・テクノロジー
+Dynamic & Animated	ダイナミック・アニメーション
+Cars & Transportation	車・乗り物
+Nature & Animals	自然・動物
+Celebrities & People	有名人・人物
+Slideshow	スライドショー
+General	一般
+Holiday & Seasonal	祝日・季節
+Official PlayStation Themes	PlayStation公式テーマ
+All avatars	すべてのアバター
+US	アメリカ
+EU	ヨーロッパ
+Japan	日本
+Asia	アジア
+Other	その他
+No user profiles were found in /dev_hdd0/home.	/dev_hdd0/home にユーザープロフィールが見つかりません。
+Choose which user the avatar is for.	このアバターをどのユーザー用にするか選んでください。
+%s doesn't match the catalogue (it may be being updated): try again later	%s がカタログと一致しません（更新中の可能性があります）：後でもう一度お試しください
+Not enough free space (%s)	空き容量が足りません（%s）
+Couldn't write to %s	%s に書き込めません
+The drive is full%s	ドライブがいっぱいです%s
+The server sent the wrong part of the file. Try again%s	サーバーがファイルの違う部分を送ってきました。もう一度お試しください%s
+Not found on the server (404)%s	サーバーに見つかりません（404）%s
+The server's copy is different (416). Try again%s	サーバーのコピーが異なります（416）。もう一度お試しください%s
+Download cut short%s	ダウンロードが途切れました%s
+Checksum mismatch: the file was deleted. Try again%s	チェックサムが一致しません：ファイルを削除しました。もう一度お試しください%s
+Couldn't rename the finished file in %s	%s の完了したファイルの名前を変更できません
+Can't find %s (is the PS3 online?)	%s が見つかりません（PS3はオンラインですか？）
+Can't connect to %s:%d (%d)	%s:%d に接続できません（%d）
+Secure connections are unavailable	安全な接続が使えません
+%s's certificate was rejected (is the PS3's clock right?)	%s の証明書が拒否されました（PS3の時計は正しいですか？）
+Secure connection to %s failed (-0x%04x)	%s への安全な接続に失敗しました（-0x%04x）
+Request to %s failed	%s へのリクエストに失敗しました
+No reply from %s	%s から応答がありません
+Reply from %s cut short	%s からの応答が途切れました
+The network isn't available	ネットワークが使えません
+Bad URL	URLが正しくありません
+The reply wasn't understood	応答を理解できませんでした
+Insecure redirect refused	安全でないリダイレクトを拒否しました
+Redirect to another host refused	別のホストへのリダイレクトを拒否しました
+Too many redirects	リダイレクトが多すぎます
+Download cut short	ダウンロードが途切れました
+Cancelled	中止しました
+Stopped	停止しました
+Edits	Edits
+PS2 Classics	PS2クラシック
+Modded PS2 classics: Budokai Tenkaichi 3, WWE 2K24, GTA Forelli Redemption and more.	改造されたPS2の名作：Budokai Tenkaichi 3、WWE 2K24、GTA Forelli Redemption など。
+under a minute	1分未満
+about %d minutes	約 %d 分
+about %d hours %d minutes	約 %d 時間 %d 分
+Not enough free space: this needs %s, and %s is free.	空き容量が足りません：%s 必要で、空きは %s です。
+This is %s (%s). Press X again to download it.	サイズは %s（%s）です。もう一度 X でダウンロードします。
+This is %s. Press X again to download it.	サイズは %s です。もう一度 X でダウンロードします。
+Getting the pack's avatars...	パックのアバターを取得中...
+%d avatars queued: the queue is full, so add the rest later.	アバター %d 件を待機列に追加しました：待機列がいっぱいです。残りは後で追加してください。
+%d avatars queued: they download one after another.	アバター %d 件を待機列に追加しました：順番にダウンロードします。
+Every avatar in this pack is downloaded or queued already.	このパックのアバターはすべてダウンロード済みか待機中です。
+Download pack	パックをダウンロード
+Full screen	全画面
+Unfavourite	お気に入りから外す
+Favourite	お気に入り
+The preview couldn't be loaded.	プレビューを読み込めませんでした。
+Favourites	お気に入り
+%d favourite	お気に入り %d 件
+%d favourites	お気に入り %d 件
+No favourites yet. Press Select on an item to add it.	まだお気に入りはありません。項目で Select を押すと追加できます。
+Recently added	最近追加
+New	新着
+Not every theme has a preview: some were archived without one.	すべてのテーマにプレビューがあるわけではありません：プレビューなしで保存されたものもあります。
+This theme was archived without a preview.	このテーマはプレビューなしで保存されました。
+What's new	新着情報
+Credits & contact	クレジット・お問い合わせ
+Made by	制作
+Thanks to	謝辞
+Want your homebrew, theme or avatar on PS3 World? Send it in with the contact form:	あなたの自作ソフト・テーマ・アバターをPS3 Worldに載せたいですか？お問い合わせフォームから送ってください：
+Surprise me	おまかせ
+Picking something at random...	ランダムに選んでいます...
+Sound effects: on	効果音：オン
+Sound effects: off	効果音：オフ
+Newest first	新しい順
+Largest first	大きい順
+A-Z order	A-Z順
+Scan with your phone	スマホで読み取る

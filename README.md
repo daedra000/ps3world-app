@@ -30,7 +30,7 @@
 - **Credits & contact** (Start on the home screen): who made it, what it's built with, and where to send your own homebrew, themes or avatars (ps3.world/contact).
 - **1080p:** with the PS3 set to 1080p, everything is drawn at the full resolution (the graphics chip draws; the CPU fallback is 720p). On a 4:3 TV the picture is letterboxed at the right shape.
 - **Sound effects:** soft clicks as you move and choose (off in the Language screen, under Select).
-- **13 languages:** English, Spanish, Portuguese, French, German, Italian, Dutch, Polish, Turkish, Danish, Indonesian, Russian and Arabic (joined letters, and the whole screen laid out right to left). It follows the PS3's language; Select on the home screen picks another. The words are in `data/lang/<code>.txt`, and homebrew's descriptions in `generator/descriptions/<code>.json`.
+- **16 languages:** English, Spanish, Portuguese, French, German, Italian, Dutch, Polish, Turkish, Danish, Indonesian, Russian, Chinese (Simplified), Japanese, Korean and Arabic (joined letters, and the whole screen laid out right to left, controls included). It follows the PS3's language; Select on the home screen opens a grid of flags to pick another. Chinese, Japanese and Korean use the PS3's own system fonts. The words are in `data/lang/<code>.txt`, and homebrew's descriptions in `generator/descriptions/<code>.json`.
 
 ## Controls
 
@@ -60,7 +60,7 @@ To release a new version: put its PKG in `D:PS3 WORLD R2homebrewtools` as `PS3Wo
 |---|---|
 | `src/` | the app (C, PSL1GHT); `src/ps3/` is the console backend |
 | `src/catalog.c` | catalog.json, parsed and checked |
-| `src/lang.c`, `src/i18n.c`, `data/lang/` | the languages: tr(), the PS3's language or the one picked, and each language's words |
+| `src/lang.c`, `src/i18n.c`, `data/lang/`, `data/flags/` | the languages: tr(), the PS3's language or the one picked, each language's words, and its flag (`tools/make-flags.mjs` makes them from flag-icons) |
 | `generator/` | Node script that builds catalog.json and the icons from the site build |
 | `tools/https_test.c` | the app's HTTPS client run on Linux against dl.ps3.world (CI) |
 | `tools/make-art.mjs` | ICON0, PIC1 and the in-app background, from the site |
