@@ -42,5 +42,18 @@
   "hb-ps3-unlock-hdd-space": "Verkleint de gereserveerde ruimte op de harde schijf van de PS3 van 8% naar 1% met HEN of CFW, zodat je opslag terugkrijgt. Nog eens uitvoeren maakt het ongedaan.",
   "hb-qdnsm-installer": "Een XMB-plugin die van DNS wisselt zonder naar de netwerkinstellingen te gaan. Druk in het XMB op R1 + R2 + R3, kies een server en hij maakt opnieuw verbinding. Met de online-revivalservers en welke games elk ondersteunt.",
   "hb-thermal-bench": "Bewaak en test de temperaturen van je PS3 nauwkeurig.",
-  "hb-webman-mod-1-47-50-installer": "Een homebrew-plugin met veel functies, toegevoegd aan de originele webMAN/sMAN van Deank."
+  "hb-webman-mod-1-47-50-installer": "Een homebrew-plugin met veel functies, toegevoegd aan de originele webMAN/sMAN van Deank.",
+  "hb-college-hoops-2k-reborn-slus21673": "Mod van 2K's College Hoops voor PS2 met bijgewerkte teams. Versie 2.7, een PS2-klassieker.",
+  "hb-ps0001-slus01234-00-ecw-1995-2000-blackout-edition": "ECW-worstelmod voor PS1 van Synyster Software, over 1995 tot 2000. Versie 1.5.",
+  "hb-ps0001-slus80440-00-project-pro-skater-4": "Skatemod voor PS1, gebaseerd op de Tony Hawk's Pro Skater-serie.",
+  "hb-ultimate-mortal-kombat-deception-v6-slus20881": "Mod van Mortal Kombat: Deception met extra vechters. Versie 6, een PS2-klassieker.",
+  "hb-ps0001-slus01234-00-wcw-95-00-rebooked": "WCW-worstelmod voor PS1 van Synyster Software, over 1995 tot 2000. Versie 1.1.",
+  "hb-wwe-smackdown-hctp-allstars-edition-slus20787": "Mod van WWE SmackDown! Here Comes the Pain met een bijgewerkte allstar-selectie. Een PS2-klassieker.",
+  "hb-sn0001-rxxba8044-00-xalabaias-adventure": "SNES-romhack uit 2019: YouTuber Pai Troll jaagt op de hacker die zijn camera stal, door diens computer en dwars over het internet.",
+  "hb-sg0001-rxcsy8045-00-cave-story-study-edition-v0-8-0": "Fanport van Studio Pixels Cave Story naar de Mega Drive. Build Study Edition v0.8.0.",
+  "hb-ai0001-rxhlo8047-00-halo-2600": "Halo verkleind tot een Atari 2600-cartridge. Een fan-demake uit 2010 van Ed Fries, met ingebouwde Atari 2600-emulator.",
+  "hb-ns0001-rxidv8040-00-indivisible": "NES-fan-demake van het Indivisible-prototype. Speel als Ajna, die in vergeten tempels zoekt naar haar tapir Roti.",
+  "hb-sg0001-rxmml8045-00-miner-mole-a0100-v0100": "Origineel Mega Drive-platformspel: een mol met een houweel graaft door bossen, mijnen, grotten en kerkers om het rotsmonster te verslaan.",
+  "hb-ns0001-rxwhr8040-00-what-remains": "Origineel verhalend NES-spel dat zich afspeelt in 1986. NES-emulator ingebouwd.",
+  "hb-cell-1-1-5": "Een sociaal netwerk voor de PS3: profielen, een feed met screenshots en GIF's, berichten, Global Chat en Play Online, met DNS-instelling voor meer dan 90 nieuw leven ingeblazen games."
 }

@@ -42,5 +42,18 @@
   "hb-ps3-unlock-hdd-space": "Verkleinert den reservierten Festplattenplatz der PS3 von 8 % auf 1 % (HEN oder CFW) und gibt dir Speicher zurück. Erneut ausführen macht es rückgängig.",
   "hb-qdnsm-installer": "Ein XMB-Plugin, das den DNS wechselt, ohne in die Netzwerkeinstellungen zu gehen. Drücke im XMB R1 + R2 + R3, wähle einen Server, und es verbindet sich neu. Mit den Online-Revival-Servern und der Angabe, welche Spiele jeder unterstützt.",
   "hb-thermal-bench": "Überwache und teste die Temperaturen deiner PS3 genau.",
-  "hb-webman-mod-1-47-50-installer": "Ein Homebrew-Plugin mit vielen Funktionen, aufbauend auf dem ursprünglichen webMAN/sMAN von Deank."
+  "hb-webman-mod-1-47-50-installer": "Ein Homebrew-Plugin mit vielen Funktionen, aufbauend auf dem ursprünglichen webMAN/sMAN von Deank.",
+  "hb-college-hoops-2k-reborn-slus21673": "Mod von 2Ks College Hoops für PS2 mit aktualisierten Teams. Version 2.7, ein PS2-Klassiker.",
+  "hb-ps0001-slus01234-00-ecw-1995-2000-blackout-edition": "ECW-Wrestling-Mod für PS1 von Synyster Software, für die Jahre 1995 bis 2000. Version 1.5.",
+  "hb-ps0001-slus80440-00-project-pro-skater-4": "Skate-Mod für PS1 auf Basis der Tony Hawk's Pro Skater-Reihe.",
+  "hb-ultimate-mortal-kombat-deception-v6-slus20881": "Mod von Mortal Kombat: Deception mit zusätzlichen Kämpfern. Version 6, ein PS2-Klassiker.",
+  "hb-ps0001-slus01234-00-wcw-95-00-rebooked": "WCW-Wrestling-Mod für PS1 von Synyster Software, für die Jahre 1995 bis 2000. Version 1.1.",
+  "hb-wwe-smackdown-hctp-allstars-edition-slus20787": "Mod von WWE SmackDown! Here Comes the Pain mit aktualisiertem Allstar-Kader. Ein PS2-Klassiker.",
+  "hb-sn0001-rxxba8044-00-xalabaias-adventure": "SNES-ROM-Hack von 2019: YouTuber Pai Troll jagt den Hacker, der seine Kamera gestohlen hat, durch dessen Computer und quer durchs Internet.",
+  "hb-sg0001-rxcsy8045-00-cave-story-study-edition-v0-8-0": "Fan-Portierung von Studio Pixels Cave Story auf das Mega Drive. Build Study Edition v0.8.0.",
+  "hb-ai0001-rxhlo8047-00-halo-2600": "Halo, geschrumpft auf ein Atari-2600-Modul. Ein Fan-Demake von Ed Fries aus dem Jahr 2010, mit eingebautem Atari-2600-Emulator.",
+  "hb-ns0001-rxidv8040-00-indivisible": "NES-Fan-Demake des Indivisible-Prototyps. Spiele Ajna, die in vergessenen Tempeln nach ihrem Tapir Roti sucht.",
+  "hb-sg0001-rxmml8045-00-miner-mole-a0100-v0100": "Originelles Mega-Drive-Jump-'n'-Run: Ein Maulwurf mit Spitzhacke gräbt sich durch Wälder, Minen, Höhlen und Verliese, um das Felsmonster zu besiegen.",
+  "hb-ns0001-rxwhr8040-00-what-remains": "Originelles Story-Spiel für das NES, das 1986 spielt. NES-Emulator eingebaut.",
+  "hb-cell-1-1-5": "Ein soziales Netzwerk für die PS3: Profile, ein Feed mit Screenshots und GIFs, Nachrichten, Global Chat und Play Online mit DNS-Einrichtung für über 90 wiederbelebte Spiele."
 }

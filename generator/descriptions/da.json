@@ -42,5 +42,18 @@
   "hb-ps3-unlock-hdd-space": "Skærer PS3'ens reserverede harddiskplads ned fra 8 % til 1 % med HEN eller CFW og giver dig ekstra plads. Kør den igen for at fortryde.",
   "hb-qdnsm-installer": "Et XMB-plugin, der skifter DNS uden at gå ind i Netværksindstillinger. Tryk R1 + R2 + R3 i XMB, vælg en server, og den forbinder igen. Leveres med online-revival-serverne og viser, hvilke spil hver understøtter.",
   "hb-thermal-bench": "Overvåg og test din PS3's temperaturer præcist.",
-  "hb-webman-mod-1-47-50-installer": "Et homebrew-plugin med mange funktioner tilføjet til Deanks oprindelige webMAN/sMAN."
+  "hb-webman-mod-1-47-50-installer": "Et homebrew-plugin med mange funktioner tilføjet til Deanks oprindelige webMAN/sMAN.",
+  "hb-college-hoops-2k-reborn-slus21673": "Mod af 2K's College Hoops til PS2 med opdaterede hold. Version 2.7, en PS2-klassiker.",
+  "hb-ps0001-slus01234-00-ecw-1995-2000-blackout-edition": "ECW-wrestlingmod til PS1 fra Synyster Software, der dækker 1995 til 2000. Version 1.5.",
+  "hb-ps0001-slus80440-00-project-pro-skater-4": "Skatermod til PS1 bygget på Tony Hawk's Pro Skater-serien.",
+  "hb-ultimate-mortal-kombat-deception-v6-slus20881": "Mod af Mortal Kombat: Deception med ekstra kæmpere. Version 6, en PS2-klassiker.",
+  "hb-ps0001-slus01234-00-wcw-95-00-rebooked": "WCW-wrestlingmod til PS1 fra Synyster Software, der dækker 1995 til 2000. Version 1.1.",
+  "hb-wwe-smackdown-hctp-allstars-edition-slus20787": "Mod af WWE SmackDown! Here Comes the Pain med en opdateret allstar-trup. En PS2-klassiker.",
+  "hb-sn0001-rxxba8044-00-xalabaias-adventure": "SNES-romhack fra 2019: YouTuberen Pai Troll jagter hackeren, der stjal hans kamera, gennem hackerens computer og ud over hele internettet.",
+  "hb-sg0001-rxcsy8045-00-cave-story-study-edition-v0-8-0": "Fanport af Studio Pixels Cave Story til Mega Drive. Build: Study Edition v0.8.0.",
+  "hb-ai0001-rxhlo8047-00-halo-2600": "Halo skrumpet ned til en Atari 2600-kassette. En fan-demake fra 2010 af Ed Fries med indbygget Atari 2600-emulator.",
+  "hb-ns0001-rxidv8040-00-indivisible": "NES-fan-demake af Indivisible-prototypen. Spil som Ajna, der leder efter sin tapir Roti i glemte templer.",
+  "hb-sg0001-rxmml8045-00-miner-mole-a0100-v0100": "Originalt Mega Drive-platformspil: en muldvarp med en hakke graver sig gennem skove, miner, huler og fangehuller for at besejre klippemonsteret.",
+  "hb-ns0001-rxwhr8040-00-what-remains": "Originalt NES-historiespil, der foregår i 1986. NES-emulator indbygget.",
+  "hb-cell-1-1-5": "Et socialt netværk til PS3: profiler, et feed med skærmbilleder og GIF'er, beskeder, Global Chat og Play Online med DNS-opsætning til over 90 genoplivede spil."
 }

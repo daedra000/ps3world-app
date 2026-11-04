@@ -42,5 +42,18 @@
   "hb-ps3-unlock-hdd-space": "HEN이나 CFW에서 PS3 하드디스크의 예약 공간을 8%에서 1%로 줄여 여유 공간을 늘립니다. 다시 실행하면 되돌립니다.",
   "hb-qdnsm-installer": "네트워크 설정에 들어가지 않고 DNS를 바꾸는 XMB 플러그인. XMB에서 R1 + R2 + R3을 누르고 서버를 고르면 다시 연결됩니다. 온라인 부활 서버 목록이 들어 있고, 서버마다 지원하는 게임을 보여 줍니다.",
   "hb-thermal-bench": "PS3의 발열 성능을 정밀하게 모니터링하고 테스트합니다.",
-  "hb-webman-mod-1-47-50-installer": "Deank의 원래 webMAN/sMAN에 많은 기능을 더한 홈브루 플러그인."
+  "hb-webman-mod-1-47-50-installer": "Deank의 원래 webMAN/sMAN에 많은 기능을 더한 홈브루 플러그인.",
+  "hb-college-hoops-2k-reborn-slus21673": "2K 『College Hoops』의 PS2 모드로, 팀이 업데이트되었습니다. 버전 2.7, PS2 클래식.",
+  "hb-ps0001-slus01234-00-ecw-1995-2000-blackout-edition": "Synyster Software의 PS1 ECW 레슬링 모드로, 1995년부터 2000년까지를 담았습니다. 버전 1.5.",
+  "hb-ps0001-slus80440-00-project-pro-skater-4": "『Tony Hawk's Pro Skater』 시리즈를 바탕으로 한 PS1 스케이트보드 모드.",
+  "hb-ultimate-mortal-kombat-deception-v6-slus20881": "『Mortal Kombat: Deception』에 추가 파이터를 넣은 모드. 버전 6, PS2 클래식.",
+  "hb-ps0001-slus01234-00-wcw-95-00-rebooked": "Synyster Software의 PS1 WCW 레슬링 모드로, 1995년부터 2000년까지를 담았습니다. 버전 1.1.",
+  "hb-wwe-smackdown-hctp-allstars-edition-slus20787": "『WWE SmackDown! Here Comes the Pain』의 모드로, 올스타 명단이 업데이트되었습니다. PS2 클래식.",
+  "hb-sn0001-rxxba8044-00-xalabaias-adventure": "2019년 SNES ROM 핵: 유튜버 Pai Troll이 자신의 카메라를 훔친 해커를 쫓아 해커의 컴퓨터 속을 지나 인터넷 곳곳을 누빕니다.",
+  "hb-sg0001-rxcsy8045-00-cave-story-study-edition-v0-8-0": "Studio Pixel의 『동굴 이야기』(Cave Story)를 팬이 메가 드라이브로 이식한 작품. Study Edition v0.8.0 빌드.",
+  "hb-ai0001-rxhlo8047-00-halo-2600": "Atari 2600 카트리지로 줄인 Halo. Ed Fries가 2010년에 만든 팬 디메이크로, Atari 2600 에뮬레이터 내장.",
+  "hb-ns0001-rxidv8040-00-indivisible": "Indivisible 프로토타입을 팬이 NES용으로 디메이크한 작품. 잊힌 신전에서 자신의 맥 로티를 찾는 아즈나를 조작합니다.",
+  "hb-sg0001-rxmml8045-00-miner-mole-a0100-v0100": "메가 드라이브 오리지널 플랫포머: 곡괭이를 든 두더지가 숲, 광산, 동굴, 던전을 파고들어 바위 괴물을 쓰러뜨립니다.",
+  "hb-ns0001-rxwhr8040-00-what-remains": "1986년이 배경인 NES 오리지널 스토리 게임. NES 에뮬레이터 내장.",
+  "hb-cell-1-1-5": "PS3용 소셜 네트워크: 프로필, 스크린샷과 GIF가 올라오는 피드, 메시지, Global Chat, 그리고 부활한 90개 이상의 게임용 DNS 설정을 갖춘 Play Online."
 }

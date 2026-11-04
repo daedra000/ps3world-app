@@ -42,5 +42,18 @@
   "hb-ps3-unlock-hdd-space": "يقلّص المساحة المحجوزة في قرص PS3 من 8٪ إلى 1٪ مع HEN أو CFW، فيعيد إليك مساحة إضافية. شغّله مرة أخرى للتراجع.",
   "hb-qdnsm-installer": "إضافة لواجهة XMB تغيّر DNS دون الدخول إلى إعدادات الشبكة. اضغط R1 + R2 + R3 في XMB واختر خادمًا فيُعاد الاتصال. تأتي مع خوادم إحياء اللعب عبر الإنترنت وتبيّن الألعاب التي يدعمها كل خادم.",
   "hb-thermal-bench": "راقب أداء حرارة جهاز PS3 واختبره بدقة.",
-  "hb-webman-mod-1-47-50-installer": "إضافة منزلية فيها ميزات كثيرة أُضيفت إلى webMAN/sMAN الأصلي من Deank."
+  "hb-webman-mod-1-47-50-installer": "إضافة منزلية فيها ميزات كثيرة أُضيفت إلى webMAN/sMAN الأصلي من Deank.",
+  "hb-college-hoops-2k-reborn-slus21673": "تعديل للعبة College Hoops من 2K على PS2 بفرق محدّثة. الإصدار 2.7، من كلاسيكيات PS2.",
+  "hb-ps0001-slus01234-00-ecw-1995-2000-blackout-edition": "تعديل مصارعة ECW على PS1 من Synyster Software، يغطي الفترة من 1995 إلى 2000. الإصدار 1.5.",
+  "hb-ps0001-slus80440-00-project-pro-skater-4": "تعديل تزلج على PS1 مبني على سلسلة Tony Hawk's Pro Skater.",
+  "hb-ultimate-mortal-kombat-deception-v6-slus20881": "تعديل للعبة Mortal Kombat: Deception يضيف مقاتلين إضافيين. الإصدار 6، من كلاسيكيات PS2.",
+  "hb-ps0001-slus01234-00-wcw-95-00-rebooked": "تعديل مصارعة WCW على PS1 من Synyster Software، يغطي الفترة من 1995 إلى 2000. الإصدار 1.1.",
+  "hb-wwe-smackdown-hctp-allstars-edition-slus20787": "تعديل للعبة WWE SmackDown! Here Comes the Pain بقائمة نجوم محدّثة. من كلاسيكيات PS2.",
+  "hb-sn0001-rxxba8044-00-xalabaias-adventure": "تعديل ROM للعبة SNES من عام 2019: اليوتيوبر Pai Troll يطارد المخترق الذي سرق كاميرته عبر حاسوبه ثم في أرجاء الإنترنت.",
+  "hb-sg0001-rxcsy8045-00-cave-story-study-edition-v0-8-0": "نسخة من صنع المعجبين للعبة Cave Story من Studio Pixel على Mega Drive. إصدار Study Edition v0.8.0.",
+  "hb-ai0001-rxhlo8047-00-halo-2600": "Halo مصغّرة في خرطوشة Atari 2600. نسخة مبسّطة من صنع المعجبين عام 2010 بواسطة Ed Fries، مع محاكي Atari 2600 مدمج.",
+  "hb-ns0001-rxidv8040-00-indivisible": "نسخة مبسّطة على NES من صنع المعجبين لنموذج Indivisible الأولي. العب بدور أجنا وهي تبحث عن حيوان التابير الخاص بها، روتي، في معابد منسية.",
+  "hb-sg0001-rxmml8045-00-miner-mole-a0100-v0100": "لعبة منصات أصلية على Mega Drive: خلد يحمل معولًا يحفر عبر الغابات والمناجم والكهوف والزنزانات ليهزم الوحش الصخري.",
+  "hb-ns0001-rxwhr8040-00-what-remains": "لعبة قصصية أصلية على NES تدور أحداثها عام 1986. مع محاكي NES مدمج.",
+  "hb-cell-1-1-5": "شبكة اجتماعية لجهاز PS3: ملفات شخصية، وصفحة منشورات بلقطات شاشة وصور GIF، ورسائل، وGlobal Chat، وPlay Online مع إعداد DNS لأكثر من 90 لعبة أُعيد إحياؤها."
 }

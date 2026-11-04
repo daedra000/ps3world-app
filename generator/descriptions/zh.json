@@ -42,5 +42,18 @@
   "hb-ps3-unlock-hdd-space": "在 HEN 或 CFW 下把 PS3 硬盘的保留空间从 8% 减到 1%，为你腾出更多容量。再运行一次即可还原。",
   "hb-qdnsm-installer": "无需进入网络设定即可切换 DNS 的 XMB 插件。在 XMB 按 R1 + R2 + R3，选一个服务器即可重新连接。内置在线复活服务器列表，并显示每个服务器支持哪些游戏。",
   "hb-thermal-bench": "精确监控并测试 PS3 的散热表现。",
-  "hb-webman-mod-1-47-50-installer": "在 Deank 原版 webMAN/sMAN 基础上加入大量功能的自制插件。"
+  "hb-webman-mod-1-47-50-installer": "在 Deank 原版 webMAN/sMAN 基础上加入大量功能的自制插件。",
+  "hb-college-hoops-2k-reborn-slus21673": "2K《College Hoops》的 PS2 模组，球队已更新。版本 2.7，PS2 经典游戏。",
+  "hb-ps0001-slus01234-00-ecw-1995-2000-blackout-edition": "Synyster Software 制作的 PS1 ECW 摔角模组，涵盖 1995 至 2000 年。版本 1.5。",
+  "hb-ps0001-slus80440-00-project-pro-skater-4": "基于《Tony Hawk's Pro Skater》系列的 PS1 滑板模组。",
+  "hb-ultimate-mortal-kombat-deception-v6-slus20881": "《Mortal Kombat: Deception》的模组，加入了额外角色。版本 6，PS2 经典游戏。",
+  "hb-ps0001-slus01234-00-wcw-95-00-rebooked": "Synyster Software 制作的 PS1 WCW 摔角模组，涵盖 1995 至 2000 年。版本 1.1。",
+  "hb-wwe-smackdown-hctp-allstars-edition-slus20787": "《WWE SmackDown! Here Comes the Pain》的模组，全明星阵容已更新。PS2 经典游戏。",
+  "hb-sn0001-rxxba8044-00-xalabaias-adventure": "2019 年的 SNES ROM 改版：YouTuber Pai Troll 追捕偷走他摄像机的黑客，穿过黑客的电脑，一路追遍整个互联网。",
+  "hb-sg0001-rxcsy8045-00-cave-story-study-edition-v0-8-0": "Studio Pixel《洞窟物语》（Cave Story）的 Mega Drive 同人移植版。Study Edition v0.8.0 版本。",
+  "hb-ai0001-rxhlo8047-00-halo-2600": "缩小到 Atari 2600 卡带里的 Halo。Ed Fries 于 2010 年制作的同人简化版，内置 Atari 2600 模拟器。",
+  "hb-ns0001-rxidv8040-00-indivisible": "Indivisible 原型的 NES 同人简化版。扮演 Ajna，在被遗忘的神庙中寻找她的貘 Roti。",
+  "hb-sg0001-rxmml8045-00-miner-mole-a0100-v0100": "原创 Mega Drive 平台游戏：一只拿着鹤嘴锄的鼹鼠挖穿森林、矿井、洞穴和地牢，去打倒岩石怪物。",
+  "hb-ns0001-rxwhr8040-00-what-remains": "原创 NES 剧情游戏，故事发生在 1986 年。内置 NES 模拟器。",
+  "hb-cell-1-1-5": "PS3 上的社交网络：个人资料、可发截图和 GIF 的动态、私信、Global Chat，以及 Play Online，可为 90 多款复活的游戏设置 DNS。"
 }

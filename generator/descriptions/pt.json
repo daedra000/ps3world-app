@@ -42,5 +42,18 @@
   "hb-ps3-unlock-hdd-space": "Reduz o espaço reservado do HD do PS3 de 8% para 1% com HEN ou CFW, devolvendo armazenamento. Rode de novo para desfazer.",
   "hb-qdnsm-installer": "Um plugin do XMB que troca o DNS sem entrar em Configurações de rede. Pressione R1 + R2 + R3 no XMB, escolha um servidor e ele reconecta. Vem com os servidores de revival online e mostra quais jogos cada um suporta.",
   "hb-thermal-bench": "Monitore e teste o desempenho térmico do seu PS3 com precisão.",
-  "hb-webman-mod-1-47-50-installer": "Um plugin homebrew com muitos recursos adicionados ao webMAN/sMAN original de Deank."
+  "hb-webman-mod-1-47-50-installer": "Um plugin homebrew com muitos recursos adicionados ao webMAN/sMAN original de Deank.",
+  "hb-college-hoops-2k-reborn-slus21673": "Mod do College Hoops da 2K para PS2 com times atualizados. Versão 2.7, um clássico de PS2.",
+  "hb-ps0001-slus01234-00-ecw-1995-2000-blackout-edition": "Mod de luta livre da ECW para PS1 feito pela Synyster Software, de 1995 a 2000. Versão 1.5.",
+  "hb-ps0001-slus80440-00-project-pro-skater-4": "Mod de skate para PS1 baseado na série Tony Hawk's Pro Skater.",
+  "hb-ultimate-mortal-kombat-deception-v6-slus20881": "Mod de Mortal Kombat: Deception que adiciona lutadores extras. Versão 6, um clássico de PS2.",
+  "hb-ps0001-slus01234-00-wcw-95-00-rebooked": "Mod de luta livre da WCW para PS1 feito pela Synyster Software, de 1995 a 2000. Versão 1.1.",
+  "hb-wwe-smackdown-hctp-allstars-edition-slus20787": "Mod de WWE SmackDown! Here Comes the Pain com um elenco de lendas atualizado. Um clássico de PS2.",
+  "hb-sn0001-rxxba8044-00-xalabaias-adventure": "ROM hack de SNES de 2019: o youtuber Pai Troll persegue o hacker que roubou sua câmera pelo computador dele e pela internet afora.",
+  "hb-sg0001-rxcsy8045-00-cave-story-study-edition-v0-8-0": "Port feito por fãs de Cave Story, do Studio Pixel, para Mega Drive. Versão Study Edition v0.8.0.",
+  "hb-ai0001-rxhlo8047-00-halo-2600": "Halo encolhido para um cartucho de Atari 2600. Um demake feito por fã em 2010 por Ed Fries, com emulador de Atari 2600 embutido.",
+  "hb-ns0001-rxidv8040-00-indivisible": "Demake para NES feito por fãs do protótipo de Indivisible. Jogue como Ajna, procurando sua anta Roti em templos esquecidos.",
+  "hb-sg0001-rxmml8045-00-miner-mole-a0100-v0100": "Jogo de plataforma original para Mega Drive: uma toupeira com uma picareta cava florestas, minas, cavernas e masmorras para derrotar o monstro de pedra.",
+  "hb-ns0001-rxwhr8040-00-what-remains": "Jogo de história original para NES, ambientado em 1986. Com emulador de NES embutido.",
+  "hb-cell-1-1-5": "Uma rede social para o PS3: perfis, um feed com capturas de tela e GIFs, mensagens, Global Chat e Play Online, com configuração de DNS para mais de 90 jogos revividos."
 }

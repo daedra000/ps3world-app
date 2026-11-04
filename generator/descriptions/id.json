@@ -42,5 +42,18 @@
   "hb-ps3-unlock-hdd-space": "Mengurangi ruang hard disk PS3 yang dicadangkan dari 8% ke 1% di HEN atau CFW, sehingga kamu dapat ruang tambahan. Jalankan lagi untuk membatalkan.",
   "hb-qdnsm-installer": "Plugin XMB yang mengganti DNS tanpa masuk ke Pengaturan Jaringan. Tekan R1 + R2 + R3 di XMB, pilih server, dan koneksi tersambung ulang. Dilengkapi server revival online dan menunjukkan game mana yang didukung tiap server.",
   "hb-thermal-bench": "Pantau dan uji performa suhu PS3-mu dengan teliti.",
-  "hb-webman-mod-1-47-50-installer": "Plugin homebrew dengan banyak fitur tambahan di atas webMAN/sMAN asli buatan Deank."
+  "hb-webman-mod-1-47-50-installer": "Plugin homebrew dengan banyak fitur tambahan di atas webMAN/sMAN asli buatan Deank.",
+  "hb-college-hoops-2k-reborn-slus21673": "Mod College Hoops dari 2K untuk PS2 dengan tim yang diperbarui. Versi 2.7, PS2 Classic.",
+  "hb-ps0001-slus01234-00-ecw-1995-2000-blackout-edition": "Mod gulat ECW untuk PS1 buatan Synyster Software, mencakup 1995 hingga 2000. Versi 1.5.",
+  "hb-ps0001-slus80440-00-project-pro-skater-4": "Mod skateboard untuk PS1 yang dibangun dari seri Tony Hawk's Pro Skater.",
+  "hb-ultimate-mortal-kombat-deception-v6-slus20881": "Mod Mortal Kombat: Deception yang menambahkan petarung ekstra. Versi 6, PS2 Classic.",
+  "hb-ps0001-slus01234-00-wcw-95-00-rebooked": "Mod gulat WCW untuk PS1 buatan Synyster Software, mencakup 1995 hingga 2000. Versi 1.1.",
+  "hb-wwe-smackdown-hctp-allstars-edition-slus20787": "Mod WWE SmackDown! Here Comes the Pain dengan daftar bintang legendaris yang diperbarui. PS2 Classic.",
+  "hb-sn0001-rxxba8044-00-xalabaias-adventure": "ROM hack SNES tahun 2019: YouTuber Pai Troll mengejar peretas yang mencuri kameranya, menembus komputer si peretas hingga ke seluruh internet.",
+  "hb-sg0001-rxcsy8045-00-cave-story-study-edition-v0-8-0": "Port buatan penggemar dari Cave Story karya Studio Pixel ke Mega Drive. Build Study Edition v0.8.0.",
+  "hb-ai0001-rxhlo8047-00-halo-2600": "Halo yang diperkecil menjadi kartrid Atari 2600. Demake buatan penggemar tahun 2010 oleh Ed Fries, dengan emulator Atari 2600 bawaan.",
+  "hb-ns0001-rxidv8040-00-indivisible": "Demake NES buatan penggemar dari prototipe Indivisible. Mainkan Ajna yang mencari tapirnya, Roti, di kuil-kuil yang terlupakan.",
+  "hb-sg0001-rxmml8045-00-miner-mole-a0100-v0100": "Game platform orisinal untuk Mega Drive: seekor tikus tanah dengan beliung menggali hutan, tambang, gua, dan penjara bawah tanah untuk mengalahkan monster batu.",
+  "hb-ns0001-rxwhr8040-00-what-remains": "Game cerita orisinal untuk NES yang berlatar tahun 1986. Dengan emulator NES bawaan.",
+  "hb-cell-1-1-5": "Jejaring sosial untuk PS3: profil, feed berisi tangkapan layar dan GIF, pesan, Global Chat, serta Play Online dengan pengaturan DNS untuk lebih dari 90 game yang dihidupkan kembali."
 }

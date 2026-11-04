@@ -42,5 +42,18 @@
   "hb-ps3-unlock-hdd-space": "HEN veya CFW'de PS3'ün ayrılmış disk alanını %8'den %1'e indirir ve sana fazladan alan kazandırır. Geri almak için yeniden çalıştır.",
   "hb-qdnsm-installer": "Ağ Ayarları'na girmeden DNS değiştiren bir XMB eklentisi. XMB'de R1 + R2 + R3'e bas, bir sunucu seç, yeniden bağlansın. Çevrimiçi diriltme sunucularıyla gelir ve her birinin hangi oyunları desteklediğini gösterir.",
   "hb-thermal-bench": "PS3'ünün ısı performansını hassas şekilde izle ve test et.",
-  "hb-webman-mod-1-47-50-installer": "Deank'in orijinal webMAN/sMAN'ına birçok özellik eklenmiş bir homebrew eklentisi."
+  "hb-webman-mod-1-47-50-installer": "Deank'in orijinal webMAN/sMAN'ına birçok özellik eklenmiş bir homebrew eklentisi.",
+  "hb-college-hoops-2k-reborn-slus21673": "2K'nın College Hoops oyununun takımları güncellenmiş PS2 modu. Sürüm 2.7, bir PS2 klasiği.",
+  "hb-ps0001-slus01234-00-ecw-1995-2000-blackout-edition": "Synyster Software'in 1995-2000 dönemini kapsayan PS1 ECW güreş modu. Sürüm 1.5.",
+  "hb-ps0001-slus80440-00-project-pro-skater-4": "Tony Hawk's Pro Skater serisi üzerine kurulu bir PS1 kaykay modu.",
+  "hb-ultimate-mortal-kombat-deception-v6-slus20881": "Mortal Kombat: Deception'a ek dövüşçüler ekleyen bir mod. Sürüm 6, bir PS2 klasiği.",
+  "hb-ps0001-slus01234-00-wcw-95-00-rebooked": "Synyster Software'in 1995-2000 dönemini kapsayan PS1 WCW güreş modu. Sürüm 1.1.",
+  "hb-wwe-smackdown-hctp-allstars-edition-slus20787": "WWE SmackDown! Here Comes the Pain'in güncellenmiş efsaneler kadrosuna sahip bir modu. Bir PS2 klasiği.",
+  "hb-sn0001-rxxba8044-00-xalabaias-adventure": "2019 yapımı bir SNES ROM hack'i: YouTuber Pai Troll, kamerasını çalan hacker'ı onun bilgisayarının içinden internetin dört bir yanına kadar kovalıyor.",
+  "hb-sg0001-rxcsy8045-00-cave-story-study-edition-v0-8-0": "Studio Pixel'in Cave Story oyununun hayran yapımı Mega Drive uyarlaması. Study Edition v0.8.0 sürümü.",
+  "hb-ai0001-rxhlo8047-00-halo-2600": "Bir Atari 2600 kartuşuna sığdırılmış Halo. Ed Fries'ın 2010 tarihli hayran yapımı demake'i; Atari 2600 emülatörü dahil.",
+  "hb-ns0001-rxidv8040-00-indivisible": "Indivisible prototipinin hayran yapımı NES demake'i. Unutulmuş tapınaklarda tapiri Roti'yi arayan Ajna'yı oynayın.",
+  "hb-sg0001-rxmml8045-00-miner-mole-a0100-v0100": "Özgün bir Mega Drive platform oyunu: kazmalı bir köstebek, kaya canavarını yenmek için ormanları, madenleri, mağaraları ve zindanları kazıyor.",
+  "hb-ns0001-rxwhr8040-00-what-remains": "1986'da geçen özgün bir NES hikâye oyunu. NES emülatörü dahil.",
+  "hb-cell-1-1-5": "PS3 için bir sosyal ağ: profiller, ekran görüntüleri ve GIF'lerle bir akış, mesajlar, Global Chat ve 90'dan fazla yeniden canlandırılmış oyun için DNS kurulumlu Play Online."
 }

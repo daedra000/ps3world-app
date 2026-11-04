@@ -42,5 +42,18 @@
   "hb-ps3-unlock-hdd-space": "Riduce lo spazio riservato dell'hard disk della PS3 dall'8% all'1% con HEN o CFW, restituendoti memoria. Avvialo di nuovo per annullare.",
   "hb-qdnsm-installer": "Un plugin XMB che cambia DNS senza entrare nelle Impostazioni di rete. Premi R1 + R2 + R3 nell'XMB, scegli un server e si riconnette. Include i server di revival online e mostra quali giochi supporta ciascuno.",
   "hb-thermal-bench": "Monitora e metti alla prova le temperature della tua PS3 con precisione.",
-  "hb-webman-mod-1-47-50-installer": "Un plugin homebrew con molte funzioni aggiunte al webMAN/sMAN originale di Deank."
+  "hb-webman-mod-1-47-50-installer": "Un plugin homebrew con molte funzioni aggiunte al webMAN/sMAN originale di Deank.",
+  "hb-college-hoops-2k-reborn-slus21673": "Mod di College Hoops di 2K per PS2 con squadre aggiornate. Versione 2.7, un classico PS2.",
+  "hb-ps0001-slus01234-00-ecw-1995-2000-blackout-edition": "Mod di wrestling ECW per PS1 di Synyster Software, dal 1995 al 2000. Versione 1.5.",
+  "hb-ps0001-slus80440-00-project-pro-skater-4": "Mod di skateboard per PS1 basata sulla serie Tony Hawk's Pro Skater.",
+  "hb-ultimate-mortal-kombat-deception-v6-slus20881": "Mod di Mortal Kombat: Deception che aggiunge lottatori extra. Versione 6, un classico PS2.",
+  "hb-ps0001-slus01234-00-wcw-95-00-rebooked": "Mod di wrestling WCW per PS1 di Synyster Software, dal 1995 al 2000. Versione 1.1.",
+  "hb-wwe-smackdown-hctp-allstars-edition-slus20787": "Mod di WWE SmackDown! Here Comes the Pain con un roster di leggende aggiornato. Un classico PS2.",
+  "hb-sn0001-rxxba8044-00-xalabaias-adventure": "ROM hack per SNES del 2019: lo youtuber Pai Troll insegue l'hacker che gli ha rubato la videocamera, dentro il suo computer e poi per tutta internet.",
+  "hb-sg0001-rxcsy8045-00-cave-story-study-edition-v0-8-0": "Port amatoriale di Cave Story di Studio Pixel per Mega Drive. Build Study Edition v0.8.0.",
+  "hb-ai0001-rxhlo8047-00-halo-2600": "Halo rimpicciolito in una cartuccia Atari 2600. Un demake amatoriale del 2010 di Ed Fries, con emulatore Atari 2600 incluso.",
+  "hb-ns0001-rxidv8040-00-indivisible": "Demake amatoriale per NES del prototipo di Indivisible. Gioca nei panni di Ajna, che cerca il suo tapiro Roti in templi dimenticati.",
+  "hb-sg0001-rxmml8045-00-miner-mole-a0100-v0100": "Platform originale per Mega Drive: una talpa con un piccone scava tra foreste, miniere, caverne e sotterranei per sconfiggere il mostro di roccia.",
+  "hb-ns0001-rxwhr8040-00-what-remains": "Gioco narrativo originale per NES, ambientato nel 1986. Emulatore NES incluso.",
+  "hb-cell-1-1-5": "Un social network per PS3: profili, un feed con screenshot e GIF, messaggi, Global Chat e Play Online, con configurazione DNS per oltre 90 giochi riportati in vita."
 }

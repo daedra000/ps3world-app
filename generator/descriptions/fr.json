@@ -42,5 +42,18 @@
   "hb-ps3-unlock-hdd-space": "Réduit l'espace réservé du disque dur de la PS3 de 8 % à 1 % sous HEN ou CFW pour vous rendre du stockage. Relancez-le pour annuler.",
   "hb-qdnsm-installer": "Un plugin XMB qui change de DNS sans passer par les Paramètres réseau. Appuyez sur R1 + R2 + R3 dans le XMB, choisissez un serveur et il se reconnecte. Fourni avec les serveurs de revival en ligne et indique les jeux pris en charge par chacun.",
   "hb-thermal-bench": "Surveillez et testez les performances thermiques de votre PS3 avec précision.",
-  "hb-webman-mod-1-47-50-installer": "Un plugin homebrew qui ajoute de nombreuses fonctions au webMAN/sMAN original de Deank."
+  "hb-webman-mod-1-47-50-installer": "Un plugin homebrew qui ajoute de nombreuses fonctions au webMAN/sMAN original de Deank.",
+  "hb-college-hoops-2k-reborn-slus21673": "Mod de College Hoops de 2K pour PS2 avec des équipes mises à jour. Version 2.7, un classique PS2.",
+  "hb-ps0001-slus01234-00-ecw-1995-2000-blackout-edition": "Mod de catch ECW pour PS1 par Synyster Software, couvrant 1995 à 2000. Version 1.5.",
+  "hb-ps0001-slus80440-00-project-pro-skater-4": "Mod de skate pour PS1 basé sur la série Tony Hawk's Pro Skater.",
+  "hb-ultimate-mortal-kombat-deception-v6-slus20881": "Mod de Mortal Kombat: Deception qui ajoute des combattants. Version 6, un classique PS2.",
+  "hb-ps0001-slus01234-00-wcw-95-00-rebooked": "Mod de catch WCW pour PS1 par Synyster Software, couvrant 1995 à 2000. Version 1.1.",
+  "hb-wwe-smackdown-hctp-allstars-edition-slus20787": "Mod de WWE SmackDown! Here Comes the Pain avec un roster de légendes mis à jour. Un classique PS2.",
+  "hb-sn0001-rxxba8044-00-xalabaias-adventure": "ROM hack SNES de 2019 : le youtubeur Pai Troll poursuit le hacker qui lui a volé sa caméra, à travers son ordinateur puis sur tout Internet.",
+  "hb-sg0001-rxcsy8045-00-cave-story-study-edition-v0-8-0": "Portage fan du Cave Story de Studio Pixel sur Mega Drive. Version Study Edition v0.8.0.",
+  "hb-ai0001-rxhlo8047-00-halo-2600": "Halo réduit à une cartouche Atari 2600. Un demake fan de 2010 par Ed Fries, avec un émulateur Atari 2600 intégré.",
+  "hb-ns0001-rxidv8040-00-indivisible": "Demake fan sur NES du prototype d'Indivisible. Incarnez Ajna, qui cherche son tapir Roti dans des temples oubliés.",
+  "hb-sg0001-rxmml8045-00-miner-mole-a0100-v0100": "Jeu de plates-formes original sur Mega Drive : une taupe armée d'une pioche creuse forêts, mines, grottes et donjons pour vaincre le monstre de pierre.",
+  "hb-ns0001-rxwhr8040-00-what-remains": "Jeu narratif original sur NES, situé en 1986. Émulateur NES intégré.",
+  "hb-cell-1-1-5": "Un réseau social pour la PS3 : profils, un fil avec captures d'écran et GIF, messages, Global Chat et Play Online, avec réglage DNS pour plus de 90 jeux ressuscités."
 }

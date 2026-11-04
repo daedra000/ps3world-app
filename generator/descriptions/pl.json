@@ -42,5 +42,18 @@
   "hb-ps3-unlock-hdd-space": "Zmniejsza zarezerwowane miejsce na dysku PS3 z 8% do 1% na HEN lub CFW, oddając ci przestrzeń. Uruchom ponownie, żeby cofnąć.",
   "hb-qdnsm-installer": "Wtyczka XMB, która zmienia DNS bez wchodzenia w Ustawienia sieciowe. Naciśnij R1 + R2 + R3 w XMB, wybierz serwer, a konsola połączy się ponownie. Zawiera serwery wskrzeszające grę online i pokazuje, które gry obsługuje każdy z nich.",
   "hb-thermal-bench": "Dokładnie monitoruj i testuj temperatury swojego PS3.",
-  "hb-webman-mod-1-47-50-installer": "Wtyczka homebrew z wieloma funkcjami dodanymi do oryginalnego webMAN/sMAN od Deanka."
+  "hb-webman-mod-1-47-50-installer": "Wtyczka homebrew z wieloma funkcjami dodanymi do oryginalnego webMAN/sMAN od Deanka.",
+  "hb-college-hoops-2k-reborn-slus21673": "Mod College Hoops od 2K na PS2 z zaktualizowanymi drużynami. Wersja 2.7, klasyk PS2.",
+  "hb-ps0001-slus01234-00-ecw-1995-2000-blackout-edition": "Mod wrestlingowy ECW na PS1 od Synyster Software, obejmujący lata 1995–2000. Wersja 1.5.",
+  "hb-ps0001-slus80440-00-project-pro-skater-4": "Mod skateboardowy na PS1 oparty na serii Tony Hawk's Pro Skater.",
+  "hb-ultimate-mortal-kombat-deception-v6-slus20881": "Mod Mortal Kombat: Deception z dodatkowymi wojownikami. Wersja 6, klasyk PS2.",
+  "hb-ps0001-slus01234-00-wcw-95-00-rebooked": "Mod wrestlingowy WCW na PS1 od Synyster Software, obejmujący lata 1995–2000. Wersja 1.1.",
+  "hb-wwe-smackdown-hctp-allstars-edition-slus20787": "Mod WWE SmackDown! Here Comes the Pain z zaktualizowanym składem gwiazd. Klasyk PS2.",
+  "hb-sn0001-rxxba8044-00-xalabaias-adventure": "ROM hack na SNES z 2019 roku: youtuber Pai Troll ściga hakera, który ukradł mu kamerę, przez jego komputer i dalej po całym internecie.",
+  "hb-sg0001-rxcsy8045-00-cave-story-study-edition-v0-8-0": "Fanowski port Cave Story od Studio Pixel na Mega Drive. Wersja Study Edition v0.8.0.",
+  "hb-ai0001-rxhlo8047-00-halo-2600": "Halo zmniejszone do kartridża Atari 2600. Fanowski demake z 2010 roku autorstwa Eda Friesa, z wbudowanym emulatorem Atari 2600.",
+  "hb-ns0001-rxidv8040-00-indivisible": "Fanowski demake prototypu Indivisible na NES. Graj jako Ajna, która szuka swojego tapira Rotiego w zapomnianych świątyniach.",
+  "hb-sg0001-rxmml8045-00-miner-mole-a0100-v0100": "Oryginalna platformówka na Mega Drive: kret z kilofem przekopuje się przez lasy, kopalnie, jaskinie i lochy, by pokonać skalnego potwora.",
+  "hb-ns0001-rxwhr8040-00-what-remains": "Oryginalna gra narracyjna na NES, której akcja toczy się w 1986 roku. Wbudowany emulator NES.",
+  "hb-cell-1-1-5": "Sieć społecznościowa dla PS3: profile, tablica ze zrzutami ekranu i GIF-ami, wiadomości, Global Chat oraz Play Online z konfiguracją DNS dla ponad 90 przywróconych gier."
 }

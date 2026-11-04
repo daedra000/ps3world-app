@@ -42,5 +42,18 @@
   "hb-ps3-unlock-hdd-space": "HENまたはCFWで、PS3のHDDの予約領域を8%から1%に減らし、空き容量を増やします。もう一度実行すると元に戻ります。",
   "hb-qdnsm-installer": "ネットワーク設定を開かずにDNSを切り替えるXMBプラグイン。XMBでR1 + R2 + R3を押し、サーバーを選ぶと再接続します。オンライン復活サーバーの一覧付きで、それぞれが対応するゲームも表示します。",
   "hb-thermal-bench": "PS3の温度を正確に監視してテストします。",
-  "hb-webman-mod-1-47-50-installer": "Deankのオリジナル webMAN/sMAN に多くの機能を加えた自作プラグイン。"
+  "hb-webman-mod-1-47-50-installer": "Deankのオリジナル webMAN/sMAN に多くの機能を加えた自作プラグイン。",
+  "hb-college-hoops-2k-reborn-slus21673": "2Kの『College Hoops』のPS2改造版で、チームを更新。バージョン2.7、PS2クラシック。",
+  "hb-ps0001-slus01234-00-ecw-1995-2000-blackout-edition": "Synyster SoftwareによるPS1のECWプロレス改造版で、1995年から2000年までを収録。バージョン1.5。",
+  "hb-ps0001-slus80440-00-project-pro-skater-4": "『Tony Hawk's Pro Skater』シリーズをもとにしたPS1のスケボー改造版。",
+  "hb-ultimate-mortal-kombat-deception-v6-slus20881": "『Mortal Kombat: Deception』に追加ファイターを加えた改造版。バージョン6、PS2クラシック。",
+  "hb-ps0001-slus01234-00-wcw-95-00-rebooked": "Synyster SoftwareによるPS1のWCWプロレス改造版で、1995年から2000年までを収録。バージョン1.1。",
+  "hb-wwe-smackdown-hctp-allstars-edition-slus20787": "『WWE SmackDown! Here Comes the Pain』の改造版で、オールスターの顔ぶれを更新。PS2クラシック。",
+  "hb-sn0001-rxxba8044-00-xalabaias-adventure": "2019年のSNES ROMハック：YouTuberのPai Trollが、カメラを盗んだハッカーを追ってそのパソコンの中からインターネット中を駆け回ります。",
+  "hb-sg0001-rxcsy8045-00-cave-story-study-edition-v0-8-0": "Studio Pixelの『洞窟物語』（Cave Story）をファンがメガドライブに移植したもの。Study Edition v0.8.0 ビルド。",
+  "hb-ai0001-rxhlo8047-00-halo-2600": "HaloをAtari 2600のカートリッジに縮めた作品。Ed Friesが2010年に作ったファンメイドのデメイクで、Atari 2600エミュレーター内蔵。",
+  "hb-ns0001-rxidv8040-00-indivisible": "Indivisibleのプロトタイプをファンがファミコン向けにデメイクしたもの。忘れられた神殿で相棒のバク、ロティを探すアジュナを操作します。",
+  "hb-sg0001-rxmml8045-00-miner-mole-a0100-v0100": "メガドライブのオリジナルアクション：つるはしを持ったモグラが森、鉱山、洞窟、ダンジョンを掘り進み、岩の怪物を倒します。",
+  "hb-ns0001-rxwhr8040-00-what-remains": "1986年が舞台のファミコン向けオリジナルのストーリーゲーム。NESエミュレーター内蔵。",
+  "hb-cell-1-1-5": "PS3向けのSNS：プロフィール、スクリーンショットやGIF付きのフィード、メッセージ、Global Chat、そして復活した90以上のゲーム用にDNSを設定できるPlay Online。"
 }
