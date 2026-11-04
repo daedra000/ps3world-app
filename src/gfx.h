@@ -33,6 +33,13 @@ void gfx_circle(int cx, int cy, int r, uint32_t argb);
 
 // draws img scaled into the box (bilinear when it shrinks or grows); radius rounds the corners
 void gfx_image(const image_t *img, int x, int y, int w, int h, int radius, int alpha);
+// the same, but turned round (left to right) when the mirror's on: art that has a side
+void gfx_image_flip(const image_t *img, int x, int y, int w, int h, int radius, int alpha);
+
+// right to left (Arabic): clip, rect, round_rect, circle and image are drawn mirrored across
+// the canvas; text isn't (font.c places it); the other calls aren't mirrored (the UI doesn't use them)
+void gfx_mirror(int on);
+int gfx_mirrored(void);
 // part of img (sx, sy, sw, sh) into the box, its colour multiplied by top at the top and bottom at
 // the bottom, blended between (0xffffffff: as it is; an alpha fading down fades it in)
 void gfx_image_part(const image_t *img, int sx, int sy, int sw, int sh, int x, int y, int w, int h,

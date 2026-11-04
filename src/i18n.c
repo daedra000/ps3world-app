@@ -3,7 +3,7 @@ i18n.c: which language the UI is in, and its words from data/lang/<code>.txt.
 
 The PS3's own language unless one was picked in the app (USRDIR/language.txt:
 a code, or "auto"). Arabic and Indonesian aren't PS3 system languages: they're
-only there by picking them.
+only there by picking them. (Russian is one: it follows the PS3.)
 
 A line of a language file is "English<TAB>translation"; "\n" in either is a
 new line and a line starting with # is a comment. A translation whose printf
@@ -109,6 +109,7 @@ int i18n_system(void)
 	case 5: return LANG_IT;
 	case 6: return LANG_NL;
 	case 7: case 17: return LANG_PT;
+	case 8: return LANG_RU;
 	case 14: return LANG_DA;
 	case 16: return LANG_PL;
 	case 19: return LANG_TR;

@@ -12,7 +12,7 @@ worker threads can call tr() while the language is switched.
 const char *tr(const char *english);
 #define N_(s) s
 
-enum { LANG_EN, LANG_ES, LANG_PT, LANG_FR, LANG_DE, LANG_IT, LANG_NL, LANG_PL, LANG_TR, LANG_DA, LANG_ID, LANG_AR, LANG_COUNT };
+enum { LANG_EN, LANG_ES, LANG_PT, LANG_FR, LANG_DE, LANG_IT, LANG_NL, LANG_PL, LANG_TR, LANG_DA, LANG_ID, LANG_AR, LANG_RU, LANG_COUNT };
 
 const char *lang_code(int i);		// "en", "es"...
 const char *lang_name(int i);		// in its own language: "Español"...

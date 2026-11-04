@@ -41,7 +41,7 @@ void gfx_init(uint32_t *canvas, int w, int h)
 
 uint32_t *gfx_canvas(void) { return cv; }
 
-void gfx_clip(int x, int y, int w, int h)
+static void Raw_gfx_clip(int x, int y, int w, int h)
 {
 	clx0 = x < 0 ? 0 : x;
 	cly0 = y < 0 ? 0 : y;
@@ -49,7 +49,7 @@ void gfx_clip(int x, int y, int w, int h)
 	cly1 = y + h > ch ? ch : y + h;
 }
 
-void gfx_clip_get(int *x, int *y, int *w, int *h)
+static void Raw_gfx_clip_get(int *x, int *y, int *w, int *h)
 {
 	*x = clx0; *y = cly0; *w = clx1 - clx0; *h = cly1 - cly0;
 }
@@ -103,7 +103,7 @@ void gfx_clear(uint32_t c)
 	Fill(cv, cw * ch, c | 0xff000000);
 }
 
-void gfx_rect(int x, int y, int w, int h, uint32_t c)
+static void Raw_gfx_rect(int x, int y, int w, int h, uint32_t c)
 {
 	if (gpu_on) { if (c >> 24) G_Rect(x, y, w, h, c, c, c, c); return; }
 	int a = c >> 24;
@@ -151,17 +151,17 @@ static const uint8_t *Cov(int r)
 	return cov_lut[r];
 }
 
-void gfx_round_rect(int x, int y, int w, int h, int r, uint32_t c)
+static void Raw_gfx_round_rect(int x, int y, int w, int h, int r, uint32_t c)
 {
 	int a = c >> 24;
-	if (r <= 0) { gfx_rect(x, y, w, h, c); return; }
+	if (r <= 0) { Raw_gfx_rect(x, y, w, h, c); return; }
 	if (gpu_on) { G_Round_Rect(x, y, w, h, r, c); return; }
 	if (r * 2 > w) r = w / 2;
 	if (r * 2 > h) r = h / 2;
 	// middle band and the side bands between the corners
-	gfx_rect(x, y + r, w, h - 2 * r, c);
-	gfx_rect(x + r, y, w - 2 * r, r, c);
-	gfx_rect(x + r, y + h - r, w - 2 * r, r, c);
+	Raw_gfx_rect(x, y + r, w, h - 2 * r, c);
+	Raw_gfx_rect(x + r, y, w - 2 * r, r, c);
+	Raw_gfx_rect(x + r, y + h - r, w - 2 * r, r, c);
 	const uint8_t *lut = Cov(r);
 	for (int j = 0; j < r; j++) {
 		for (int i = 0; i < r; i++) {
@@ -189,7 +189,7 @@ void gfx_vgradient(int x, int y, int w, int h, uint32_t top, uint32_t bottom)
 {
 	if (gpu_on) { if (w > 0 && h > 0) G_Rect(x, y, w, h, top, top, bottom, bottom); return; }
 	for (int j = 0; j < h; j++)
-		gfx_rect(x, y + j, w, 1, lerp_c(top, bottom, h > 1 ? j * 256 / (h - 1) : 0));
+		Raw_gfx_rect(x, y + j, w, 1, lerp_c(top, bottom, h > 1 ? j * 256 / (h - 1) : 0));
 }
 
 /*
@@ -271,12 +271,12 @@ void gfx_hgradient(int x, int y, int w, int h, uint32_t left, uint32_t right)
 {
 	if (gpu_on) { if (w > 0 && h > 0) G_Rect(x, y, w, h, left, right, left, right); return; }
 	for (int i = 0; i < w; i++)
-		gfx_rect(x + i, y, 1, h, lerp_c(left, right, w > 1 ? i * 256 / (w - 1) : 0));
+		Raw_gfx_rect(x + i, y, 1, h, lerp_c(left, right, w > 1 ? i * 256 / (w - 1) : 0));
 }
 
-void gfx_circle(int cx, int cy, int r, uint32_t c)
+static void Raw_gfx_circle(int cx, int cy, int r, uint32_t c)
 {
-	gfx_round_rect(cx - r, cy - r, 2 * r, 2 * r, r, c);
+	Raw_gfx_round_rect(cx - r, cy - r, 2 * r, 2 * r, r, c);
 }
 
 static void ring(float cx, float cy, float r, float thick, uint32_t c)
@@ -359,14 +359,16 @@ void gfx_mask(const uint8_t *mask, int mw, int mh, int pitch, int x, int y, uint
 	}
 }
 
-void gfx_image(const image_t *img, int x, int y, int w, int h, int radius, int alpha)
+static int img_flip;		// (Raw_gfx_image: the picture turned round, left to right)
+
+static void Raw_gfx_image(const image_t *img, int x, int y, int w, int h, int radius, int alpha)
 {
 	if (!img || w <= 0 || h <= 0)
 		return;
 	if (gpu_on) { G_Image(img, x, y, w, h, radius, alpha); return; }
-	int same = (img->w == w && img->h == h);
+	int same = (img->w == w && img->h == h), flip = img_flip;
 	const uint8_t *lut = radius > 0 ? Cov(radius) : NULL;
-	if (same && img->opaque && alpha >= 255) {
+	if (same && !flip && img->opaque && alpha >= 255) {
 		// cover art: whole rows copied; with rounded corners only the
 		// corner pixels are blended (a circle's edge, for artists)
 		int x0c = x < clx0 ? clx0 : x, x1c = x + w > clx1 ? clx1 : x + w;
@@ -396,7 +398,7 @@ void gfx_image(const image_t *img, int x, int y, int w, int h, int radius, int a
 		}
 		return;
 	}
-	if (same && radius <= 0 && alpha >= 255) {
+	if (same && !flip && radius <= 0 && alpha >= 255) {
 		// straight copy where the image is opaque
 		int x0 = x < clx0 ? clx0 : x, x1 = x + w > clx1 ? clx1 : x + w;
 		for (int j = 0; j < h; j++) {
@@ -434,10 +436,11 @@ void gfx_image(const image_t *img, int x, int y, int w, int h, int radius, int a
 				}
 			}
 			uint32_t s;
+			int si = flip ? w - 1 - i : i;		// (the source column)
 			if (same) {
-				s = img->px[j * img->w + i];
+				s = img->px[j * img->w + si];
 			} else {
-				int fx = i * sx + sx / 2 - 32768;
+				int fx = si * sx + sx / 2 - 32768;
 				if (fx < 0) fx = 0;
 				int x0 = fx >> 16, x1 = x0 + 1 < img->w ? x0 + 1 : x0, tx = (fx >> 8) & 255;
 				uint32_t top = lerp_c(img->px[y0 * img->w + x0], img->px[y0 * img->w + x1], tx);
@@ -483,16 +486,16 @@ void gfx_icon(int icon, int x, int y, int sz, uint32_t c)
 		triangle(X + s * 0.25f, Y + s * 0.15f, X + s * 0.25f, Y + s * 0.85f, X + s * 0.85f, Y + s * 0.5f, c);
 		break;
 	case ICON_PAUSE:
-		gfx_round_rect(x + (int)(s * 0.22f), y + (int)(s * 0.15f), (int)(s * 0.2f), (int)(s * 0.7f), (int)(s * 0.04f), c);
-		gfx_round_rect(x + (int)(s * 0.58f), y + (int)(s * 0.15f), (int)(s * 0.2f), (int)(s * 0.7f), (int)(s * 0.04f), c);
+		Raw_gfx_round_rect(x + (int)(s * 0.22f), y + (int)(s * 0.15f), (int)(s * 0.2f), (int)(s * 0.7f), (int)(s * 0.04f), c);
+		Raw_gfx_round_rect(x + (int)(s * 0.58f), y + (int)(s * 0.15f), (int)(s * 0.2f), (int)(s * 0.7f), (int)(s * 0.04f), c);
 		break;
 	case ICON_NEXT:
 		triangle(X + s * 0.18f, Y + s * 0.2f, X + s * 0.18f, Y + s * 0.8f, X + s * 0.68f, Y + s * 0.5f, c);
-		gfx_rect(x + (int)(s * 0.7f), y + (int)(s * 0.2f), (int)(s * 0.12f) + 1, (int)(s * 0.6f), c);
+		Raw_gfx_rect(x + (int)(s * 0.7f), y + (int)(s * 0.2f), (int)(s * 0.12f) + 1, (int)(s * 0.6f), c);
 		break;
 	case ICON_PREV:
 		triangle(X + s * 0.82f, Y + s * 0.2f, X + s * 0.82f, Y + s * 0.8f, X + s * 0.32f, Y + s * 0.5f, c);
-		gfx_rect(x + (int)(s * 0.18f), y + (int)(s * 0.2f), (int)(s * 0.12f) + 1, (int)(s * 0.6f), c);
+		Raw_gfx_rect(x + (int)(s * 0.18f), y + (int)(s * 0.2f), (int)(s * 0.12f) + 1, (int)(s * 0.6f), c);
 		break;
 	case ICON_SHUFFLE:
 		capsule(X + s * 0.12f, Y + s * 0.3f, X + s * 0.35f, Y + s * 0.3f, t, c);
@@ -513,22 +516,22 @@ void gfx_icon(int icon, int x, int y, int sz, uint32_t c)
 		triangle(X + s * 0.3f, Y + s * 0.52f, X + s * 0.3f, Y + s * 0.78f, X + s * 0.14f, Y + s * 0.65f, c);
 		break;
 	case ICON_NOTE:
-		gfx_circle(x + (int)(s * 0.36f), y + (int)(s * 0.72f), (int)(s * 0.15f), c);
+		Raw_gfx_circle(x + (int)(s * 0.36f), y + (int)(s * 0.72f), (int)(s * 0.15f), c);
 		capsule(X + s * 0.49f, Y + s * 0.72f, X + s * 0.49f, Y + s * 0.15f, t, c);
 		capsule(X + s * 0.49f, Y + s * 0.15f, X + s * 0.75f, Y + s * 0.28f, t, c);
 		break;
 	case ICON_PERSON:
-		gfx_circle(x + sz / 2, y + (int)(s * 0.33f), (int)(s * 0.17f), c);
-		gfx_round_rect(x + (int)(s * 0.2f), y + (int)(s * 0.56f), (int)(s * 0.6f), (int)(s * 0.32f), (int)(s * 0.16f), c);
+		Raw_gfx_circle(x + sz / 2, y + (int)(s * 0.33f), (int)(s * 0.17f), c);
+		Raw_gfx_round_rect(x + (int)(s * 0.2f), y + (int)(s * 0.56f), (int)(s * 0.6f), (int)(s * 0.32f), (int)(s * 0.16f), c);
 		break;
 	case ICON_ALBUM:
 		ring(X + s * 0.5f, Y + s * 0.5f, s * 0.3f, t, c);
-		gfx_circle(x + sz / 2, y + sz / 2, (int)(s * 0.08f) + 1, c);
+		Raw_gfx_circle(x + sz / 2, y + sz / 2, (int)(s * 0.08f) + 1, c);
 		break;
 	case ICON_LIST:
 		for (int k = 0; k < 3; k++) {
 			float yy = Y + s * (0.28f + 0.22f * k);
-			gfx_circle(x + (int)(s * 0.18f), (int)yy, (int)(t * 0.6f) + 1, c);
+			Raw_gfx_circle(x + (int)(s * 0.18f), (int)yy, (int)(t * 0.6f) + 1, c);
 			capsule(X + s * 0.34f, yy, X + s * 0.84f, yy, t, c);
 		}
 		break;
@@ -550,11 +553,11 @@ void gfx_icon(int icon, int x, int y, int sz, uint32_t c)
 	}
 	case ICON_HOME:
 		triangle(X + s * 0.5f, Y + s * 0.14f, X + s * 0.1f, Y + s * 0.5f, X + s * 0.9f, Y + s * 0.5f, c);
-		gfx_round_rect(x + (int)(s * 0.22f), y + (int)(s * 0.46f), (int)(s * 0.56f), (int)(s * 0.4f), (int)(s * 0.05f), c);
+		Raw_gfx_round_rect(x + (int)(s * 0.22f), y + (int)(s * 0.46f), (int)(s * 0.56f), (int)(s * 0.4f), (int)(s * 0.05f), c);
 		break;
 	case ICON_GRID:
 		for (int k = 0; k < 4; k++)
-			gfx_round_rect(x + (int)(s * (0.16f + 0.38f * (k & 1))), y + (int)(s * (0.16f + 0.38f * (k >> 1))),
+			Raw_gfx_round_rect(x + (int)(s * (0.16f + 0.38f * (k & 1))), y + (int)(s * (0.16f + 0.38f * (k >> 1))),
 				(int)(s * 0.3f), (int)(s * 0.3f), (int)(s * 0.06f), c);
 		break;
 	case ICON_QUEUE:	// Up Next: a play mark and three lines
@@ -1011,7 +1014,8 @@ static void G_Image(const image_t *img, int x, int y, int w, int h, int radius, 
 	const gtex_t *t = Tex_Of(img);
 	if (!t) return;
 	uint32_t c = ((uint32_t)(alpha > 255 ? 255 : alpha) << 24) | 0xffffff;
-	Rounded(x, y, w, h, radius, t, 0, 0, 1, 1, c);
+	if (img_flip) Rounded(x, y, w, h, radius, t, 1, 0, 0, 1, c);		// (u from 1 to 0: turned round)
+	else Rounded(x, y, w, h, radius, t, 0, 0, 1, 1, c);
 }
 
 static void G_Image_Part(const image_t *img, int sx, int sy, int sw, int sh, int x, int y, int w, int h, uint32_t top, uint32_t bottom)
@@ -1081,4 +1085,37 @@ static void G_Noise_Gradient(int x, int y, int w, int h, int slot)
 		grad_cache[slot].fresh = 0;
 	}
 	G_Image(p, x, y, w, h, 0, 255);
+}
+
+/*
+==================
+Right to left (Arabic): with the mirror on, the calls above are drawn mirrored across the
+canvas: a box at x is drawn at the canvas's width - x - its width. Text isn't mirrored here
+(font.c places each line where it goes, and its letters read the right way); pictures keep
+their way round unless drawn with gfx_image_flip (the UI's card art).
+==================
+*/
+static int mirror;
+void gfx_mirror(int on) { mirror = on; }
+int gfx_mirrored(void) { return mirror; }
+#define MX(x, w) (mirror ? cw - (x) - (w) : (x))
+
+void gfx_clip(int x, int y, int w, int h) { Raw_gfx_clip(MX(x, w), y, w, h); }
+void gfx_clip_get(int *x, int *y, int *w, int *h)
+{
+	Raw_gfx_clip_get(x, y, w, h);
+	if (mirror) *x = cw - *x - *w;
+}
+void gfx_rect(int x, int y, int w, int h, uint32_t c) { Raw_gfx_rect(MX(x, w), y, w, h, c); }
+void gfx_round_rect(int x, int y, int w, int h, int r, uint32_t c) { Raw_gfx_round_rect(MX(x, w), y, w, h, r, c); }
+void gfx_circle(int cx, int cy, int r, uint32_t c) { Raw_gfx_circle(mirror ? cw - cx : cx, cy, r, c); }
+void gfx_image(const image_t *img, int x, int y, int w, int h, int radius, int alpha)
+{
+	Raw_gfx_image(img, MX(x, w), y, w, h, radius, alpha);
+}
+void gfx_image_flip(const image_t *img, int x, int y, int w, int h, int radius, int alpha)
+{
+	img_flip = mirror;
+	Raw_gfx_image(img, MX(x, w), y, w, h, radius, alpha);
+	img_flip = 0;
 }

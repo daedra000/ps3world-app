@@ -1,0 +1,202 @@
+# PS3 World in Russian: "English<TAB>translation" a line; \n is a new line.
+# Keep every %s, %d... in the same order. Corrections welcome.
+No network connection. Check Settings > Network Settings on the PS3, then try again.	Нет подключения к сети. Проверьте «Настройки > Настройки сети» на PS3 и попробуйте снова.
+The secure connection to dl.ps3.world failed. Check the PS3's date and time (Settings > Date and Time Settings), then try again.	Не удалось установить защищённое соединение с dl.ps3.world. Проверьте дату и время на PS3 («Настройки > Настройки даты и времени») и попробуйте снова.
+Not found on the server (404). It may have moved: try again in a moment.	Не найдено на сервере (404). Возможно, файл перемещён: попробуйте чуть позже.
+Not enough free space. %s	Недостаточно свободного места. %s
+The catalogue wasn't found on the server (HTTP %d)	Каталог не найден на сервере (HTTP %d)
+Loading the catalogue...	Загрузка каталога...
+Offline: showing the catalogue from %.10s	Нет сети: показан каталог от %.10s
+Search isn't available: %s	Поиск недоступен: %s
+Couldn't make the folder %s	Не удалось создать папку %s
+Out of memory	Недостаточно памяти
+%d downloads are waiting already: add this one when some have finished.	Уже ждут загрузки: %d. Добавьте эту, когда некоторые завершатся.
+Install it from the XMB: Package Manager > Install Package Files.	Установите через XMB: «Диспетчер пакетов > Установить файл пакета».
+Choose it on the XMB: Settings > Theme Settings > Theme.	Выберите в XMB: «Настройки > Настройки темы > Тема».
+Choose it from the XMB: PlayStation Network > Account Management > Avatar.	Выберите в XMB: «PlayStation Network > Управление учётной записью > Аватар».
+Checksum OK (%s). Saved to %s\n%s	Контрольная сумма верна (%s). Сохранено в %s\n%s
+Download cancelled.	Загрузка отменена.
+Download paused. Press X to resume.	Загрузка приостановлена. Нажмите X, чтобы продолжить.
+The download didn't match its checksum, so it was deleted. Try again.	Загруженный файл не совпал с контрольной суммой и был удалён. Попробуйте снова.
+\nPress X to resume where it stopped.	\nНажмите X, чтобы продолжить с места остановки.
+Couldn't delete that file	Не удалось удалить файл
+A new version of this app. Once it's downloaded, install it from Package Manager > Install Package Files: it installs over this one.	Новая версия этого приложения. Когда она загрузится, установите её через «Диспетчер пакетов > Установить файл пакета»: она встанет поверх этой.
+Search	Поиск
+Searching for "%s"...	Поиск «%s»...
+Search: "%s"  (%d%s)	Поиск: «%s»  (%d%s)
+Checking for updates...	Проверка обновлений...
+%s  %d%%  ·  %d more	%s  %d%%  ·  ещё %d
+%s free on the HDD  ·  %d downloaded	Свободно на HDD: %s  ·  загружено: %d
+%d downloaded	Загружено: %d
+PS3 World %s is out: press Square to get it	Вышла PS3 World %s: нажмите «Квадрат», чтобы загрузить
+Open	Открыть
+My downloads	Мои загрузки
+Update	Обновить
+Language	Язык
+Back	Назад
+Section	Раздел
+Nothing here yet.	Здесь пока пусто.
+Nothing matches the search. Press Square to clear it.	Ничего не найдено. Нажмите «Квадрат», чтобы сбросить поиск.
+Loading...	Загрузка...
+Downloaded	Загружено
+CFW only	Только CFW
+HEN / CFW	HEN / CFW
+Unknown author	Автор неизвестен
+Clear search	Сбросить поиск
+Packs	Наборы
+Categories	Категории
+A-Z	А–Я
+Loading the preview...	Загрузка превью...
+Author	Автор
+Version	Версия
+Size	Размер
+Pack	Набор
+Category	Категория
+Works on	Работает на
+HEN or CFW	HEN или CFW
+Any PS3	Любая PS3
+Saves to	Сохраняется в
+Yes	Да
+Checking what's there already...	Проверка того, что уже есть...
+Checking the sha256...	Проверка sha256...
+Downloading	Загрузка
+Resumed from %s	Продолжено с %s
+Queued: %d download ahead of it. You can go back and keep browsing.	В очереди. Загрузок перед ней: %d. Можно вернуться и продолжить просмотр.
+Queued: %d downloads ahead of it. You can go back and keep browsing.	В очереди. Загрузок перед ней: %d. Можно вернуться и продолжить просмотр.
+After it downloads: %s	После загрузки: %s
+Cancel download	Отменить загрузку
+Try again	Повторить
+Download again	Загрузить снова
+Download	Загрузить
+Which user is the avatar for?	Для какого пользователя этот аватар?
+It's saved in that user's psn_avatar folder.	Он сохраняется в папку psn_avatar этого пользователя.
+Choose	Выбрать
+The PS3's language (%s)	Язык PS3 (%s)
+%d on the HDD (%s)  ·  %s free	На HDD: %d (%s)  ·  свободно %s
+%d on the HDD (%s)	На HDD: %d (%s)
+Nothing downloaded yet.	Пока ничего не загружено.
+Downloading %d%%	Загрузка %d%%
+Queued	В очереди
+Failed	Ошибка
+New version	Новая версия
+Press Square again to delete this file from the HDD.	Нажмите «Квадрат» ещё раз, чтобы удалить этот файл с HDD.
+Delete	Удалить
+Clear	Убрать
+Apps · Games · Ports	Приложения · Игры · Порты
+Homebrew	Homebrew
+Homebrew tools and games, PC ports and media players for HEN & CFW.	Homebrew-утилиты и игры, порты с ПК и медиаплееры для HEN и CFW.
+Customise your XMB	Настройте свой XMB
+Themes	Темы
+Custom themes from the full theme archive, by category.	Темы со всего архива, по категориям.
+Your profile picture	Ваша аватарка
+Avatars	Аватары
+XMB avatars from every region, saved to your PS3 user.	Аватары для XMB из всех регионов, сохраняются для вашего пользователя PS3.
+Games	Игры
+Play	Играть
+Homebrew Games	Homebrew-игры
+Grid Siege, Super Mario War, PS3Sweeper+ and more.	Grid Siege, Super Mario War, PS3Sweeper+ и другие.
+Ports	Порты
+PC & retro	ПК и ретро
+Undertale, Nazi Zombies: Portable, Mario Kart 64 and more. No game files needed.	Undertale, Nazi Zombies: Portable, Mario Kart 64 и другие. Файлы игр не нужны.
+Tools	Утилиты
+Essentials	Самое нужное
+Homebrew Tools	Homebrew-утилиты
+Apollo, IRISMAN, webMAN MOD, PKGi, multiMAN and more.	Apollo, IRISMAN, webMAN MOD, PKGi, multiMAN и другие.
+Media	Медиа
+Watch & listen	Смотреть и слушать
+Media Players	Медиаплееры
+Movian, Yo! Player, Jellyfin, Spotify and Resonant for Plex.	Movian, Yo! Player, Jellyfin, Spotify и Resonant for Plex.
+Misc	Разное
+Prototypes & demos	Прототипы и демо
+Miscellaneous	Разное
+Unreleased prototypes, demos and more.	Невыпущенные прототипы, демо и многое другое.
+All themes	Все темы
+Anime & Comics	Аниме и комиксы
+Movies & TV	Кино и ТВ
+Sports	Спорт
+Abstract Art & Design	Абстракция и дизайн
+Art & Graphics	Арт и графика
+Music	Музыка
+Computers & Tech	Компьютеры и техника
+Dynamic & Animated	Динамические и анимированные
+Cars & Transportation	Машины и транспорт
+Nature & Animals	Природа и животные
+Celebrities & People	Знаменитости и люди
+Slideshow	Слайд-шоу
+General	Общее
+Holiday & Seasonal	Праздники и сезоны
+Official PlayStation Themes	Официальные темы PlayStation
+All avatars	Все аватары
+US	США
+EU	ЕС
+Japan	Япония
+Asia	Азия
+Other	Другие
+No user profiles were found in /dev_hdd0/home.	В /dev_hdd0/home не найдено профилей пользователей.
+Choose which user the avatar is for.	Выберите, для какого пользователя этот аватар.
+%s doesn't match the catalogue (it may be being updated): try again later	%s не совпадает с каталогом (возможно, он обновляется): попробуйте позже
+Not enough free space (%s)	Недостаточно свободного места (%s)
+Couldn't write to %s	Не удалось записать в %s
+The drive is full%s	Диск заполнен%s
+The server sent the wrong part of the file. Try again%s	Сервер прислал не ту часть файла. Попробуйте снова%s
+Not found on the server (404)%s	Не найдено на сервере (404)%s
+The server's copy is different (416). Try again%s	Копия на сервере отличается (416). Попробуйте снова%s
+Download cut short%s	Загрузка прервалась%s
+Checksum mismatch: the file was deleted. Try again%s	Контрольная сумма не совпала: файл удалён. Попробуйте снова%s
+Couldn't rename the finished file in %s	Не удалось переименовать готовый файл в %s
+Can't find %s (is the PS3 online?)	Не удаётся найти %s (PS3 подключена к сети?)
+Can't connect to %s:%d (%d)	Не удаётся подключиться к %s:%d (%d)
+Secure connections are unavailable	Защищённые соединения недоступны
+%s's certificate was rejected (is the PS3's clock right?)	Сертификат %s отклонён (часы PS3 выставлены верно?)
+Secure connection to %s failed (-0x%04x)	Не удалось защищённое соединение с %s (-0x%04x)
+Request to %s failed	Запрос к %s не удался
+No reply from %s	Нет ответа от %s
+Reply from %s cut short	Ответ от %s прервался
+The network isn't available	Сеть недоступна
+Bad URL	Неверный адрес
+The reply wasn't understood	Ответ не распознан
+Insecure redirect refused	Небезопасное перенаправление отклонено
+Redirect to another host refused	Перенаправление на другой сервер отклонено
+Too many redirects	Слишком много перенаправлений
+Download cut short	Загрузка прервалась
+Cancelled	Отменено
+Stopped	Остановлено
+Edits	Edits
+PS2 Classics	Классика PS2
+Modded PS2 classics: Budokai Tenkaichi 3, WWE 2K24, GTA Forelli Redemption and more.	Модифицированная классика PS2: Budokai Tenkaichi 3, WWE 2K24, GTA Forelli Redemption и другие.
+under a minute	меньше минуты
+about %d minutes	около %d мин
+about %d hours %d minutes	около %d ч %d мин
+Not enough free space: this needs %s, and %s is free.	Недостаточно места: нужно %s, свободно %s.
+This is %s (%s). Press X again to download it.	Размер: %s (%s). Нажмите X ещё раз, чтобы загрузить.
+This is %s. Press X again to download it.	Размер: %s. Нажмите X ещё раз, чтобы загрузить.
+Getting the pack's avatars...	Получение аватаров набора...
+%d avatars queued: the queue is full, so add the rest later.	Аватаров в очереди: %d. Очередь заполнена, добавьте остальные позже.
+%d avatars queued: they download one after another.	Аватаров в очереди: %d. Они загрузятся по очереди.
+Every avatar in this pack is downloaded or queued already.	Все аватары этого набора уже загружены или в очереди.
+Download pack	Загрузить набор
+Full screen	Во весь экран
+Unfavourite	Убрать из избранного
+Favourite	В избранное
+The preview couldn't be loaded.	Не удалось загрузить превью.
+Favourites	Избранное
+%d favourite	В избранном: %d
+%d favourites	В избранном: %d
+No favourites yet. Press Select on an item to add it.	В избранном пока ничего нет. Нажмите Select на элементе, чтобы добавить его.
+Recently added	Недавно добавленные
+New	Новое
+Not every theme has a preview: some were archived without one.	Не у всех тем есть превью: некоторые попали в архив без него.
+This theme was archived without a preview.	Эта тема попала в архив без превью.
+What's new	Что нового
+Credits & contact	Авторы и контакты
+Made by	Создатели
+Thanks to	Спасибо
+Want your homebrew, theme or avatar on PS3 World? Send it in with the contact form:	Хотите, чтобы ваш homebrew, тема или аватар появились на PS3 World? Отправьте через форму обратной связи:
+Surprise me	Удиви меня
+Picking something at random...	Выбираем что-нибудь случайное...
+Sound effects: on	Звуковые эффекты: вкл.
+Sound effects: off	Звуковые эффекты: выкл.
+Newest first	Сначала новые
+Largest first	Сначала большие
+A-Z order	По алфавиту
+Scan with your phone	Отсканируйте телефоном

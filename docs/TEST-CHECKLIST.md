@@ -29,7 +29,8 @@ Tick each box. Where a step fails, note what the screen said and copy `/dev_hdd0
 
 - [ ] With the PS3 in Spanish (Settings > Language Settings > System Language), the app opens in Spanish: cards, hints, the detail screen, errors. Theme categories are Spanish too; item names and descriptions stay as they are on the site.
 - [ ] Home > Select: the language list. The first row is "The PS3's language (...)", the one in use is in blue. Pick **Français**: everything changes at once, and it's still French after quitting and reopening.
-- [ ] Pick **العربية** (Arabic): the letters are joined (not separate shapes) and read right to left; numbers and paths in a line (/dev_hdd0..., 45%) stay left to right.
+- [ ] Pick **العربية** (Arabic): the letters are joined (not separate shapes) and read right to left; numbers and paths in a line (/dev_hdd0..., 45%) stay left to right. The whole screen is mirrored: text right-aligned, hints from the right, list icons on the right, the detail preview on the right, card art on the left (turned round). Previews and icons are not mirrored.
+- [ ] Pick **Русский** (Russian), or set the PS3 to Russian: everything in Russian (Cyrillic from DejaVu), homebrew descriptions too once the catalogue is uploaded. The language list (14 rows and the sound row) fits above the hints.
 - [ ] Polish and Turkish letters (ą ę ł ż, ğ ş ı İ) show, not boxes.
 - [ ] Long German or French hints don't run into the download strip bottom right.
 - [ ] Back to "The PS3's language": it follows the console again.

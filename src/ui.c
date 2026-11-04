@@ -269,7 +269,7 @@ static void Card_Frame(int x, int y, int w, int h, int on)
 {
 	if (on) gfx_round_rect(x - 3, y - 3, w + 6, h + 6, 21, C_ACCENT);
 	else gfx_round_rect(x - 1, y - 1, w + 2, h + 2, 19, C_BORDER);
-	if (card_bg) gfx_image(card_bg, x, y, w, h, 18, 255);
+	if (card_bg) gfx_image_flip(card_bg, x, y, w, h, 18, 255);		// (its glow on the side the art's on)
 	else gfx_round_rect(x, y, w, h, 18, 0xff0e131f);
 }
 
@@ -293,7 +293,7 @@ static void Card(int x, int y, int w, int h, int on, const image_t *art, const c
 	int title_px, const char *blurb, const char **chips, int num_chips)
 {
 	Card_Frame(x, y, w, h, on);
-	if (art) gfx_image(art, x, y, w, h, 18, on ? 255 : 160);		// the site's 0.8 on hover, 0.5 off
+	if (art) gfx_image_flip(art, x, y, w, h, 18, on ? 255 : 160);		// (right to left: the art's on the left)		// the site's 0.8 on hover, 0.5 off
 	// spaced by the letters, not their boxes: 16 px from the kicker to the title, 20 to the text
 	int tx = x + 28, ty = y + 24, chip_y = y + h - 26 - CHIP_H;
 	if (kicker) {
@@ -2637,14 +2637,14 @@ static void Draw_Lang(void)
 	Draw_Top(tr("Language"));
 	char line[160];
 	for (int i = 0; i <= LANG_COUNT; i++) {
-		int y = 116 + i * 36;
+		int y = 116 + i * 34;
 		if (i == lang_sel) gfx_round_rect(SCREEN_W / 2 - 320, y - 6, 640, 36, 10, C_ROW_ON);
 		if (i == 0) snprintf(line, sizeof(line), tr("The PS3's language (%s)"), lang_name(i18n_system()));
 		else snprintf(line, sizeof(line), "%s", lang_name(i - 1));
 		int chosen = i == i18n_choice() + 1;
 		font_draw_center(chosen ? FONT_BOLD : FONT_MEDIUM, 22, SCREEN_W / 2, y, line, chosen ? C_CYAN : C_TEXT, 600);
 	}
-	int y = 116 + (LANG_COUNT + 1) * 36 + 12;		// the sounds, under a line
+	int y = 116 + (LANG_COUNT + 1) * 34 + 12;		// the sounds, under a line
 	gfx_rect(SCREEN_W / 2 - 200, y - 12, 400, 1, C_BORDER);
 	if (lang_sel == LANG_COUNT + 1) gfx_round_rect(SCREEN_W / 2 - 320, y - 6, 640, 36, 10, C_ROW_ON);
 	font_draw_center(FONT_MEDIUM, 22, SCREEN_W / 2, y, tr(sound_on ? "Sound effects: on" : "Sound effects: off"), C_TEXT, 600);
@@ -2755,6 +2755,7 @@ static void Draw_Downloads(void)
 
 void ui_render(void)
 {
+	gfx_mirror(lang_current() == LANG_AR);		// Arabic: the whole screen right to left
 	if (backdrop) gfx_image(backdrop, 0, 0, SCREEN_W, SCREEN_H, 0, 255);
 	else gfx_clear(C_BG);
 	switch (screen) {

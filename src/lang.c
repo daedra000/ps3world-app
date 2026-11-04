@@ -4,9 +4,9 @@ lang.c: tr() and the languages there are (the loading is i18n.c's).
 #include <string.h>
 #include "lang.h"
 
-static const char *const codes[LANG_COUNT] = {"en", "es", "pt", "fr", "de", "it", "nl", "pl", "tr", "da", "id", "ar"};
+static const char *const codes[LANG_COUNT] = {"en", "es", "pt", "fr", "de", "it", "nl", "pl", "tr", "da", "id", "ar", "ru"};
 static const char *const names[LANG_COUNT] = {"English", "Español", "Português", "Français", "Deutsch", "Italiano",
-	"Nederlands", "Polski", "Türkçe", "Dansk", "Bahasa Indonesia", "العربية"};
+	"Nederlands", "Polski", "Türkçe", "Dansk", "Bahasa Indonesia", "العربية", "Русский"};
 
 static const lang_table_t *volatile table;
 static volatile int current;

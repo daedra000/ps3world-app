@@ -399,7 +399,16 @@ static void Put(int font, int px, uint32_t cp, const glyph_t *g, int pen, int ba
 		gfx_mask(g->bmp, g->w, g->h, g->w, pen + g->xoff, base + g->yoff, c);
 }
 
+static int Draw_At(int font, int px, int x, int y, const char *s, uint32_t c, int maxw);
+
+// right to left (gfx_mirrored): the line ends where it would start, measured first (no alpha: nothing drawn)
 static int Draw(int font, int px, int x, int y, const char *s, uint32_t c, int maxw)
+{
+	if (gfx_mirrored() && s) x = SCREEN_W - x - Draw_At(font, px, x, y, s, c & 0x00ffffff, maxw);
+	return Draw_At(font, px, x, y, s, c, maxw);
+}
+
+static int Draw_At(int font, int px, int x, int y, const char *s, uint32_t c, int maxw)
 {
 	int base = y + Ascent(font, px);
 	int pen = x;
@@ -474,6 +483,7 @@ int font_draw_right(int font, int px, int rx, int y, const char *s, uint32_t c)
 // one character with its drawn shape (not its line box) centred on (cx, cy)
 void font_draw_glyph_centered(int font, int px, int cx, int cy, const char *ch, uint32_t c)
 {
+	if (gfx_mirrored()) cx = SCREEN_W - cx;
 	const char *p = ch;
 	uint32_t cp = Utf8_Next(&p);
 	glyph_t *g = Glyph(font, px, cp);
