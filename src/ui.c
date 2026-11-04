@@ -69,13 +69,14 @@ Resonant (swapped on consoles that confirm with Circle).
 #define FAV_H		104			// the home screen's Favourites card, under the sections'
 #define HOME_H		(CARD_H - FAV_H - CARD_GAP)	// the sections' cards
 #define HOME_FAVS	NUM_TYPES	// home_sel: the Favourites card
+#define QR_PX		132			// the contact QR code: 33 modules, 4 px each at 720p, 6 at 1080p (sharp)
 
 enum { SCR_START, SCR_HOME, SCR_LIST, SCR_DETAIL, SCR_PROFILE, SCR_DOWNLOADS, SCR_LANG, SCR_CREDITS };
 
 static int screen = SCR_START;
 static int dirty = 1;
 static uint64_t t_now;
-static image_t *backdrop, *logo;
+static image_t *backdrop, *logo, *qr_contact;	// (qr: ps3.world/contact, made by tools/qr.mjs)
 
 static const char *section_names[NUM_TYPES] = {"Homebrew", "Themes", "Avatars"};
 
@@ -1938,6 +1939,7 @@ void ui_init(void)
 	char name[64];
 	backdrop = Load_Image("backdrop.png", SCREEN_W, SCREEN_H);
 	logo = Load_Image("logo.png", 220, 31);
+	qr_contact = Load_Image("qr-contact.png", QR_PX, QR_PX);
 	for (int i = 0; i < NUM_GLYPHS; i++) {
 		snprintf(name, sizeof(name), "glyphs/%s.png", glyph_files[i]);
 		glyphs[i] = Load_Image(name, GLYPH, GLYPH);		// (at the screen's size: Load_Image sees to it)
@@ -2605,7 +2607,7 @@ static void Draw_Credits(void)
 	char lines[4][256];
 	int cx = SCREEN_W / 2;
 	Draw_Top(tr("Credits & contact"));
-	gfx_round_rect(LIST_X - 12, 96, LIST_W + 24, 420, 16, C_PANEL);
+	gfx_round_rect(LIST_X - 12, 96, LIST_W + 24, 446, 16, C_PANEL);
 	font_draw_center(FONT_MEDIUM, 20, cx, 136, tr("Made by"), C_CYAN, 0);
 	font_draw_center(FONT_BOLD, 32, cx, 166, "daedra000  \xc2\xb7  Claude (Anthropic)", C_TEXT, LIST_W - 40);
 
@@ -2616,10 +2618,16 @@ static void Draw_Credits(void)
 		font_draw_center(FONT_REGULAR, 19, cx, 276 + i * 28, lines[i], C_TEXT2, 0);
 
 	gfx_rect(cx - 300, 366, 600, 1, C_BORDER);
-	n = Wrap(FONT_MEDIUM, 22, tr("Want your homebrew, theme or avatar on PS3 World? Send it in with the contact form:"), LIST_W - 160, lines, 3);
+	int tx = cx - (qr_contact ? QR_PX / 2 + 20 : 0), tw = qr_contact ? 700 : LIST_W - 160;
+	n = Wrap(FONT_MEDIUM, 22, tr("Want your homebrew, theme or avatar on PS3 World? Send it in with the contact form:"), tw, lines, 3);
 	for (int i = 0; i < n; i++)
-		font_draw_center(FONT_MEDIUM, 22, cx, 400 + i * 32, lines[i], C_TEXT, 0);
-	font_draw_center(FONT_BOLD, 34, cx, 412 + n * 32, "ps3.world/contact", C_CYAN, 0);
+		font_draw_center(FONT_MEDIUM, 22, tx, 392 + i * 32, lines[i], C_TEXT, 0);
+	font_draw_center(FONT_BOLD, 34, tx, 404 + n * 32, "ps3.world/contact", C_CYAN, 0);
+	if (qr_contact) {
+		int qx = tx + tw / 2 + 30, qy = 376;
+		gfx_image(qr_contact, qx, qy, QR_PX, QR_PX, 8, 255);
+		font_draw_center(FONT_REGULAR, 16, qx + QR_PX / 2, qy + QR_PX + 6, tr("Scan with your phone"), C_DIM, QR_PX + 60);
+	}
 
 	Hint(LIST_X, G_CIRCLE, tr("Back"));
 }

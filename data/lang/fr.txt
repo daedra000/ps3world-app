@@ -199,3 +199,4 @@ Sound effects: off	Effets sonores : désactivés
 Newest first	Les plus récents
 Largest first	Les plus gros
 A-Z order	Ordre A-Z
+Scan with your phone	Scannez avec votre téléphone

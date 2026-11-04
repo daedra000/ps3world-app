@@ -199,3 +199,4 @@ Sound effects: off	Ses efektleri: kapalı
 Newest first	Önce en yeniler
 Largest first	Önce en büyükler
 A-Z order	A-Z sırası
+Scan with your phone	Telefonunla tara

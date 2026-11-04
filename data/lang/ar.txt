@@ -199,3 +199,4 @@ Sound effects: off	المؤثرات الصوتية: إيقاف
 Newest first	الأحدث أولًا
 Largest first	الأكبر أولًا
 A-Z order	ترتيب A-Z
+Scan with your phone	امسحه بهاتفك

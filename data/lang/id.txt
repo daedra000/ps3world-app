@@ -199,3 +199,4 @@ Sound effects: off	Efek suara: mati
 Newest first	Terbaru dulu
 Largest first	Terbesar dulu
 A-Z order	Urutan A-Z
+Scan with your phone	Pindai dengan ponselmu

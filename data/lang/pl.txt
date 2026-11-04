@@ -199,3 +199,4 @@ Sound effects: off	Efekty dźwiękowe: wył.
 Newest first	Najnowsze najpierw
 Largest first	Największe najpierw
 A-Z order	Kolejność A-Z
+Scan with your phone	Zeskanuj telefonem
